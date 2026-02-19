@@ -1,4 +1,4 @@
-package io.ionic.libs.ion-android
+package io.ionic.libs.ioncameralib
 
 import org.junit.Test
 

@@ -1,4 +1,4 @@
-package io.ionic.libs.ion-android
+package io.ionic.libs.ioncameralib
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
