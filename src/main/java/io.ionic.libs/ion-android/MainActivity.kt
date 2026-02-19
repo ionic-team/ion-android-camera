@@ -1,4 +1,4 @@
-package organizationidplaceholder.libtemplateplaceholder
+package io.ionic.libs.ion-android
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
