@@ -1,9 +1,12 @@
 package io.ionic.libs.ioncameralib.manager
 
 import android.app.Activity
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
 import android.content.ContentResolver
 import android.content.ContentValues
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory.Options
 import android.graphics.Matrix
@@ -35,8 +38,11 @@ import java.io.InputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 
+
 class CameraManager(
     private var applicationId: String,
+    private var authority: String,
+    private val activityLauncher: ActivityResultLauncher<Intent>,
     private var exif: OSCAMRExifHelperInterface,
     private var fileHelper: OSCAMRFileHelperInterface,
     private var mediaHelper: OSCAMRMediaHelperInterface,
@@ -76,8 +82,6 @@ class CameraManager(
         const val EDIT_REQUEST_CODE = 7
         const val EDIT_FROM_GALLERY_REQUEST_CODE = 11
 
-        private const val AUTHORITY = ".camera.provider"
-
         private const val PICTURE_NAMES_PREFIX = "PIC_"
         private const val VIDEO_NAMES_PREFIX = "VID_"
         private const val VIDEO_FORMAT = ".mp4"
@@ -95,9 +99,7 @@ class CameraManager(
      * @param returnType  Set the type of image to return.
      * @param encodingType  JPEG or PNG.
      */
-    fun takePhoto(activity: Activity, returnType: Int, encodingType: Int) {
-
-        Log.d("CAMERA_DEBUG", "=================> takePhoto")
+    fun takePhoto(activity: Activity, encodingType: Int) {
         // Save filename to fetch later (needed when allowEdit is true)
         val fileName = PICTURE_NAMES_PREFIX + SimpleDateFormat(TIME_FORMAT).format(Date())
         fileHelper.saveStringSharedPreferences(activity, EDIT_FILE_NAME_KEY, fileName)
@@ -109,14 +111,18 @@ class CameraManager(
             fileName
         )
         this.imageFilePath = photo.absolutePath
-        this.imageUri = fileHelper.getUriForFile(activity, "$applicationId.camera.provider", photo)
+        this.imageUri = fileHelper.getUriForFile(activity, "$applicationId$authority", photo)
 
-        Log.d("CAMERA_DEBUG", "imageUri=$imageUri")
-        Log.d("CAMERA_DEBUG", "imageFilePath=$imageFilePath")
-        mediaHelper.openDeviceCamera(activity, imageUri, returnType)
+        val intent = mediaHelper.createCameraIntent(activity, imageUri)
+
+        if (intent != null) {
+            activityLauncher.launch(intent)
+        }else{
+            Log.d(LOG_TAG, "Failed to launch camera intent")
+        }
     }
 
-    fun openCropActivity(activity: Activity?, picUri: Uri?, requestCode: Int?, destType: Int?) {
+    fun openCropActivity(activity: Activity?, picUri: Uri?, launcher: ActivityResultLauncher<Intent>) {
         val cropIntent = Intent(activity, ImageEditorActivity::class.java)
 
         // creates output file
@@ -129,14 +135,8 @@ class CameraManager(
 
         cropIntent.putExtra(ImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS, croppedFilePath)
         cropIntent.putExtra(ImageEditorActivity.IMAGE_INPUT_URI_EXTRAS, picUri.toString())
-        var code = EDIT_REQUEST_CODE
-        if (requestCode != null && destType != null) {
-            code = requestCode + destType
-        }
-        activity?.startActivityForResult(
-            cropIntent,
-            code
-        )
+
+        launcher.launch(cropIntent)
     }
 
     /**
@@ -169,7 +169,6 @@ class CameraManager(
     @Throws(IOException::class)
     fun processResultFromCamera(
         activity: Activity,
-        intent: Intent?,
         camParameters: IONParameters,
         onImage: (String) -> Unit,
         onMediaResult: (IONMediaResult) -> Unit,
@@ -189,6 +188,7 @@ class CameraManager(
             }
         }
         var bitmap: Bitmap?
+        var savedSuccessfully = false
 
         // CB-5479 When this option is given the unchanged image should be saved
         // in the gallery and the modified image is saved in the temporary directory
@@ -198,14 +198,15 @@ class CameraManager(
             } else {
                 imageUri
             }
-            savePictureInGallery(activity, camParameters.encodingType, srcUri)
+
+            savedSuccessfully = savePictureInGallery(activity, camParameters.encodingType, srcUri)
         }
         if (camParameters.latestVersion) {
             val mediaResult =
                 sourcePath?.let {
                     val imageUri = fileHelper.getUriForFile(
                         activity,
-                        "$applicationId${CameraManager.Companion.AUTHORITY}",
+                        "$applicationId$authority",
                         File(sourcePath)
                     )
                     if (imageUri == null) {
@@ -217,7 +218,8 @@ class CameraManager(
                         it,
                         imageUri,
                         camParameters.includeMetadata,
-                        camParameters
+                        camParameters,
+                        savedSuccessfully
                     )
                 }
             if (mediaResult == null) {
@@ -229,51 +231,41 @@ class CameraManager(
             //get bitmap
             bitmap = sourcePath?.let { getScaledAndRotatedBitmap(activity, it, camParameters) }
             if (bitmap == null) {
-                // Try to get the bitmap from intent.
-                if (intent != null) {
-                    try {
-                        // getExtras can throw different exceptions
-                        val extras = intent.extras
-                        if (extras != null) {
-                            bitmap = extras["data"] as Bitmap?
-                        }
-                    } catch (e: Exception) {
-                        // Don't let the exception bubble up, bitmap will be null (check below)
-                    }
-                }
+                onError(IONError.PROCESS_IMAGE_ERROR)
+                return
             }
             //get base64 representation of bitmap
-            var processPictureError = false
             imageHelper.processPicture(
                 bitmap, camParameters.encodingType, camParameters.mQuality,
                 {
                     onImage(it)
                 },
                 {
-                    processPictureError = true
                     onError(it)
                 }
             )
-            if (processPictureError) {
-                return
-            }
         }
     }
 
-    private fun savePictureInGallery(activity: Activity, encodingType: Int, srcUri: Uri?) {
-        val galleryPathVO: OSCAMRGalleryHelper = getPicturesPath(encodingType)
-        val fileFromGalleryPath = File(galleryPathVO.galleryPath)
-        val galleryUri = Uri.fromFile(fileFromGalleryPath)
+    private fun savePictureInGallery(activity: Activity, encodingType: Int, srcUri: Uri?): Boolean {
+        return try {
+            val galleryPathVO: OSCAMRGalleryHelper = getPicturesPath(encodingType)
+            val fileFromGalleryPath = File(galleryPathVO.galleryPath)
+            val galleryUri = Uri.fromFile(fileFromGalleryPath)
 
-        if (Build.VERSION.SDK_INT <= 28) {
-            writeTakenPictureToGalleryLowerThanAndroidQ(activity, srcUri, galleryUri)
-        } else {
-            writeTakenPictureToGalleryStartingFromAndroidQ(
-                activity,
-                srcUri,
-                galleryPathVO,
-                encodingType
-            )
+            if (Build.VERSION.SDK_INT <= 28) {
+                writeTakenPictureToGalleryLowerThanAndroidQ(activity, srcUri, galleryUri)
+            } else {
+                writeTakenPictureToGalleryStartingFromAndroidQ(
+                    activity,
+                    srcUri,
+                    galleryPathVO,
+                    encodingType
+                )
+            }
+            true
+        } catch (e: Exception) {
+            false
         }
     }
 
@@ -288,7 +280,8 @@ class CameraManager(
         imagePath: String,
         mediaUri: Uri,
         includeMetadata: Boolean,
-        camParameters: IONParameters?
+        camParameters: IONParameters?,
+        saved: Boolean = false
     ): IONMediaResult? {
         var base64Image = ""
         var error: IONError? = null
@@ -349,7 +342,7 @@ class CameraManager(
             )
         }
 
-        return IONMediaResult(IONMediaType.PICTURE.type, imagePath, base64Image, metadata)
+        return IONMediaResult(IONMediaType.PICTURE.type, imagePath, base64Image, metadata, saved)
     }
 
     /**
@@ -421,7 +414,7 @@ class CameraManager(
         activity: Activity?,
         srcUri: Uri?,
         galleryUri: Uri?
-    ) {
+    ){
         writeUncompressedImage(activity, srcUri, galleryUri)
         fileHelper.refreshGallery(activity, galleryUri)
     }

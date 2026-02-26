@@ -112,8 +112,6 @@ class OSCAMRController(
      * @param encodingType  JPEG or PNG.
      */
     fun takePhoto(activity: Activity, returnType: Int, encodingType: Int) {
-
-        Log.d("CAMERA_DEBUG", "=================> takePicture zzz")
         // Save filename to fetch later (needed when allowEdit is true)
         val fileName = PICTURE_NAMES_PREFIX + SimpleDateFormat(TIME_FORMAT).format(Date())
         fileHelper.saveStringSharedPreferences(activity, EDIT_FILE_NAME_KEY, fileName)
@@ -127,7 +125,7 @@ class OSCAMRController(
         this.imageFilePath = photo.absolutePath
         this.imageUri = fileHelper.getUriForFile(activity, "$applicationId.camera.provider", photo)
 
-        mediaHelper.openDeviceCamera(activity, imageUri, returnType)
+        //mediaHelper.openDeviceCamera(activity, imageUri, returnType)
     }
 
     /**
@@ -536,7 +534,7 @@ class OSCAMRController(
             )
         }
 
-        return IONMediaResult(IONMediaType.PICTURE.type, imagePath, base64Image, metadata)
+        return IONMediaResult(IONMediaType.PICTURE.type, imagePath, base64Image, metadata, true)
     }
 
     /**

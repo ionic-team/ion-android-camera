@@ -6,7 +6,7 @@ import android.database.Cursor
 import android.net.Uri
 
 interface OSCAMRMediaHelperInterface {
-    fun openDeviceCamera(activity: Activity?, imageUri: Uri?, returnType: Int)
+    fun createCameraIntent(activity: Activity?, imageUri: Uri?): Intent?
     fun getCursor(activity: Activity?, contentStore: Uri): Cursor?
     fun getNumberOfImages(activity: Activity?, contentStore: Uri?): Int?
     fun getColumnIndex(cursor: Cursor?): Int?
