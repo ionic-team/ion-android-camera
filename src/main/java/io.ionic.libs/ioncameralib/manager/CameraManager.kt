@@ -2,11 +2,9 @@ package io.ionic.libs.ioncameralib.manager
 
 import android.app.Activity
 import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.IntentSenderRequest
 import android.content.ContentResolver
 import android.content.ContentValues
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory.Options
 import android.graphics.Matrix
@@ -28,7 +26,7 @@ import io.ionic.libs.ioncameralib.model.IONError
 import io.ionic.libs.ioncameralib.model.IONMediaMetadata
 import io.ionic.libs.ioncameralib.model.IONMediaResult
 import io.ionic.libs.ioncameralib.model.IONMediaType
-import io.ionic.libs.ioncameralib.model.IONParameters
+import io.ionic.libs.ioncameralib.model.IONCameraParameters
 import io.ionic.libs.ioncameralib.view.ImageEditorActivity
 import kotlinx.coroutines.Job
 import java.io.File
@@ -42,7 +40,6 @@ import java.util.Date
 class CameraManager(
     private var applicationId: String,
     private var authority: String,
-    private val activityLauncher: ActivityResultLauncher<Intent>,
     private var exif: OSCAMRExifHelperInterface,
     private var fileHelper: OSCAMRFileHelperInterface,
     private var mediaHelper: OSCAMRMediaHelperInterface,
@@ -94,12 +91,24 @@ class CameraManager(
     }
 
     /**
+     * Deletes all the videos that were captured and saved on the cache while the app was running.
+     * @param activity  Activity to provide the context to delete the file.
+     */
+    fun deleteVideoFilesFromCache(activity: Activity) {
+        fileHelper.getCachedFileNames(activity)?.keys?.let { fileNames ->
+            for (fileName in fileNames) {
+                fileHelper.deleteFileFromCache(activity, fileName)
+                fileHelper.removeFileNameFromPrefs(fileName, activity)
+            }
+        }
+    }
+
+    /**
      * Take a picture with the camera.
      * @param activity  Activity object that will be necessary to take the picture
-     * @param returnType  Set the type of image to return.
      * @param encodingType  JPEG or PNG.
      */
-    fun takePhoto(activity: Activity, encodingType: Int) {
+    fun takePhoto(activity: Activity, encodingType: Int, launcher: ActivityResultLauncher<Intent>) {
         // Save filename to fetch later (needed when allowEdit is true)
         val fileName = PICTURE_NAMES_PREFIX + SimpleDateFormat(TIME_FORMAT).format(Date())
         fileHelper.saveStringSharedPreferences(activity, EDIT_FILE_NAME_KEY, fileName)
@@ -116,9 +125,39 @@ class CameraManager(
         val intent = mediaHelper.createCameraIntent(activity, imageUri)
 
         if (intent != null) {
-            activityLauncher.launch(intent)
+            launcher.launch(intent)
         }else{
             Log.d(LOG_TAG, "Failed to launch camera intent")
+        }
+    }
+
+    /**
+     * Calls the intent to open the device's camera to record a video.
+     * @param activity  Activity object that will be necessary to launch the edit activity.
+     * @param saveVideoToGallery Indicates if the recorded video should be saved to the device gallery
+     * @param onError callback that will be used when an error occurs.
+     */
+    fun recordVideo(activity: Activity, saveVideoToGallery: Boolean = false, launcher: ActivityResultLauncher<Intent>, onError: (IONError) -> Unit) {
+        val videoFileUri = fileHelper.getUriForFile(
+            activity,
+            "$applicationId$authority",
+            createVideoFile(activity)
+        )
+        fileHelper.saveStringSharedPreferences(activity,
+            STORE, videoFileUri.toString())
+        val captureVideoIntent = Intent(MediaStore.ACTION_VIDEO_CAPTURE)
+
+        if (mediaHelper.existsActivity(activity, captureVideoIntent)) {
+
+            val intent = mediaHelper.createDeviceVideoIntent(activity, captureVideoIntent, videoFileUri, saveVideoToGallery)
+            if (intent != null) {
+                launcher.launch(intent)
+            }else{
+                Log.d(LOG_TAG, "Failed to launch device video intent")
+            }
+        } else {
+            Log.d(LOG_TAG, "Error: You don't have a default camera for recording video.")
+            onError(IONError.NO_CAMERA_AVAILABLE_ERROR)
         }
     }
 
@@ -162,6 +201,17 @@ class CameraManager(
     }
 
     /**
+     * Create a video file in the applications temporary directory based upon the supplied encoding.
+     *
+     * @return a File object pointing to the temporary picture
+     */
+    fun createVideoFile(activity: Activity?): File {
+        val fileName = VIDEO_NAMES_PREFIX + SimpleDateFormat(TIME_FORMAT).format(Date()) + VIDEO_FORMAT
+        return fileHelper.createCaptureFile(activity, fileName)
+    }
+
+
+    /**
      * Applies all needed transformation to the image received from the camera.
      *
      * @param intent  An Intent, which can return result data to the caller (various data can be attached to Intent "extras").
@@ -169,7 +219,7 @@ class CameraManager(
     @Throws(IOException::class)
     fun processResultFromCamera(
         activity: Activity,
-        camParameters: IONParameters,
+        camParameters: IONCameraParameters,
         onImage: (String) -> Unit,
         onMediaResult: (IONMediaResult) -> Unit,
         onError: (IONError) -> Unit
@@ -179,7 +229,7 @@ class CameraManager(
         //val exif = OSCAMRExifHelper()
         val sourcePath =
             if (camParameters.allowEdit && this.croppedUri != null) this.croppedFilePath else imageFilePath
-        if (camParameters.encodingType == CameraManager.Companion.JPEG) {
+        if (camParameters.encodingType == JPEG) {
             try {
                 exif.createInFile(sourcePath)
                 exif.readExifData()
@@ -247,6 +297,67 @@ class CameraManager(
         }
     }
 
+    /**
+     * Obtains the URI of the file containing the video that was just recorded and returns it.
+     *
+     * @param intent An Intent containing the video URI in the its data property.
+     */
+    suspend fun processResultFromVideo(
+        activity: Activity,
+        uri: Uri?,
+        fromGallery: Boolean = false,
+        includeMetadata: Boolean = false,
+        onSuccess: (IONMediaResult) -> Unit,
+        onError: (IONError) -> Unit
+    ) {
+        if (uri == null || uri.path == null) {
+            onError(IONError.CAPTURE_VIDEO_ERROR)
+            return
+        }
+
+        val thumbnail = getVideoThumbnailBase64(activity, uri) ?: ""
+        var videoFilePath: String?
+        var recordedInGallery = false
+        if (fromGallery) {
+            videoFilePath = mediaHelper.getVideoPathFromUri(activity, uri)
+            recordedInGallery = true
+        } else {
+            val fileName = uri.path?.split("/")?.last() ?: ""
+            videoFilePath = fileHelper.getAbsoluteCachedFilePath(activity, fileName)
+            recordedInGallery = false
+            if (videoFilePath.isNotEmpty()) {
+                val fileName = videoFilePath.split("/").last()
+                fileHelper.storeFileNameInPrefs(fileName, activity)
+            } else {
+                onError(IONError.CAPTURE_VIDEO_ERROR)
+            }
+        }
+        val file = File(videoFilePath)
+        if (videoFilePath != null && fileHelper.fileExists(file)) {
+            var metadata: IONMediaMetadata? = null
+            if (includeMetadata) {
+                val resolution = getMediaResolution(activity, false, videoFilePath, uri)
+                metadata = IONMediaMetadata(
+                    fileHelper.getFileSizeFromUri(activity, uri),
+                    mediaHelper.getVideoDuration(activity, uri),
+                    fileHelper.getFileExtension(videoFilePath),
+                    resolution,
+                    fileHelper.getFileCreationDate(file),
+                )
+            }
+            val mediaResult = IONMediaResult(
+                IONMediaType.VIDEO.ordinal,
+                videoFilePath,
+                thumbnail,
+                metadata,
+                recordedInGallery
+            )
+            onSuccess(mediaResult)
+        } else {
+            onError(IONError.MEDIA_PATH_ERROR)
+        }
+    }
+
     private fun savePictureInGallery(activity: Activity, encodingType: Int, srcUri: Uri?): Boolean {
         return try {
             val galleryPathVO: OSCAMRGalleryHelper = getPicturesPath(encodingType)
@@ -280,7 +391,7 @@ class CameraManager(
         imagePath: String,
         mediaUri: Uri,
         includeMetadata: Boolean,
-        camParameters: IONParameters?,
+        camParameters: IONCameraParameters?,
         saved: Boolean = false
     ): IONMediaResult? {
         var base64Image = ""
@@ -309,7 +420,7 @@ class CameraManager(
 
         val downsizedImage = imageHelper.downsizeBitmapIfNeeded(
             image,
-            CameraManager.Companion.IMAGE_MAX_RESOLUTION
+            IMAGE_MAX_RESOLUTION
         )
         val compressedImage = imageHelper.compressBitmap(downsizedImage, 100)
 
@@ -318,10 +429,10 @@ class CameraManager(
             resolution = camParameters?.let {
                 minOf(
                     it.targetWidth, it.targetHeight,
-                    CameraManager.Companion.IMAGE_MAX_RESOLUTION
+                    IMAGE_MAX_RESOLUTION
                 )
-            } ?: CameraManager.Companion.IMAGE_MAX_RESOLUTION,
-            quality = camParameters?.mQuality ?: CameraManager.Companion.IMAGE_MAX_QUALITY,
+            } ?: IMAGE_MAX_RESOLUTION,
+            quality = camParameters?.mQuality ?: IMAGE_MAX_QUALITY,
             onSuccess = { base64Image = it },
             onError = { error = it }
         )
@@ -462,8 +573,8 @@ class CameraManager(
      * @return String String value of mime type or empty string if mime type is not supported
      */
     private fun getMimetypeForFormat(outputFormat: Int): String? {
-        if (outputFormat == CameraManager.Companion.PNG) return CameraManager.Companion.PNG_MIME_TYPE
-        return if (outputFormat == CameraManager.Companion.JPEG) CameraManager.Companion.JPEG_MIME_TYPE else ""
+        if (outputFormat == PNG) return PNG_MIME_TYPE
+        return if (outputFormat == JPEG) JPEG_MIME_TYPE else ""
     }
 
     /**
@@ -496,13 +607,26 @@ class CameraManager(
         return if (height >= width) "${height}x${width}" else "${width}x${height}"
     }
 
+    private suspend fun getVideoThumbnailBase64(
+        activity: Activity,
+        videoUri: Uri
+    ): String? {
+        return mediaHelper.getThumbnailBase64String(activity, videoUri, TARGET_THUMBNAIL_DIMENSION)
+    }
+
+    fun onDestroy(activity: Activity) {
+        deleteVideoFilesFromCache(activity)
+        job.cancel()
+    }
+
+
     private fun getPicturesPath(encodingType: Int): OSCAMRGalleryHelper {
         val timeStamp =
-            SimpleDateFormat(CameraManager.Companion.TIME_FORMAT).format(
+            SimpleDateFormat(TIME_FORMAT).format(
                 Date()
             )
         val imageFileName =
-            "IMG_" + timeStamp + if (encodingType == CameraManager.Companion.JPEG) CameraManager.Companion.JPEG_EXTENSION else CameraManager.Companion.PNG_EXTENSION
+            "IMG_" + timeStamp + if (encodingType == JPEG) JPEG_EXTENSION else PNG_EXTENSION
         val storageDir = Environment.getExternalStoragePublicDirectory(
             Environment.DIRECTORY_PICTURES
         )
@@ -521,7 +645,7 @@ class CameraManager(
     private fun getScaledAndRotatedBitmap(
         activity: Activity?,
         imageUrl: String,
-        camParameters: IONParameters
+        camParameters: IONCameraParameters
     ): Bitmap? {
         // If no new width or height were specified, and orientation is not needed return the original bitmap
         if (camParameters.targetWidth <= 0 && camParameters.targetHeight <= 0 && !camParameters.correctOrientation) {
@@ -531,15 +655,15 @@ class CameraManager(
                 fileStream = fileHelper.getInputStreamFromUriString(imageUrl, activity)
                 image = imageHelper.getBitmapForInputStream(fileStream)
             } catch (e: Exception) {
-                Log.d(CameraManager.Companion.LOG_TAG, e.localizedMessage)
+                Log.d(LOG_TAG, e.localizedMessage)
             } finally {
                 if (fileStream != null) {
                     try {
                         fileStream.close()
                     } catch (e: IOException) {
                         Log.d(
-                            CameraManager.Companion.LOG_TAG,
-                            CameraManager.Companion.CLOSING_INPUT_STREAM_ERROR
+                            LOG_TAG,
+                            CLOSING_INPUT_STREAM_ERROR
                         )
                     }
                 }
@@ -563,11 +687,11 @@ class CameraManager(
                 fileHelper.getInputStreamFromUriString(imageUrl, activity)
             // Generate a temporary file
             val timeStamp =
-                SimpleDateFormat(CameraManager.Companion.TIME_FORMAT).format(
+                SimpleDateFormat(TIME_FORMAT).format(
                     Date()
                 )
             val fileName =
-                "IMG_" + timeStamp + if (camParameters.encodingType == CameraManager.Companion.JPEG) CameraManager.Companion.JPEG_EXTENSION else CameraManager.Companion.PNG_EXTENSION
+                "IMG_" + timeStamp + if (camParameters.encodingType == JPEG) JPEG_EXTENSION else PNG_EXTENSION
             localFile = File(activity?.let { fileHelper.getTempDirectoryPath(it) } + fileName)
             galleryUri = Uri.fromFile(localFile)
             fileHelper.writeUncompressedImage(activity, fileStream, galleryUri)
@@ -584,14 +708,14 @@ class CameraManager(
                 }
             } catch (oe: Exception) {
                 Log.d(
-                    CameraManager.Companion.LOG_TAG,
+                    LOG_TAG,
                     "Unable to read Exif data: $oe"
                 )
                 rotate = 0
             }
         } catch (e: Exception) {
             Log.d(
-                CameraManager.Companion.LOG_TAG,
+                LOG_TAG,
                 "Exception while getting input stream: $e"
             )
             return null
@@ -613,8 +737,8 @@ class CameraManager(
                         fileStream.close()
                     } catch (e: IOException) {
                         Log.d(
-                            CameraManager.Companion.LOG_TAG,
-                            CameraManager.Companion.CLOSING_INPUT_STREAM_ERROR
+                            LOG_TAG,
+                            CLOSING_INPUT_STREAM_ERROR
                         )
                     }
                 }
@@ -671,8 +795,8 @@ class CameraManager(
                         fileStream.close()
                     } catch (e: IOException) {
                         Log.d(
-                            CameraManager.Companion.LOG_TAG,
-                            CameraManager.Companion.CLOSING_INPUT_STREAM_ERROR
+                            LOG_TAG,
+                            CLOSING_INPUT_STREAM_ERROR
                         )
                     }
                 }
@@ -711,7 +835,7 @@ class CameraManager(
             conn?.scanFile(scanMe.toString(), IONMediaType.PICTURE.mimeType)
         } catch (e: IllegalStateException) {
             Log.d(
-                CameraManager.Companion.LOG_TAG,
+                LOG_TAG,
                 "Can't scan file in MediaScanner after taking picture"
             )
         }

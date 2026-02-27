@@ -26,21 +26,17 @@ class OSCAMRMediaHelper : OSCAMRMediaHelperInterface {
     }
 
     override fun createCameraIntent(activity: Activity?, imageUri: Uri?): Intent? {
-        if (activity != null && imageUri != null) {
-            val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-            intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri)
-            intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
-            val mPm: PackageManager = activity.packageManager
+        val safeActivity = activity ?: return null
+        val safeUri = imageUri ?: return null
+        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri)
+        intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
 
-            return if (intent.resolveActivity(mPm) != null) {
-                intent
-            } else {
-                Log.d(LOG_TAG, "Error: You don't have a default camera.  Your device may not be CTS complaint.")
-                null
-            }
-        }else{
-            Log.e(LOG_TAG, "Error: createCameraIntent failed, activity or imageUri is null. " + "activity=$activity, imageUri=$imageUri")
-            return null
+        return if (intent.resolveActivity(safeActivity.packageManager) != null) {
+            intent
+        } else {
+            Log.d(LOG_TAG, "Error: You don't have a default camera.  Your device may not be CTS complaint.")
+            null
         }
     }
 
@@ -95,7 +91,7 @@ class OSCAMRMediaHelper : OSCAMRMediaHelperInterface {
         return intent.resolveActivity(packageManager) != null
     }
 
-    override fun openDeviceVideo(
+    /*override fun openDeviceVideo(
         activity: Activity?,
         intent: Intent,
         videoFileUri: Uri?,
@@ -106,6 +102,24 @@ class OSCAMRMediaHelper : OSCAMRMediaHelperInterface {
             intent,
             if (!saveToGallery) REQUEST_VIDEO_CAPTURE else REQUEST_VIDEO_CAPTURE_SAVE_TO_GALLERY
         )
+    }*/
+
+    override fun createDeviceVideoIntent(activity: Activity?, intent: Intent, videoFileUri: Uri?, saveToGallery: Boolean, ): Intent? {
+        val safeActivity = activity ?: return null
+
+        if (!saveToGallery) {
+            val safeUri = videoFileUri ?: return null
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, safeUri)
+            intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION
+            )
+        }
+
+        return if (intent.resolveActivity(safeActivity.packageManager) != null) {
+            intent
+        } else {
+            Log.d(LOG_TAG, "Error: You don't have a default camera.  Your device may not be CTS complaint.")
+            null
+        }
     }
 
     override fun getVideoPathFromUri(activity: Activity, uri: Uri): String? {
@@ -120,8 +134,11 @@ class OSCAMRMediaHelper : OSCAMRMediaHelperInterface {
         return null
     }
 
-    override fun getVideoDuration(activity: Activity, uri: Uri): Int {
-        return MediaPlayer.create(activity, uri).duration
+    override fun getVideoDuration(activity: Activity, uri: Uri): Long {
+        val mediaPlayer = MediaPlayer.create(activity, uri)
+        val duration = mediaPlayer?.duration?.toLong() ?: 0L
+        mediaPlayer?.release()
+        return duration
     }
 
     override fun getVideoResolution(activity: Activity?, uri: Uri): Pair<Int, Int> {

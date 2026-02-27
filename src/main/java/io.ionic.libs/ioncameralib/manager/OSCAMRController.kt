@@ -25,7 +25,7 @@ import io.ionic.libs.ioncameralib.model.IONError
 import io.ionic.libs.ioncameralib.model.IONMediaMetadata
 import io.ionic.libs.ioncameralib.model.IONMediaResult
 import io.ionic.libs.ioncameralib.model.IONMediaType
-import io.ionic.libs.ioncameralib.model.IONParameters
+import io.ionic.libs.ioncameralib.model.IONCameraParameters
 //import com.outsystems.plugins.camera.view.ImageEditorActivity
 //import com.outsystems.plugins.camera.view.LoadingActivity
 //import com.outsystems.plugins.camera.view.OSCAMROpenPhotoPickerActivity
@@ -36,7 +36,6 @@ import java.io.IOException
 import java.io.InputStream
 import java.text.SimpleDateFormat
 import java.util.Date
-import kotlin.math.roundToInt
 
 class OSCAMRController(
     private var applicationId: String,
@@ -108,7 +107,6 @@ class OSCAMRController(
     /**
      * Take a picture with the camera.
      * @param activity  Activity object that will be necessary to take the picture
-     * @param returnType  Set the type of image to return.
      * @param encodingType  JPEG or PNG.
      */
     fun takePhoto(activity: Activity, returnType: Int, encodingType: Int) {
@@ -125,7 +123,7 @@ class OSCAMRController(
         this.imageFilePath = photo.absolutePath
         this.imageUri = fileHelper.getUriForFile(activity, "$applicationId.camera.provider", photo)
 
-        //mediaHelper.openDeviceCamera(activity, imageUri, returnType)
+       // mediaHelper.openDeviceCamera(activity, imageUri, returnType)
     }
 
     /**
@@ -138,7 +136,7 @@ class OSCAMRController(
         activity: Activity?,
         srcType: Int,
         returnType: Int,
-        camParameters: IONParameters
+        camParameters: IONCameraParameters
     ) {
         val intent = Intent()
         croppedUri = null
@@ -251,12 +249,12 @@ class OSCAMRController(
         val captureVideoIntent = Intent(MediaStore.ACTION_VIDEO_CAPTURE)
 
         if (mediaHelper.existsActivity(activity, captureVideoIntent)) {
-            mediaHelper.openDeviceVideo(
+            /*mediaHelper.openDeviceVideo(
                 activity,
                 captureVideoIntent,
                 videoFileUri,
                 saveVideoToGallery
-            )
+            )*/
         } else {
             Log.d(LOG_TAG, "Error: You don't have a default camera for recording video.")
             onError(IONError.NO_CAMERA_AVAILABLE_ERROR)
@@ -481,7 +479,7 @@ class OSCAMRController(
         imagePath: String,
         mediaUri: Uri,
         includeMetadata: Boolean,
-        camParameters: IONParameters?
+        camParameters: IONCameraParameters?
     ): IONMediaResult? {
         var base64Image = ""
         var error: IONError? = null
@@ -637,7 +635,7 @@ class OSCAMRController(
     fun processResultFromCamera(
         activity: Activity,
         intent: Intent?,
-        camParameters: IONParameters,
+        camParameters: IONCameraParameters,
         onImage: (String) -> Unit,
         onMediaResult: (IONMediaResult) -> Unit,
         onError: (IONError) -> Unit
@@ -967,7 +965,7 @@ class OSCAMRController(
     private fun getScaledAndRotatedBitmap(
         activity: Activity?,
         imageUrl: String,
-        camParameters: IONParameters
+        camParameters: IONCameraParameters
     ): Bitmap? {
         // If no new width or height were specified, and orientation is not needed return the original bitmap
         if (camParameters.targetWidth <= 0 && camParameters.targetHeight <= 0 && !camParameters.correctOrientation) {

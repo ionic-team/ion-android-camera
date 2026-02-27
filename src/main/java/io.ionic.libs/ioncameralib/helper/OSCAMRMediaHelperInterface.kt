@@ -13,10 +13,10 @@ interface OSCAMRMediaHelperInterface {
     fun getStringNumber(cursor: Cursor?, int: Int?): String?
     fun equalsDifference(currentNumOfImages: Int, numPics: Int?, diff: Int): Boolean
     fun existsActivity(activity: Activity?, intent: Intent): Boolean
-    fun openDeviceVideo(activity: Activity?, intent: Intent, videoFileUri: Uri?, saveToGallery: Boolean)
+    fun createDeviceVideoIntent(activity: Activity?, intent: Intent, videoFileUri: Uri?, saveToGallery: Boolean): Intent?
     fun getVideoPathFromUri(activity: Activity, uri: Uri): String?
     suspend fun getThumbnailBase64String(activity: Activity, videoUri: Uri, targetDimension: Int): String?
-    fun getVideoDuration(activity: Activity, uri: Uri): Int
+    fun getVideoDuration(activity: Activity, uri: Uri): Long
     fun getVideoResolution(activity: Activity?, uri: Uri): Pair<Int, Int>
     fun getImageResolution(imagePath: String): Pair<Int, Int>
 }
