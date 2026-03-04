@@ -26,9 +26,10 @@ import io.ionic.libs.ioncameralib.model.IONMediaMetadata
 import io.ionic.libs.ioncameralib.model.IONMediaResult
 import io.ionic.libs.ioncameralib.model.IONMediaType
 import io.ionic.libs.ioncameralib.model.IONCameraParameters
-//import com.outsystems.plugins.camera.view.ImageEditorActivity
-//import com.outsystems.plugins.camera.view.LoadingActivity
-//import com.outsystems.plugins.camera.view.OSCAMROpenPhotoPickerActivity
+import io.ionic.libs.ioncameralib.model.IONEditParameters
+import io.ionic.libs.ioncameralib.view.ImageEditorActivity
+import io.ionic.libs.ioncameralib.view.IONLoadingActivity
+import io.ionic.libs.ioncameralib.view.IONOpenPhotoPickerActivity
 import kotlinx.coroutines.Job
 import java.io.File
 import java.io.FileNotFoundException
@@ -109,7 +110,7 @@ class OSCAMRController(
      * @param activity  Activity object that will be necessary to take the picture
      * @param encodingType  JPEG or PNG.
      */
-    fun takePhoto(activity: Activity, returnType: Int, encodingType: Int) {
+    fun takePicture(activity: Activity, returnType: Int, encodingType: Int) {
         // Save filename to fetch later (needed when allowEdit is true)
         val fileName = PICTURE_NAMES_PREFIX + SimpleDateFormat(TIME_FORMAT).format(Date())
         fileHelper.saveStringSharedPreferences(activity, EDIT_FILE_NAME_KEY, fileName)
@@ -123,7 +124,7 @@ class OSCAMRController(
         this.imageFilePath = photo.absolutePath
         this.imageUri = fileHelper.getUriForFile(activity, "$applicationId.camera.provider", photo)
 
-       // mediaHelper.openDeviceCamera(activity, imageUri, returnType)
+        mediaHelper.openDeviceCamera(activity, imageUri, returnType)
     }
 
     /**
@@ -168,66 +169,65 @@ class OSCAMRController(
      * @param activity  Activity object that will be necessary to launch the edit activity.
      * @param image  String representing the image in Base64.
      */
-   /* fun editImage(activity: Activity?, image: String, requestCode: Int?, destType: Int?) {
-        // put the following code inside the OSCAMRImageHelper which deals with Bitmap related stuff
-        val imageByteArray: ByteArray = Base64.decode(image, Base64.NO_WRAP)
-        val imageBitmap = imageHelper.base64toBitmap(imageByteArray)
+    /* fun editImage(activity: Activity?, image: String, requestCode: Int?, destType: Int?) {
+         // put the following code inside the OSCAMRImageHelper which deals with Bitmap related stuff
+         val imageByteArray: ByteArray = Base64.decode(image, Base64.NO_WRAP)
+         val imageBitmap = imageHelper.base64toBitmap(imageByteArray)
 
-        //Creates temp file
-        val inputFilePath =
-            createCaptureFile(
-                activity,
-                JPEG,
-                System.currentTimeMillis().toString() + ""
-            ).absolutePath
-        val inputFileUri = Uri.parse(inputFilePath)
-        val inputFile = File(inputFilePath)
+         //Creates temp file
+         val inputFilePath =
+             createCaptureFile(
+                 activity,
+                 JPEG,
+                 System.currentTimeMillis().toString() + ""
+             ).absolutePath
+         val inputFileUri = Uri.parse(inputFilePath)
+         val inputFile = File(inputFilePath)
 
-        try {
-            //Writes bitmap in temp file
-            imageHelper.writeBitmapToFile(imageBitmap, inputFile)
-            openCropActivity(activity, inputFileUri, requestCode, destType)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }*/
+         try {
+             //Writes bitmap in temp file
+             imageHelper.writeBitmapToFile(imageBitmap, inputFile)
+             openCropActivity(activity, inputFileUri, requestCode, destType)
+         } catch (e: Exception) {
+             e.printStackTrace()
+         }
+     }*/
 
     /**
      * Opens an activity with a UI to edit the provided image.
      * @param activity  Activity object that will be necessary to launch the edit activity.
      * @param pictureFilePath  File path of the image to edit.
      */
-  /*  fun editURIPicture(activity: Activity?, pictureFilePath: String, requestCode: Int?, destType: Int?, onError: (OSCAMRError) -> Unit) {
-        val imageFile = File(pictureFilePath)
-        if (!fileHelper.fileExists(imageFile)) {
-            onError(OSCAMRError.FILE_DOES_NOT_EXIST_ERROR)
-            return
-        }
-        val drawable: Drawable? = try {
-            Drawable.createFromPath(pictureFilePath)
-        } catch (ex: Exception) {
-            ex.printStackTrace()
-            null
-        }
-        if (drawable == null) {
-            // provided file path does not seem to belong to an actual picture
-            //  .e.g could be video, for which edit is not supported
-            onError(OSCAMRError.FETCH_IMAGE_FROM_URI_ERROR)
-            return
-        }
-        val pictureUri = fileHelper.getUriForFile(
-            activity,
-            "$applicationId$AUTHORITY",
-            imageFile
-        )
-        try {
-            openCropActivity(activity, pictureUri, requestCode, destType)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            onError(OSCAMRError.EDIT_IMAGE_ERROR)
-        }
-    }*/
-
+    /*  fun editURIPicture(activity: Activity?, pictureFilePath: String, requestCode: Int?, destType: Int?, onError: (OSCAMRError) -> Unit) {
+          val imageFile = File(pictureFilePath)
+          if (!fileHelper.fileExists(imageFile)) {
+              onError(OSCAMRError.FILE_DOES_NOT_EXIST_ERROR)
+              return
+          }
+          val drawable: Drawable? = try {
+              Drawable.createFromPath(pictureFilePath)
+          } catch (ex: Exception) {
+              ex.printStackTrace()
+              null
+          }
+          if (drawable == null) {
+              // provided file path does not seem to belong to an actual picture
+              //  .e.g could be video, for which edit is not supported
+              onError(OSCAMRError.FETCH_IMAGE_FROM_URI_ERROR)
+              return
+          }
+          val pictureUri = fileHelper.getUriForFile(
+              activity,
+              "$applicationId$AUTHORITY",
+              imageFile
+          )
+          try {
+              openCropActivity(activity, pictureUri, requestCode, destType)
+          } catch (e: Exception) {
+              e.printStackTrace()
+              onError(OSCAMRError.EDIT_IMAGE_ERROR)
+          }
+      }*/
 
 
     /**
@@ -269,24 +269,24 @@ class OSCAMRController(
      *                          from gallery.
      * @param requestCode  Request code for receiving activity results.
      */
-   /* fun chooseFromGallery(
-        activity: Activity,
-        mediaType: OSCAMRMediaType,
-        allowMultiSelect: Boolean,
-        requestCode: Int
-    ) {
-        try {
-            activity.startActivityForResult(
-                Intent(activity, OSCAMROpenPhotoPickerActivity::class.java).apply {
-                    putExtra(ALLOW_MULTIPLE, allowMultiSelect)
-                    putExtra(MEDIA_TYPE, mediaType.mimeType)
-                },
-                requestCode
-            )
-        } catch (e: Exception) {
-            Log.e(LOG_TAG, e.message.toString())
-        }
-    }*/
+    /* fun chooseFromGallery(
+         activity: Activity,
+         mediaType: OSCAMRMediaType,
+         allowMultiSelect: Boolean,
+         requestCode: Int
+     ) {
+         try {
+             activity.startActivityForResult(
+                 Intent(activity, OSCAMROpenPhotoPickerActivity::class.java).apply {
+                     putExtra(ALLOW_MULTIPLE, allowMultiSelect)
+                     putExtra(MEDIA_TYPE, mediaType.mimeType)
+                 },
+                 requestCode
+             )
+         } catch (e: Exception) {
+             Log.e(LOG_TAG, e.message.toString())
+         }
+     }*/
 
     /**
      * Handles the result after users have selected media from device gallery.
@@ -297,70 +297,70 @@ class OSCAMRController(
      *                  Returns a list of media item results.
      * @param onError  he code the be executed if the operation was not successfully.
      */
-   /* suspend fun onChooseFromGalleryResult(
-        activity: Activity,
-        resultCode: Int,
-        intent: Intent?,
-        includeMetadata: Boolean = false,
-        allowEdit: Boolean = false,
-        galleryMediaType: OSCAMRMediaType,
-        onSuccess: (List<OSCAMRMediaResult>) -> Unit,
-        onError: (OSCAMRError) -> Unit) {
+    /* suspend fun onChooseFromGalleryResult(
+         activity: Activity,
+         resultCode: Int,
+         intent: Intent?,
+         includeMetadata: Boolean = false,
+         allowEdit: Boolean = false,
+         galleryMediaType: OSCAMRMediaType,
+         onSuccess: (List<OSCAMRMediaResult>) -> Unit,
+         onError: (OSCAMRError) -> Unit) {
 
-        if (intent == null) {
-            onError(OSCAMRError.CHOOSE_MULTIMEDIA_CANCELLED_ERROR)
-            return
-        }
+         if (intent == null) {
+             onError(OSCAMRError.CHOOSE_MULTIMEDIA_CANCELLED_ERROR)
+             return
+         }
 
-        when (resultCode) {
+         when (resultCode) {
 
-            RESULT_OK -> {
+             RESULT_OK -> {
 
-                val uris = imageHelper.getResultUriFromIntent(intent)
+                 val uris = imageHelper.getResultUriFromIntent(intent)
 
-                if (allowEdit && uris.size == 1 && galleryMediaType == OSCAMRMediaType.IMAGE) {
-                    /*
-                    This "destType" needs to be zero so the actual request code is passed to
-                    the activity.
-                    This looks strange, but I'm not brave enough to change the "openCropActivity"
-                    logic. So I'll just play along for now.
-                    */
-                    openCropActivity(activity, uris.first(), EDIT_FROM_GALLERY_REQUEST_CODE, 0)
-                    return
-                }
+                 if (allowEdit && uris.size == 1 && galleryMediaType == OSCAMRMediaType.IMAGE) {
+                     /*
+                     This "destType" needs to be zero so the actual request code is passed to
+                     the activity.
+                     This looks strange, but I'm not brave enough to change the "openCropActivity"
+                     logic. So I'll just play along for now.
+                     */
+                     openCropActivity(activity, uris.first(), EDIT_FROM_GALLERY_REQUEST_CODE, 0)
+                     return
+                 }
 
-                showLoadingScreen(activity)
+                 showLoadingScreen(activity)
 
-                val results: MutableList<OSCAMRMediaResult> = mutableListOf()
-                for (uri in uris) {
+                 val results: MutableList<OSCAMRMediaResult> = mutableListOf()
+                 for (uri in uris) {
 
-                    var fileLocation = fileHelper.getRealPath(uri, activity)
+                     var fileLocation = fileHelper.getRealPath(uri, activity)
 
-                    // when fileLocation = null means the file isn't available on the local filesystem.
+                     // when fileLocation = null means the file isn't available on the local filesystem.
 
-                    if(fileLocation == null) {
-                        fileLocation = fileHelper.getImagePathFromInputStreamUri(activity, uri) ?: continue
-                    }
+                     if(fileLocation == null) {
+                         fileLocation = fileHelper.getImagePathFromInputStreamUri(activity, uri) ?: continue
+                     }
 
-                    val mediaResult = createMediaResult(activity, fileLocation, uri, includeMetadata)
-                    if (mediaResult == null) {
-                        onError(OSCAMRError.GENERIC_CHOOSE_MULTIMEDIA_ERROR)
-                        return
-                    }
-                    results.add(mediaResult)
-                }
+                     val mediaResult = createMediaResult(activity, fileLocation, uri, includeMetadata)
+                     if (mediaResult == null) {
+                         onError(OSCAMRError.GENERIC_CHOOSE_MULTIMEDIA_ERROR)
+                         return
+                     }
+                     results.add(mediaResult)
+                 }
 
-                onSuccess(results)
-                dismissLoadingScreen(activity)
-            }
-            RESULT_CANCELED -> {
-                onError(OSCAMRError.CHOOSE_MULTIMEDIA_CANCELLED_ERROR)
-            }
-            else -> {
-                onError(OSCAMRError.GENERIC_CHOOSE_MULTIMEDIA_ERROR)
-            }
-        }
-    }*/
+                 onSuccess(results)
+                 dismissLoadingScreen(activity)
+             }
+             RESULT_CANCELED -> {
+                 onError(OSCAMRError.CHOOSE_MULTIMEDIA_CANCELLED_ERROR)
+             }
+             else -> {
+                 onError(OSCAMRError.GENERIC_CHOOSE_MULTIMEDIA_ERROR)
+             }
+         }
+     }*/
 
     /**
      * Handles the result after users have edited media from device gallery.
@@ -371,45 +371,45 @@ class OSCAMRController(
      *                  Returns a list of media item results.
      * @param onError  he code the be executed if the operation was not successfully.
      */
-   /* suspend fun onChooseFromGalleryEditResult(
-        activity: Activity,
-        resultCode: Int,
-        intent: Intent?,
-        includeMetadata: Boolean = false,
-        onSuccess: (List<OSCAMRMediaResult>) -> Unit,
-        onError: (OSCAMRError) -> Unit
-    ) {
-        when (resultCode) {
+    /* suspend fun onChooseFromGalleryEditResult(
+         activity: Activity,
+         resultCode: Int,
+         intent: Intent?,
+         includeMetadata: Boolean = false,
+         onSuccess: (List<OSCAMRMediaResult>) -> Unit,
+         onError: (OSCAMRError) -> Unit
+     ) {
+         when (resultCode) {
 
-            RESULT_OK -> {
-                if(intent == null) {
-                    onError(OSCAMRError.EDIT_IMAGE_ERROR)
-                    return
-                }
+             RESULT_OK -> {
+                 if(intent == null) {
+                     onError(OSCAMRError.EDIT_IMAGE_ERROR)
+                     return
+                 }
 
-                // An empty string here will trigger EDIT_IMAGE_ERROR later
-                val fileLocation = intent.getStringExtra(ImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS) ?: ""
+                 // An empty string here will trigger EDIT_IMAGE_ERROR later
+                 val fileLocation = intent.getStringExtra(ImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS) ?: ""
 
-                val mediaResult = createMediaResult(
-                    activity,
-                    fileLocation,
-                    fileHelper.getUriFromString(fileLocation),
-                    includeMetadata
-                )
-                if (mediaResult == null) {
-                    onError(OSCAMRError.EDIT_IMAGE_ERROR)
-                    return
-                }
-                onSuccess(listOf(mediaResult))
-            }
-            RESULT_CANCELED -> {
-                onError(OSCAMRError.EDIT_CANCELLED_ERROR)
-            }
-            else -> {
-                onError(OSCAMRError.EDIT_IMAGE_ERROR)
-            }
-        }
-    }*/
+                 val mediaResult = createMediaResult(
+                     activity,
+                     fileLocation,
+                     fileHelper.getUriFromString(fileLocation),
+                     includeMetadata
+                 )
+                 if (mediaResult == null) {
+                     onError(OSCAMRError.EDIT_IMAGE_ERROR)
+                     return
+                 }
+                 onSuccess(listOf(mediaResult))
+             }
+             RESULT_CANCELED -> {
+                 onError(OSCAMRError.EDIT_CANCELLED_ERROR)
+             }
+             else -> {
+                 onError(OSCAMRError.EDIT_IMAGE_ERROR)
+             }
+         }
+     }*/
 
     /**
      * Calls the intent to open the device's camera to record a video.
@@ -451,22 +451,22 @@ class OSCAMRController(
      * @return An object containing relevant information for the media item.
      *          Null if an error occurred.
      */
-   /* private suspend fun createMediaResult(
-        activity: Activity,
-        filePath: String,
-        uri: Uri,
-        includeMetadata: Boolean,
-    ): OSCAMRMediaResult? {
+    /* private suspend fun createMediaResult(
+         activity: Activity,
+         filePath: String,
+         uri: Uri,
+         includeMetadata: Boolean,
+     ): OSCAMRMediaResult? {
 
-        val mimeType = fileHelper.getMimeType(filePath, activity)
-        val isImage = mimeType != null && mimeType.startsWith("image")
+         val mimeType = fileHelper.getMimeType(filePath, activity)
+         val isImage = mimeType != null && mimeType.startsWith("image")
 
-        return if (isImage) {
-            createImageMediaResult(activity, filePath, uri, includeMetadata, null)
-        } else {
-            createVideoMediaResult(activity, filePath, uri, includeMetadata)
-        }
-    }*/
+         return if (isImage) {
+             createImageMediaResult(activity, filePath, uri, includeMetadata, null)
+         } else {
+             createVideoMediaResult(activity, filePath, uri, includeMetadata)
+         }
+     }*/
 
     /**
      * Transforms the image media item uri into a media result object.
@@ -494,23 +494,29 @@ class OSCAMRController(
             val decodedImage = imageHelper.decodeFile(imagePath)
             var rotationMatrix: Matrix? = null
 
-            if(rotationDegrees != 0) {
-                rotationMatrix = Matrix().apply { setRotate(rotationDegrees.toFloat())  }
+            if (rotationDegrees != 0) {
+                rotationMatrix = Matrix().apply { setRotate(rotationDegrees.toFloat()) }
             }
 
             imageHelper.transformBitmapWithMatrix(decodedImage, rotationMatrix)
-        }
-        else {
+        } else {
             getScaledAndRotatedBitmap(activity, imagePath, camParameters)
         }
 
-        if(image == null) return null
+        if (image == null) return null
 
         val downsizedImage = imageHelper.downsizeBitmapIfNeeded(image, IMAGE_MAX_RESOLUTION)
         val compressedImage = imageHelper.compressBitmap(downsizedImage, 100)
 
-        imageHelper.bitmapToBase64(compressedImage,
-            resolution = camParameters?.let { minOf(it.targetWidth, it.targetHeight, IMAGE_MAX_RESOLUTION) } ?: IMAGE_MAX_RESOLUTION,
+        imageHelper.bitmapToBase64(
+            compressedImage,
+            resolution = camParameters?.let {
+                minOf(
+                    it.targetWidth,
+                    it.targetHeight,
+                    IMAGE_MAX_RESOLUTION
+                )
+            } ?: IMAGE_MAX_RESOLUTION,
             quality = camParameters?.mQuality ?: IMAGE_MAX_QUALITY,
             onSuccess = { base64Image = it },
             onError = { error = it }
@@ -542,34 +548,34 @@ class OSCAMRController(
      * @return An object containing relevant information for the media item.
      *          Null if an error occurred.
      */
-   /* private suspend fun createVideoMediaResult(
-        activity: Activity,
-        videoPath: String,
-        mediaUri: Uri,
-        includeMetadata: Boolean,
-    ): OSCAMRMediaResult? {
+    /* private suspend fun createVideoMediaResult(
+         activity: Activity,
+         videoPath: String,
+         mediaUri: Uri,
+         includeMetadata: Boolean,
+     ): OSCAMRMediaResult? {
 
-        val file = File(videoPath)
-        if (!fileHelper.fileExists(file)) return null
+         val file = File(videoPath)
+         if (!fileHelper.fileExists(file)) return null
 
-        val uri = fileHelper.getUriFromString(videoPath)
-        val base64Thumbnail = getVideoThumbnailBase64(activity, uri) ?: return null
+         val uri = fileHelper.getUriFromString(videoPath)
+         val base64Thumbnail = getVideoThumbnailBase64(activity, uri) ?: return null
 
-        var metadata: IONMediaMetadata? = null
-        if (includeMetadata) {
-            val resolution = getMediaResolution(activity, false, videoPath, uri)
-            metadata = IONMediaMetadata(
-                fileHelper.getFileSizeFromUri(activity, mediaUri),
-                (mediaHelper.getVideoDuration(activity, uri).toDouble() / 1000).roundToInt(),
-                fileHelper.getFileExtension(videoPath),
-                resolution,
-                fileHelper.getFileCreationDate(file),
-            )
-        }
-        return OSCAMRMediaResult(IONMediaType.VIDEO.type, videoPath, base64Thumbnail, metadata)
-    }*/
+         var metadata: IONMediaMetadata? = null
+         if (includeMetadata) {
+             val resolution = getMediaResolution(activity, false, videoPath, uri)
+             metadata = IONMediaMetadata(
+                 fileHelper.getFileSizeFromUri(activity, mediaUri),
+                 (mediaHelper.getVideoDuration(activity, uri).toDouble() / 1000).roundToInt(),
+                 fileHelper.getFileExtension(videoPath),
+                 resolution,
+                 fileHelper.getFileCreationDate(file),
+             )
+         }
+         return OSCAMRMediaResult(IONMediaType.VIDEO.type, videoPath, base64Thumbnail, metadata)
+     }*/
 
-   /* fun openCropActivity(activity: Activity?, picUri: Uri?, requestCode: Int?, destType: Int?) {
+    fun openCropActivity(activity: Activity?, picUri: Uri?, requestCode: Int?, destType: Int?) {
         val cropIntent = Intent(activity, ImageEditorActivity::class.java)
 
         // creates output file
@@ -590,7 +596,7 @@ class OSCAMRController(
             cropIntent,
             code
         )
-    }*/
+    }
 
     /**
      * Create a file in the applications temporary directory based upon the supplied encoding.
@@ -668,7 +674,11 @@ class OSCAMRController(
         if (camParameters.latestVersion) {
             val mediaResult =
                 sourcePath?.let {
-                    val imageUri = fileHelper.getUriForFile(activity, "$applicationId$AUTHORITY", File(sourcePath))
+                    val imageUri = fileHelper.getUriForFile(
+                        activity,
+                        "$applicationId$AUTHORITY",
+                        File(sourcePath)
+                    )
                     if (imageUri == null) {
                         onError(IONError.TAKE_PHOTO_ERROR)
                         return
@@ -686,8 +696,7 @@ class OSCAMRController(
                 return
             }
             onMediaResult(mediaResult)
-        }
-        else {
+        } else {
             //get bitmap
             bitmap = sourcePath?.let { getScaledAndRotatedBitmap(activity, it, camParameters) }
             if (bitmap == null) {
@@ -706,7 +715,8 @@ class OSCAMRController(
             }
             //get base64 representation of bitmap
             var processPictureError = false
-            imageHelper.processPicture(bitmap, camParameters.encodingType, camParameters.mQuality,
+            imageHelper.processPicture(
+                bitmap, camParameters.encodingType, camParameters.mQuality,
                 {
                     onImage(it)
                 },
@@ -727,12 +737,12 @@ class OSCAMRController(
      *
      * @param intent   An Intent, which can return result data to the caller (various data can be attached to Intent "extras").
      */
-    /*fun processResultFromGallery(
+    fun processResultFromGallery(
         activity: Activity?,
         intent: Intent,
-        camParameters: OSCAMRParameters,
+        camParameters: IONCameraParameters,
         onSuccess: (String) -> Unit,
-        onError: (OSCAMRError) -> Unit
+        onError: (IONError) -> Unit
     ) {
         var uri = intent.data
         val fileLocation = fileHelper.getRealPath(uri, activity)
@@ -745,7 +755,8 @@ class OSCAMRController(
         } catch (e: IOException) {
             e.printStackTrace()
         }
-        imageHelper.processPicture(bitmap, camParameters.encodingType, camParameters.mQuality,
+        imageHelper.processPicture(
+            bitmap, camParameters.encodingType, camParameters.mQuality,
             {
                 onSuccess(it)
             },
@@ -755,7 +766,7 @@ class OSCAMRController(
         )
         bitmap?.recycle()
         System.gc()
-    }*/
+    }
 
     /**
      * Applies all needed transformation to the image received from the Edit screen.
@@ -766,18 +777,18 @@ class OSCAMRController(
      * @param onMediaResult callback that will be used when MediaResult object should be returned.
      * @param onError callback that will be used when an error occurs.
      */
-   /* fun processResultFromEdit(
+    fun processResultFromEdit(
         activity: Activity,
         intent: Intent?,
-        editParameters: OSCAMREditParameters,
+        editParameters: IONEditParameters,
         onImage: (String) -> Unit,
-        onMediaResult: (OSCAMRMediaResult) -> Unit,
-        onError: (OSCAMRError) -> Unit
+        onMediaResult: (IONMediaResult) -> Unit,
+        onError: (IONError) -> Unit
     ) {
         val resultImagePath = intent?.getStringExtra(ImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS)
         if (resultImagePath.isNullOrEmpty()) {
             Log.d(LOG_TAG, "Image file path is null or empty")
-            onError(OSCAMRError.EDIT_IMAGE_ERROR)
+            onError(IONError.EDIT_IMAGE_ERROR)
             return
         }
         if (editParameters.fromUri) {
@@ -789,7 +800,7 @@ class OSCAMRController(
             )
             if (resultImageUri == null) {
                 Log.d(LOG_TAG, "Image URI is null")
-                onError(OSCAMRError.EDIT_IMAGE_ERROR)
+                onError(IONError.EDIT_IMAGE_ERROR)
                 return
             }
             val mediaResult = createImageMediaResult(
@@ -801,14 +812,15 @@ class OSCAMRController(
             )
             if (mediaResult == null) {
                 Log.d(LOG_TAG, "MediaResult is null")
-                onError(OSCAMRError.EDIT_IMAGE_ERROR)
+                onError(IONError.EDIT_IMAGE_ERROR)
                 return
             }
             if (editParameters.saveToGallery) {
                 savePictureInGallery(
                     activity,
                     if (fileHelper.getFileExtension(resultImagePath) == JPEG_TYPE) 0 else 1,
-                    resultImageUri)
+                    resultImageUri
+                )
             }
             onMediaResult(mediaResult)
         } else {
@@ -821,7 +833,7 @@ class OSCAMRController(
                 onError = { onError(it) }
             )
         }
-    }*/
+    }
 
     private fun savePictureInGallery(activity: Activity, encodingType: Int, srcUri: Uri?) {
         val galleryPathVO: OSCAMRGalleryHelper = getPicturesPath(encodingType)
@@ -1210,7 +1222,11 @@ class OSCAMRController(
     }
 
     @Throws(IOException::class)
-    private fun writeTakenPictureToGalleryLowerThanAndroidQ(activity: Activity?, srcUri: Uri?, galleryUri: Uri?) {
+    private fun writeTakenPictureToGalleryLowerThanAndroidQ(
+        activity: Activity?,
+        srcUri: Uri?,
+        galleryUri: Uri?
+    ) {
         writeUncompressedImage(activity, srcUri, galleryUri)
         fileHelper.refreshGallery(activity, galleryUri)
     }
@@ -1277,12 +1293,12 @@ class OSCAMRController(
         }
     }
 
-   /* private fun showLoadingScreen(activity: Activity) {
-        activity.startActivity(Intent(activity, LoadingActivity::class.java))
-    }
+    /* private fun showLoadingScreen(activity: Activity) {
+         activity.startActivity(Intent(activity, LoadingActivity::class.java))
+     }
 
-    private fun dismissLoadingScreen(activity: Activity) {
-        activity.sendBroadcast(Intent(LoadingActivity.DISMISS_INTENT_FILTER))
-    }*/
+     private fun dismissLoadingScreen(activity: Activity) {
+         activity.sendBroadcast(Intent(LoadingActivity.DISMISS_INTENT_FILTER))
+     }*/
 
 }

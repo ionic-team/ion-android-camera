@@ -4,16 +4,18 @@
     package="io.ionic.libs.ioncameralib">
 
     <application android:requestLegacyExternalStorage="true">
-
-
+        <activity
+            android:name="io.ionic.libs.ioncameralib.view.IONLoadingActivity"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar.Fullscreen" />
         <activity
             android:name="io.ionic.libs.ioncameralib.view.ImageEditorActivity"
             android:theme="@android:style/Theme.Black.NoTitleBar"
             android:enableOnBackInvokedCallback="true"
             tools:targetApi="33" />
-
-
-
+        <activity
+            android:name="io.ionic.libs.ioncameralib.view.IONOpenPhotoPickerActivity"
+            android:exported="false"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar.Fullscreen" />
         <!-- Trigger Google Play services to install the backported photo picker module. -->
         <service android:name="com.google.android.gms.metadata.ModuleDependencies"
             android:enabled="false"
