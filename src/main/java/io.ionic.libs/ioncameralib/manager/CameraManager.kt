@@ -5,9 +5,6 @@ import androidx.activity.result.ActivityResultLauncher
 import android.content.ContentResolver
 import android.content.ContentValues
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory.Options
-import android.graphics.Matrix
 import android.media.ExifInterface
 import android.media.MediaScannerConnection
 import android.media.MediaScannerConnection.MediaScannerConnectionClient
@@ -16,18 +13,17 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
-import io.ionic.libs.ioncameralib.helper.OSCAMRExifHelper
 import io.ionic.libs.ioncameralib.helper.OSCAMRExifHelperInterface
 import io.ionic.libs.ioncameralib.helper.OSCAMRFileHelperInterface
 import io.ionic.libs.ioncameralib.helper.OSCAMRImageHelperInterface
 import io.ionic.libs.ioncameralib.helper.OSCAMRMediaHelperInterface
 import io.ionic.libs.ioncameralib.helper.OSCAMRGalleryHelper
 import io.ionic.libs.ioncameralib.model.IONError
-import io.ionic.libs.ioncameralib.model.IONMediaMetadata
 import io.ionic.libs.ioncameralib.model.IONMediaResult
 import io.ionic.libs.ioncameralib.model.IONMediaType
 import io.ionic.libs.ioncameralib.model.IONCameraParameters
 import io.ionic.libs.ioncameralib.view.ImageEditorActivity
+import io.ionic.libs.ioncameralib.processor.IONMediaProcessor
 import kotlinx.coroutines.Job
 import java.io.File
 import java.io.FileNotFoundException
@@ -45,19 +41,19 @@ class CameraManager(
     private var mediaHelper: OSCAMRMediaHelperInterface,
     private var imageHelper: OSCAMRImageHelperInterface
 ) : MediaScannerConnectionClient {
-
     private var imageFilePath: String? = null
     private var imageUri: Uri? = null
     private var croppedUri: Uri? = null
     private var croppedFilePath: String? = null
-    private var exifData: OSCAMRExifHelperInterface? = OSCAMRExifHelper()
-    private var orientationCorrected = false
-
     private var conn: MediaScannerConnection? = null
     private var scanMe: Uri? = null
 
-    private val job = Job()
-    private val TARGET_THUMBNAIL_DIMENSION: Int = 480
+    private val mediaProcessor = IONMediaProcessor(
+        exif = exif,
+        fileHelper = fileHelper,
+        mediaHelper = mediaHelper,
+        imageHelper = imageHelper
+    )
 
     companion object {
         private const val JPEG = 0
@@ -126,10 +122,11 @@ class CameraManager(
 
         if (intent != null) {
             launcher.launch(intent)
-        }else{
+        } else {
             Log.d(LOG_TAG, "Failed to launch camera intent")
         }
     }
+
 
     /**
      * Calls the intent to open the device's camera to record a video.
@@ -137,22 +134,34 @@ class CameraManager(
      * @param saveVideoToGallery Indicates if the recorded video should be saved to the device gallery
      * @param onError callback that will be used when an error occurs.
      */
-    fun recordVideo(activity: Activity, saveVideoToGallery: Boolean = false, launcher: ActivityResultLauncher<Intent>, onError: (IONError) -> Unit) {
+    fun recordVideo(
+        activity: Activity,
+        saveVideoToGallery: Boolean = false,
+        launcher: ActivityResultLauncher<Intent>,
+        onError: (IONError) -> Unit
+    ) {
         val videoFileUri = fileHelper.getUriForFile(
             activity,
             "$applicationId$authority",
             createVideoFile(activity)
         )
-        fileHelper.saveStringSharedPreferences(activity,
-            STORE, videoFileUri.toString())
+        fileHelper.saveStringSharedPreferences(
+            activity,
+            STORE, videoFileUri.toString()
+        )
         val captureVideoIntent = Intent(MediaStore.ACTION_VIDEO_CAPTURE)
 
         if (mediaHelper.existsActivity(activity, captureVideoIntent)) {
 
-            val intent = mediaHelper.createDeviceVideoIntent(activity, captureVideoIntent, videoFileUri, saveVideoToGallery)
+            val intent = mediaHelper.createDeviceVideoIntent(
+                activity,
+                captureVideoIntent,
+                videoFileUri,
+                saveVideoToGallery
+            )
             if (intent != null) {
                 launcher.launch(intent)
-            }else{
+            } else {
                 Log.d(LOG_TAG, "Failed to launch device video intent")
             }
         } else {
@@ -161,7 +170,11 @@ class CameraManager(
         }
     }
 
-    fun openCropActivity(activity: Activity?, picUri: Uri?, launcher: ActivityResultLauncher<Intent>) {
+    fun openCropActivity(
+        activity: Activity?,
+        picUri: Uri?,
+        launcher: ActivityResultLauncher<Intent>
+    ) {
         val cropIntent = Intent(activity, ImageEditorActivity::class.java)
 
         // creates output file
@@ -206,7 +219,8 @@ class CameraManager(
      * @return a File object pointing to the temporary picture
      */
     fun createVideoFile(activity: Activity?): File {
-        val fileName = VIDEO_NAMES_PREFIX + SimpleDateFormat(TIME_FORMAT).format(Date()) + VIDEO_FORMAT
+        val fileName =
+            VIDEO_NAMES_PREFIX + SimpleDateFormat(TIME_FORMAT).format(Date()) + VIDEO_FORMAT
         return fileHelper.createCaptureFile(activity, fileName)
     }
 
@@ -229,6 +243,12 @@ class CameraManager(
         //val exif = OSCAMRExifHelper()
         val sourcePath =
             if (camParameters.allowEdit && this.croppedUri != null) this.croppedFilePath else imageFilePath
+
+        if (sourcePath == null) {
+            onError(IONError.TAKE_PHOTO_ERROR)
+            return
+        }
+
         if (camParameters.encodingType == JPEG) {
             try {
                 exif.createInFile(sourcePath)
@@ -237,7 +257,7 @@ class CameraManager(
                 e.printStackTrace()
             }
         }
-        var bitmap: Bitmap?
+
         var savedSuccessfully = false
 
         // CB-5479 When this option is given the unchanged image should be saved
@@ -251,50 +271,17 @@ class CameraManager(
 
             savedSuccessfully = savePictureInGallery(activity, camParameters.encodingType, srcUri)
         }
-        if (camParameters.latestVersion) {
-            val mediaResult =
-                sourcePath?.let {
-                    val imageUri = fileHelper.getUriForFile(
-                        activity,
-                        "$applicationId$authority",
-                        File(sourcePath)
-                    )
-                    if (imageUri == null) {
-                        onError(IONError.TAKE_PHOTO_ERROR)
-                        return
-                    }
-                    createImageMediaResult(
-                        activity,
-                        it,
-                        imageUri,
-                        camParameters.includeMetadata,
-                        camParameters,
-                        savedSuccessfully
-                    )
-                }
-            if (mediaResult == null) {
-                onError(IONError.TAKE_PHOTO_ERROR)
-                return
-            }
-            onMediaResult(mediaResult)
-        } else {
-            //get bitmap
-            bitmap = sourcePath?.let { getScaledAndRotatedBitmap(activity, it, camParameters) }
-            if (bitmap == null) {
-                onError(IONError.PROCESS_IMAGE_ERROR)
-                return
-            }
-            //get base64 representation of bitmap
-            imageHelper.processPicture(
-                bitmap, camParameters.encodingType, camParameters.mQuality,
-                {
-                    onImage(it)
-                },
-                {
-                    onError(it)
-                }
-            )
-        }
+
+        mediaProcessor.processCameraImage(
+            activity = activity,
+            sourcePath = sourcePath,
+            "$applicationId$authority",
+            camParameters = camParameters,
+            savedSuccessfully = savedSuccessfully,
+            onImage = onImage,
+            onMediaResult = onMediaResult,
+            onError = onError
+        )
     }
 
     /**
@@ -315,7 +302,6 @@ class CameraManager(
             return
         }
 
-        val thumbnail = getVideoThumbnailBase64(activity, uri) ?: ""
         var videoFilePath: String?
         var recordedInGallery = false
         if (fromGallery) {
@@ -332,30 +318,21 @@ class CameraManager(
                 onError(IONError.CAPTURE_VIDEO_ERROR)
             }
         }
-        val file = File(videoFilePath)
-        if (videoFilePath != null && fileHelper.fileExists(file)) {
-            var metadata: IONMediaMetadata? = null
-            if (includeMetadata) {
-                val resolution = getMediaResolution(activity, false, videoFilePath, uri)
-                metadata = IONMediaMetadata(
-                    fileHelper.getFileSizeFromUri(activity, uri),
-                    mediaHelper.getVideoDuration(activity, uri),
-                    fileHelper.getFileExtension(videoFilePath),
-                    resolution,
-                    fileHelper.getFileCreationDate(file),
-                )
-            }
-            val mediaResult = IONMediaResult(
-                IONMediaType.VIDEO.ordinal,
-                videoFilePath,
-                thumbnail,
-                metadata,
-                recordedInGallery
-            )
-            onSuccess(mediaResult)
-        } else {
+
+        if (videoFilePath.isNullOrEmpty()) {
             onError(IONError.MEDIA_PATH_ERROR)
+            return
         }
+
+        mediaProcessor.processVideo(
+            activity = activity,
+            videoPath = videoFilePath,
+            uri = uri,
+            includeMetadata = includeMetadata,
+            recordedInGallery = recordedInGallery,
+            onSuccess = onSuccess,
+            onError = onError
+        )
     }
 
     private fun savePictureInGallery(activity: Activity, encodingType: Int, srcUri: Uri?): Boolean {
@@ -380,152 +357,12 @@ class CameraManager(
         }
     }
 
-    /**
-     * Transforms the image media item uri into a media result object.
-     * @param imagePath  A string with the path for the image media item.
-     * @return An object containing relevant information for the media item.
-     *          Null if an error occurred.
-     */
-    private fun createImageMediaResult(
-        activity: Activity,
-        imagePath: String,
-        mediaUri: Uri,
-        includeMetadata: Boolean,
-        camParameters: IONCameraParameters?,
-        saved: Boolean = false
-    ): IONMediaResult? {
-        var base64Image = ""
-        var error: IONError? = null
-
-        val file = File(imagePath)
-        if (!fileHelper.fileExists(file)) return null
-
-        //camParameters are only set when createImageMediaResult is called from processResultFromCamera
-        val image: Bitmap? = if (camParameters == null) {
-            val exifOrientation = this.exif.getOrientationFromExif(ExifInterface(imagePath))
-            val rotationDegrees = exifToDegrees(exifOrientation)
-            val decodedImage = imageHelper.decodeFile(imagePath)
-            var rotationMatrix: Matrix? = null
-
-            if (rotationDegrees != 0) {
-                rotationMatrix = Matrix().apply { setRotate(rotationDegrees.toFloat()) }
-            }
-
-            imageHelper.transformBitmapWithMatrix(decodedImage, rotationMatrix)
-        } else {
-            getScaledAndRotatedBitmap(activity, imagePath, camParameters)
-        }
-
-        if (image == null) return null
-
-        val downsizedImage = imageHelper.downsizeBitmapIfNeeded(
-            image,
-            IMAGE_MAX_RESOLUTION
-        )
-        val compressedImage = imageHelper.compressBitmap(downsizedImage, 100)
-
-        imageHelper.bitmapToBase64(
-            compressedImage,
-            resolution = camParameters?.let {
-                minOf(
-                    it.targetWidth, it.targetHeight,
-                    IMAGE_MAX_RESOLUTION
-                )
-            } ?: IMAGE_MAX_RESOLUTION,
-            quality = camParameters?.mQuality ?: IMAGE_MAX_QUALITY,
-            onSuccess = { base64Image = it },
-            onError = { error = it }
-        )
-
-        if (error != null) {
-            return null
-        }
-
-        var metadata: IONMediaMetadata? = null
-        if (includeMetadata) {
-            val resolution = getMediaResolution(activity, true, imagePath, mediaUri)
-            metadata = IONMediaMetadata(
-                fileHelper.getFileSizeFromUri(activity, mediaUri),
-                null,
-                fileHelper.getFileExtension(imagePath),
-                resolution,
-                fileHelper.getFileCreationDate(file),
-            )
-        }
-
-        return IONMediaResult(IONMediaType.PICTURE.type, imagePath, base64Image, metadata, saved)
-    }
-
-    /**
-     * Maintain the aspect ratio so the resulting image does not look smooshed
-     *
-     * @param origWidth
-     * @param origHeight
-     * @return
-     */
-    private fun calculateAspectRatio(
-        origWidth: Int,
-        origHeight: Int,
-        targetWidth: Int,
-        targetHeight: Int
-    ): IntArray {
-        var newWidth: Int = targetWidth
-        var newHeight: Int = targetHeight
-
-        // If no new width or height were specified return the original bitmap
-        if (newWidth <= 0 && newHeight <= 0) {
-            newWidth = origWidth
-            newHeight = origHeight
-        } else if (newWidth > 0 && newHeight <= 0) {
-            newHeight = ((newWidth / origWidth.toDouble()) * origHeight).toInt()
-        } else if (newWidth <= 0 && newHeight > 0) {
-            newWidth = ((newHeight / origHeight.toDouble()) * origWidth).toInt()
-        } else {
-            val newRatio = newWidth / newHeight.toDouble()
-            val origRatio = origWidth / origHeight.toDouble()
-            if (origRatio > newRatio) {
-                newHeight = newWidth * origHeight / origWidth
-            } else if (origRatio < newRatio) {
-                newWidth = newHeight * origWidth / origHeight
-            }
-        }
-        val retVal = IntArray(2)
-        retVal[0] = if (newWidth > 0) newWidth else 1
-        retVal[1] = if (newHeight > 0) newHeight else 1
-        return retVal
-    }
-
-    /**
-     * Figure out what ratio we can load our image into memory at while still being bigger than
-     * our desired width and height
-     *
-     * @param srcWidth
-     * @param srcHeight
-     * @param dstWidth
-     * @param dstHeight
-     * @return
-     */
-    private fun calculateSampleSize(
-        srcWidth: Int,
-        srcHeight: Int,
-        dstWidth: Int,
-        dstHeight: Int
-    ): Int {
-        val srcAspect = srcWidth.toFloat() / srcHeight.toFloat()
-        val dstAspect = dstWidth.toFloat() / dstHeight.toFloat()
-        return if (srcAspect > dstAspect) {
-            srcWidth / dstWidth
-        } else {
-            srcHeight / dstHeight
-        }
-    }
-
     @Throws(IOException::class)
     private fun writeTakenPictureToGalleryLowerThanAndroidQ(
         activity: Activity?,
         srcUri: Uri?,
         galleryUri: Uri?
-    ){
+    ) {
         writeUncompressedImage(activity, srcUri, galleryUri)
         fileHelper.refreshGallery(activity, galleryUri)
     }
@@ -554,18 +391,6 @@ class CameraManager(
         fileHelper.writeUncompressedImage(activity, fileStream, galleryOutputUri)
     }
 
-    private fun exifToDegrees(exifOrientation: Int): Int {
-        return if (exifOrientation == ExifInterface.ORIENTATION_ROTATE_90) {
-            90
-        } else if (exifOrientation == ExifInterface.ORIENTATION_ROTATE_180) {
-            180
-        } else if (exifOrientation == ExifInterface.ORIENTATION_ROTATE_270) {
-            270
-        } else {
-            0
-        }
-    }
-
     /**
      * Converts output image format int value to string value of mime type.
      * @param outputFormat int Output format of camera API.
@@ -591,35 +416,6 @@ class CameraManager(
         fileHelper.writeUncompressedImage(activity, fis, dest)
     }
 
-    private fun getMediaResolution(
-        activity: Activity,
-        isImage: Boolean,
-        mediaPath: String,
-        uri: Uri
-    ): String {
-        var resolutionPair: Pair<Int, Int> =
-            if (isImage) mediaHelper.getImageResolution(mediaPath) else mediaHelper.getVideoResolution(
-                activity,
-                uri
-            )
-        val height = resolutionPair.first
-        val width = resolutionPair.second
-        return if (height >= width) "${height}x${width}" else "${width}x${height}"
-    }
-
-    private suspend fun getVideoThumbnailBase64(
-        activity: Activity,
-        videoUri: Uri
-    ): String? {
-        return mediaHelper.getThumbnailBase64String(activity, videoUri, TARGET_THUMBNAIL_DIMENSION)
-    }
-
-    fun onDestroy(activity: Activity) {
-        deleteVideoFilesFromCache(activity)
-        job.cancel()
-    }
-
-
     private fun getPicturesPath(encodingType: Int): OSCAMRGalleryHelper {
         val timeStamp =
             SimpleDateFormat(TIME_FORMAT).format(
@@ -634,197 +430,9 @@ class CameraManager(
         return OSCAMRGalleryHelper(storageDir.absolutePath, imageFileName)
     }
 
-    /**
-     * Return a scaled and rotated bitmap based on the target width and height
-     *
-     * @param imageUrl
-     * @return
-     * @throws IOException
-     */
-    @Throws(IOException::class)
-    private fun getScaledAndRotatedBitmap(
-        activity: Activity?,
-        imageUrl: String,
-        camParameters: IONCameraParameters
-    ): Bitmap? {
-        // If no new width or height were specified, and orientation is not needed return the original bitmap
-        if (camParameters.targetWidth <= 0 && camParameters.targetHeight <= 0 && !camParameters.correctOrientation) {
-            var fileStream: InputStream? = null
-            var image: Bitmap? = null
-            try {
-                fileStream = fileHelper.getInputStreamFromUriString(imageUrl, activity)
-                image = imageHelper.getBitmapForInputStream(fileStream)
-            } catch (e: Exception) {
-                Log.d(LOG_TAG, e.localizedMessage)
-            } finally {
-                if (fileStream != null) {
-                    try {
-                        fileStream.close()
-                    } catch (e: IOException) {
-                        Log.d(
-                            LOG_TAG,
-                            CLOSING_INPUT_STREAM_ERROR
-                        )
-                    }
-                }
-            }
-            return image
-        }
-
-
-        /*  Copy the input stream to a temporary file on the device.
-            We then use this temporary file to determine the width/height/orientation.
-            This is the only way to determine the orientation of the photo coming from 3rd party providers (Google Drive, Dropbox,etc)
-            This also ensures we create a scaled bitmap with the correct orientation
-
-             We delete the temporary file once we are done
-         */
-        val localFile: File?
-        val galleryUri: Uri?
-        var rotate = 0
-        try {
-            val fileStream: InputStream? =
-                fileHelper.getInputStreamFromUriString(imageUrl, activity)
-            // Generate a temporary file
-            val timeStamp =
-                SimpleDateFormat(TIME_FORMAT).format(
-                    Date()
-                )
-            val fileName =
-                "IMG_" + timeStamp + if (camParameters.encodingType == JPEG) JPEG_EXTENSION else PNG_EXTENSION
-            localFile = File(activity?.let { fileHelper.getTempDirectoryPath(it) } + fileName)
-            galleryUri = Uri.fromFile(localFile)
-            fileHelper.writeUncompressedImage(activity, fileStream, galleryUri)
-            try {
-                //  ExifInterface doesn't like the file:// prefix
-                val filePath = fileHelper.getUriString(galleryUri).replace("file://", "")
-                // read exifData of source
-                exifData?.createInFile(filePath)
-                exifData?.readExifData()
-                // Use ExifInterface to pull rotation information
-                if (camParameters.correctOrientation) {
-                    rotate =
-                        exifToDegrees(this.exif.getOrientationFromExif(ExifInterface(filePath)))
-                }
-            } catch (oe: Exception) {
-                Log.d(
-                    LOG_TAG,
-                    "Unable to read Exif data: $oe"
-                )
-                rotate = 0
-            }
-        } catch (e: Exception) {
-            Log.d(
-                LOG_TAG,
-                "Exception while getting input stream: $e"
-            )
-            return null
-        }
-        return try {
-            // figure out the original width and height of the image
-            val options = Options()
-            options.inJustDecodeBounds = true
-            var fileStream: InputStream? = null
-            try {
-                fileStream = fileHelper.getInputStreamFromUriString(
-                    fileHelper.getUriString(galleryUri),
-                    activity
-                )
-                imageHelper.decodeStream(fileStream, options)
-            } finally {
-                if (fileStream != null) {
-                    try {
-                        fileStream.close()
-                    } catch (e: IOException) {
-                        Log.d(
-                            LOG_TAG,
-                            CLOSING_INPUT_STREAM_ERROR
-                        )
-                    }
-                }
-            }
-
-            if (imageHelper.areOptionsZero(options)) {
-                return null
-            }
-
-            // User didn't specify output dimensions, but they need orientation
-            if (camParameters.targetWidth <= 0 && camParameters.targetHeight <= 0) {
-                camParameters.targetWidth = imageHelper.getOutWidth(options)
-                camParameters.targetHeight = imageHelper.getOutHeight(options)
-            }
-
-            // Setup target width/height based on orientation
-            val rotatedWidth: Int
-            val rotatedHeight: Int
-            var rotated = false
-            if (rotate == 90 || rotate == 270) {
-                rotatedWidth = imageHelper.getOutHeight(options)
-                rotatedHeight = imageHelper.getOutWidth(options)
-                rotated = true
-            } else {
-                rotatedWidth = imageHelper.getOutWidth(options)
-                rotatedHeight = imageHelper.getOutHeight(options)
-            }
-
-            // determine the correct aspect ratio
-            val widthHeight: IntArray = calculateAspectRatio(
-                rotatedWidth,
-                rotatedHeight,
-                camParameters.targetWidth,
-                camParameters.targetHeight
-            )
-
-            // Load in the smallest bitmap possible that is closest to the size we want
-            options.inJustDecodeBounds = false
-            options.inSampleSize = calculateSampleSize(
-                rotatedWidth, rotatedHeight,
-                widthHeight[0],
-                widthHeight[1]
-            )
-            var unscaledBitmap: Bitmap?
-            try {
-                fileStream = fileHelper.getInputStreamFromUriString(
-                    fileHelper.getUriString(galleryUri),
-                    activity
-                )
-                unscaledBitmap = imageHelper.decodeStream(fileStream, options)
-            } finally {
-                if (fileStream != null) {
-                    try {
-                        fileStream.close()
-                    } catch (e: IOException) {
-                        Log.d(
-                            LOG_TAG,
-                            CLOSING_INPUT_STREAM_ERROR
-                        )
-                    }
-                }
-            }
-            val scaledWidth = if (!rotated) widthHeight[0] else widthHeight[1]
-            val scaledHeight = if (!rotated) widthHeight[1] else widthHeight[0]
-            var scaledBitmap =
-                imageHelper.getScaledBitmap(unscaledBitmap, scaledWidth, scaledHeight)
-            if (scaledBitmap != unscaledBitmap) {
-                unscaledBitmap?.recycle()
-            }
-            if (camParameters.correctOrientation && rotate != 0) {
-                val matrix = Matrix()
-                matrix.setRotate(rotate.toFloat())
-                try {
-                    scaledBitmap = imageHelper.transformBitmapWithMatrix(scaledBitmap, matrix)
-                    this.orientationCorrected = true
-                } catch (oom: OutOfMemoryError) {
-                    this.orientationCorrected = false
-                }
-            }
-            scaledBitmap
-        } finally {
-            // delete the temporary copy
-            localFile?.delete()
-        }
+    fun onDestroy(activity: Activity) {
+        deleteVideoFilesFromCache(activity)
     }
-
 
     override fun onScanCompleted(p0: String?, p1: Uri?) {
         conn?.disconnect()

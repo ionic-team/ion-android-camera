@@ -11,7 +11,6 @@ enum class IONError(val code: Int, val description: String) {
     GET_IMAGE_ERROR(12, "Couldn't get image from the gallery."),
     PROCESS_IMAGE_ERROR(13, "Couldn't process image."),
     EDIT_CANCELLED_ERROR(14, "Couldn't edit picture because the process was canceled."),
-
     CAPTURE_VIDEO_ERROR(18, "Couldn't capture video."),
     CAPTURE_VIDEO_CANCELLED_ERROR(19, "Couldn't capture video because the process was canceled."),
     GENERIC_CHOOSE_MULTIMEDIA_ERROR(21, "Couldn't choose media from the gallery."),
@@ -20,6 +19,7 @@ enum class IONError(val code: Int, val description: String) {
     PLAY_VIDEO_GENERAL_ERROR(26, "Couldn't play video."),
     EDIT_PICTURE_EMPTY_URI_ERROR(27, "URI parameter cannot be empty."),
     FILE_DOES_NOT_EXIST_ERROR(30, "The selected file doesn't exist."),
+    FETCH_IMAGE_FROM_URI_ERROR(31, "Couldn't retrieve image from the URI."),
     PERMISSION_DENIED_ERROR(35, "Permission denied."),
     FAILED_TO_CAPTURE_IMAGE_ERROR(36, "Failed to capture image."),
     UNABLE_TO_ACCESS_GALLERY_ERROR(37, "Unable to access photo gallery."),
