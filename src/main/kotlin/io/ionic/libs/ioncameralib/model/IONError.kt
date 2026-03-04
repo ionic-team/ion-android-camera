@@ -11,7 +11,6 @@ enum class IONError(val code: Int, val description: String) {
     GET_IMAGE_ERROR(12, "Couldn't get image from the gallery."),
     PROCESS_IMAGE_ERROR(13, "Couldn't process image."),
     EDIT_CANCELLED_ERROR(14, "Couldn't edit picture because the process was canceled."),
-
     CAPTURE_VIDEO_ERROR(18, "Couldn't capture video."),
     CAPTURE_VIDEO_CANCELLED_ERROR(19, "Couldn't capture video because the process was canceled."),
     GENERIC_CHOOSE_MULTIMEDIA_ERROR(21, "Couldn't choose media from the gallery."),
