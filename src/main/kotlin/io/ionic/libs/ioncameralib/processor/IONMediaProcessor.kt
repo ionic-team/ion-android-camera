@@ -11,6 +11,7 @@ import io.ionic.libs.ioncameralib.helper.OSCAMRExifHelperInterface
 import io.ionic.libs.ioncameralib.helper.OSCAMRFileHelperInterface
 import io.ionic.libs.ioncameralib.helper.OSCAMRImageHelperInterface
 import io.ionic.libs.ioncameralib.helper.OSCAMRMediaHelperInterface
+import io.ionic.libs.ioncameralib.manager.EditManager
 import io.ionic.libs.ioncameralib.model.IONCameraParameters
 import io.ionic.libs.ioncameralib.model.IONError
 import io.ionic.libs.ioncameralib.model.IONMediaMetadata
@@ -33,33 +34,15 @@ class IONMediaProcessor(
 
     companion object Companion {
         private const val JPEG = 0
-        private const val PNG = 1
         private const val JPEG_TYPE = "jpg"
         private const val PNG_TYPE = "png"
         private const val JPEG_EXTENSION = ".$JPEG_TYPE"
         private const val PNG_EXTENSION = ".$PNG_TYPE"
-        private const val PNG_MIME_TYPE = "image/png"
-        private const val JPEG_MIME_TYPE = "image/jpeg"
-
-        private const val GET_PICTURE = "Get Picture"
-
         private const val TIME_FORMAT = "yyyyMMdd_HHmmss"
         private const val LOG_TAG = "MediaProcessor"
-
         private const val CLOSING_INPUT_STREAM_ERROR = "Exception while closing file input stream."
-
-        const val EDIT_REQUEST_CODE = 7
-        const val EDIT_FROM_GALLERY_REQUEST_CODE = 11
-
-        private const val PICTURE_NAMES_PREFIX = "PIC_"
-        private const val VIDEO_NAMES_PREFIX = "VID_"
-        private const val VIDEO_FORMAT = ".mp4"
         private const val IMAGE_MAX_RESOLUTION = 1080
         private const val IMAGE_MAX_QUALITY = 100
-        private const val STORE = "CameraStore"
-        private const val EDIT_FILE_NAME_KEY = "EditFileName"
-        private const val ALLOW_MULTIPLE = "allowMultiple"
-        private const val MEDIA_TYPE = "mediaType"
     }
 
     /**
@@ -138,6 +121,59 @@ class IONMediaProcessor(
         return IONMediaResult(IONMediaType.PICTURE.type, imagePath, base64Image, metadata, saved)
     }
 
+    /**
+     * Transforms the image media item uri into a media result object.
+     * @param imagePath  A string with the path for the image media item.
+     * @return An object containing relevant information for the media item.
+     *          Null if an error occurred.
+     */
+    private fun createEditedImageMediaResult(
+        activity: Activity,
+        imagePath: String,
+        mediaUri: Uri,
+        includeMetadata: Boolean,
+        saved: Boolean = false
+    ): IONMediaResult? {
+        var base64Image = ""
+        var error: IONError? = null
+
+        val file = File(imagePath)
+        if (!fileHelper.fileExists(file)) return null
+
+        val decodedImage = imageHelper.decodeFile(imagePath)
+
+        if(decodedImage == null) return null
+
+        val downsizedImage = imageHelper.downsizeBitmapIfNeeded(decodedImage,
+            IMAGE_MAX_RESOLUTION
+        )
+        val compressedImage = imageHelper.compressBitmap(downsizedImage, 100)
+
+        imageHelper.bitmapToBase64(compressedImage,
+            resolution = IMAGE_MAX_RESOLUTION,
+            quality = IMAGE_MAX_QUALITY,
+            onSuccess = { base64Image = it },
+            onError = { error = it }
+        )
+
+        if (error != null) {
+            return null
+        }
+
+        var metadata: IONMediaMetadata? = null
+        if (includeMetadata) {
+            metadata = IONMediaMetadata(
+                fileHelper.getFileSizeFromUri(activity, mediaUri),
+                null,
+                fileHelper.getFileExtension(imagePath),
+                "${decodedImage.height}x${decodedImage.width}",
+                fileHelper.getFileCreationDate(file),
+            )
+        }
+
+        return IONMediaResult(IONMediaType.PICTURE.type, imagePath, base64Image, metadata, saved)
+    }
+
     fun processCameraImage(
         activity: Activity,
         sourcePath: String,
@@ -191,6 +227,31 @@ class IONMediaProcessor(
                 }
             )
         }
+    }
+
+    fun processEditedImage(
+        activity: Activity,
+        imagePath: String,
+        uri: Uri,
+        includeMetadata: Boolean,
+        savedSuccessfully: Boolean,
+        onMediaResult: (IONMediaResult) -> Unit,
+        onError: (IONError) -> Unit
+    ) {
+        val mediaResult = createEditedImageMediaResult(
+            activity,
+            imagePath,
+            uri,
+            includeMetadata,
+            savedSuccessfully
+        )
+
+        if (mediaResult == null) {
+            onError(IONError.EDIT_IMAGE_ERROR)
+            return
+        }
+
+        onMediaResult(mediaResult)
     }
 
     /**

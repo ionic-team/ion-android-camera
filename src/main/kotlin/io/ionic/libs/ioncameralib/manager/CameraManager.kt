@@ -64,26 +64,13 @@ class CameraManager(
         private const val PNG_EXTENSION = ".$PNG_TYPE"
         private const val PNG_MIME_TYPE = "image/png"
         private const val JPEG_MIME_TYPE = "image/jpeg"
-
-        private const val GET_PICTURE = "Get Picture"
-
         private const val TIME_FORMAT = "yyyyMMdd_HHmmss"
         private const val LOG_TAG = "CameraManager"
-
-        private const val CLOSING_INPUT_STREAM_ERROR = "Exception while closing file input stream."
-
-        const val EDIT_REQUEST_CODE = 7
-        const val EDIT_FROM_GALLERY_REQUEST_CODE = 11
-
         private const val PICTURE_NAMES_PREFIX = "PIC_"
         private const val VIDEO_NAMES_PREFIX = "VID_"
         private const val VIDEO_FORMAT = ".mp4"
-        private const val IMAGE_MAX_RESOLUTION = 1080
-        private const val IMAGE_MAX_QUALITY = 100
         private const val STORE = "CameraStore"
         private const val EDIT_FILE_NAME_KEY = "EditFileName"
-        private const val ALLOW_MULTIPLE = "allowMultiple"
-        private const val MEDIA_TYPE = "mediaType"
     }
 
     /**
