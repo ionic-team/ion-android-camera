@@ -90,6 +90,7 @@ class CameraManager(
      * Take a picture with the camera.
      * @param activity  Activity object that will be necessary to take the picture
      * @param encodingType  JPEG or PNG.
+     * @param launcher ActivityResultLauncher to use when launching the camera activity
      */
     fun takePhoto(activity: Activity, encodingType: Int, launcher: ActivityResultLauncher<Intent>) {
         // Save filename to fetch later (needed when allowEdit is true)
@@ -119,6 +120,7 @@ class CameraManager(
      * Calls the intent to open the device's camera to record a video.
      * @param activity  Activity object that will be necessary to launch the edit activity.
      * @param saveVideoToGallery Indicates if the recorded video should be saved to the device gallery
+     * @param launcher ActivityResultLauncher to use when launching the camera activity
      * @param onError callback that will be used when an error occurs.
      */
     fun recordVideo(

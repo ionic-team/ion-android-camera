@@ -54,6 +54,7 @@ class GalleryManager(
      * @param mediaType  The type of content the user is allowed to select.
      * @param allowMultiSelect  Whether or not the user should be allowed to select multiple items
      *                          from gallery.
+     * @param launcher ActivityResultLauncher to use when launching the gallery activity
      */
     fun chooseFromGallery(
         activity: Activity,
