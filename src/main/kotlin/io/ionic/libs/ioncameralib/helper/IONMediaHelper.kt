@@ -16,9 +16,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 
-class OSCAMRMediaHelper : OSCAMRMediaHelperInterface {
+class IONMediaHelper : IONMediaHelperInterface {
 
-    companion object {
+    companion object Companion {
         private const val CAMERA = 1
         private const val LOG_TAG = "OSCAMRMediaHelper"
         const val REQUEST_VIDEO_CAPTURE = 1

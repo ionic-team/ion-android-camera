@@ -13,9 +13,9 @@ import androidx.core.graphics.scale
 import io.ionic.libs.ioncameralib.model.IONError
 import java.io.*
 
-class OSCAMRImageHelper: OSCAMRImageHelperInterface {
+class IONImageHelper: IONImageHelperInterface {
 
-    companion object {
+    companion object Companion {
         private const val JPEG = 0
     }
 

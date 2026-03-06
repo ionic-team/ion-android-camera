@@ -15,21 +15,19 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
-import io.ionic.libs.ioncameralib.helper.OSCAMRExifHelper
-import io.ionic.libs.ioncameralib.helper.OSCAMRExifHelperInterface
-import io.ionic.libs.ioncameralib.helper.OSCAMRFileHelperInterface
-import io.ionic.libs.ioncameralib.helper.OSCAMRImageHelperInterface
-import io.ionic.libs.ioncameralib.helper.OSCAMRMediaHelperInterface
-import io.ionic.libs.ioncameralib.helper.OSCAMRGalleryHelper
+import io.ionic.libs.ioncameralib.helper.IONExifHelper
+import io.ionic.libs.ioncameralib.helper.IONExifHelperInterface
+import io.ionic.libs.ioncameralib.helper.IONFileHelperInterface
+import io.ionic.libs.ioncameralib.helper.IONImageHelperInterface
+import io.ionic.libs.ioncameralib.helper.IONMediaHelperInterface
+import io.ionic.libs.ioncameralib.helper.IONGalleryHelper
 import io.ionic.libs.ioncameralib.model.IONError
 import io.ionic.libs.ioncameralib.model.IONMediaMetadata
 import io.ionic.libs.ioncameralib.model.IONMediaResult
 import io.ionic.libs.ioncameralib.model.IONMediaType
 import io.ionic.libs.ioncameralib.model.IONCameraParameters
 import io.ionic.libs.ioncameralib.model.IONEditParameters
-import io.ionic.libs.ioncameralib.view.ImageEditorActivity
-import io.ionic.libs.ioncameralib.view.IONLoadingActivity
-import io.ionic.libs.ioncameralib.view.IONOpenPhotoPickerActivity
+import io.ionic.libs.ioncameralib.view.IONImageEditorActivity
 import kotlinx.coroutines.Job
 import java.io.File
 import java.io.FileNotFoundException
@@ -40,17 +38,17 @@ import java.util.Date
 
 class OSCAMRController(
     private var applicationId: String,
-    private var exif: OSCAMRExifHelperInterface,
-    private var fileHelper: OSCAMRFileHelperInterface,
-    private var mediaHelper: OSCAMRMediaHelperInterface,
-    private var imageHelper: OSCAMRImageHelperInterface
+    private var exif: IONExifHelperInterface,
+    private var fileHelper: IONFileHelperInterface,
+    private var mediaHelper: IONMediaHelperInterface,
+    private var imageHelper: IONImageHelperInterface
 ) : MediaScannerConnectionClient {
 
     private var imageFilePath: String? = null
     private var imageUri: Uri? = null
     private var croppedUri: Uri? = null
     private var croppedFilePath: String? = null
-    private var exifData: OSCAMRExifHelperInterface? = OSCAMRExifHelper()
+    private var exifData: IONExifHelperInterface? = IONExifHelper()
     private var orientationCorrected = false
 
     private var conn: MediaScannerConnection? = null
@@ -576,7 +574,7 @@ class OSCAMRController(
      }*/
 
     fun openCropActivity(activity: Activity?, picUri: Uri?, requestCode: Int?, destType: Int?) {
-        val cropIntent = Intent(activity, ImageEditorActivity::class.java)
+        val cropIntent = Intent(activity, IONImageEditorActivity::class.java)
 
         // creates output file
         croppedFilePath = createCaptureFile(
@@ -586,8 +584,8 @@ class OSCAMRController(
         ).absolutePath
         croppedUri = Uri.parse(croppedFilePath)
 
-        cropIntent.putExtra(ImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS, croppedFilePath)
-        cropIntent.putExtra(ImageEditorActivity.IMAGE_INPUT_URI_EXTRAS, picUri.toString())
+        cropIntent.putExtra(IONImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS, croppedFilePath)
+        cropIntent.putExtra(IONImageEditorActivity.IMAGE_INPUT_URI_EXTRAS, picUri.toString())
         var code = EDIT_REQUEST_CODE
         if (requestCode != null && destType != null) {
             code = requestCode + destType
@@ -785,7 +783,7 @@ class OSCAMRController(
         onMediaResult: (IONMediaResult) -> Unit,
         onError: (IONError) -> Unit
     ) {
-        val resultImagePath = intent?.getStringExtra(ImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS)
+        val resultImagePath = intent?.getStringExtra(IONImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS)
         if (resultImagePath.isNullOrEmpty()) {
             Log.d(LOG_TAG, "Image file path is null or empty")
             onError(IONError.EDIT_IMAGE_ERROR)
@@ -836,7 +834,7 @@ class OSCAMRController(
     }
 
     private fun savePictureInGallery(activity: Activity, encodingType: Int, srcUri: Uri?) {
-        val galleryPathVO: OSCAMRGalleryHelper = getPicturesPath(encodingType)
+        val galleryPathVO: IONGalleryHelper = getPicturesPath(encodingType)
         val fileFromGalleryPath = File(galleryPathVO.galleryPath)
         val galleryUri = Uri.fromFile(fileFromGalleryPath)
 
@@ -938,7 +936,7 @@ class OSCAMRController(
         job.cancel()
     }
 
-    private fun getPicturesPath(encodingType: Int): OSCAMRGalleryHelper {
+    private fun getPicturesPath(encodingType: Int): IONGalleryHelper {
         val timeStamp =
             SimpleDateFormat(TIME_FORMAT).format(
                 Date()
@@ -949,7 +947,7 @@ class OSCAMRController(
             Environment.DIRECTORY_PICTURES
         )
         storageDir.mkdirs()
-        return OSCAMRGalleryHelper(storageDir.absolutePath, imageFileName)
+        return IONGalleryHelper(storageDir.absolutePath, imageFileName)
     }
 
     /**
@@ -1235,7 +1233,7 @@ class OSCAMRController(
     private fun writeTakenPictureToGalleryStartingFromAndroidQ(
         activity: Activity?,
         srcUri: Uri?,
-        galleryPathVO: OSCAMRGalleryHelper,
+        galleryPathVO: IONGalleryHelper,
         encodingType: Int
     ) {
         // Starting from Android Q, working with the ACTION_MEDIA_SCANNER_SCAN_FILE intent is deprecated

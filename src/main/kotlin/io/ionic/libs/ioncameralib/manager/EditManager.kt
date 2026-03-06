@@ -12,19 +12,17 @@ import android.provider.MediaStore
 import android.util.Base64
 import android.util.Log
 import androidx.activity.result.ActivityResultLauncher
-import io.ionic.libs.ioncameralib.helper.OSCAMRFileHelperInterface
-import io.ionic.libs.ioncameralib.helper.OSCAMRImageHelperInterface
+import io.ionic.libs.ioncameralib.helper.IONFileHelperInterface
+import io.ionic.libs.ioncameralib.helper.IONImageHelperInterface
 import io.ionic.libs.ioncameralib.model.IONError
-import io.ionic.libs.ioncameralib.model.IONMediaMetadata
 import io.ionic.libs.ioncameralib.model.IONMediaResult
-import io.ionic.libs.ioncameralib.model.IONMediaType
 import io.ionic.libs.ioncameralib.model.IONEditParameters
-import io.ionic.libs.ioncameralib.view.ImageEditorActivity
+import io.ionic.libs.ioncameralib.view.IONImageEditorActivity
 import java.io.File
 import androidx.core.net.toUri
-import io.ionic.libs.ioncameralib.helper.OSCAMRExifHelperInterface
-import io.ionic.libs.ioncameralib.helper.OSCAMRGalleryHelper
-import io.ionic.libs.ioncameralib.helper.OSCAMRMediaHelperInterface
+import io.ionic.libs.ioncameralib.helper.IONExifHelperInterface
+import io.ionic.libs.ioncameralib.helper.IONGalleryHelper
+import io.ionic.libs.ioncameralib.helper.IONMediaHelperInterface
 import io.ionic.libs.ioncameralib.processor.IONMediaProcessor
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -38,10 +36,10 @@ import java.util.Date
 class EditManager(
     private var applicationId: String,
     private var authority: String,
-    private var exif: OSCAMRExifHelperInterface,
-    private var fileHelper: OSCAMRFileHelperInterface,
-    private var mediaHelper: OSCAMRMediaHelperInterface,
-    private var imageHelper: OSCAMRImageHelperInterface,
+    private var exif: IONExifHelperInterface,
+    private var fileHelper: IONFileHelperInterface,
+    private var mediaHelper: IONMediaHelperInterface,
+    private var imageHelper: IONImageHelperInterface,
 ) {
 
     private var croppedUri: Uri? = null
@@ -156,7 +154,7 @@ class EditManager(
         picUri: Uri?,
         launcher: ActivityResultLauncher<Intent>
     ) {
-        val cropIntent = Intent(activity, ImageEditorActivity::class.java)
+        val cropIntent = Intent(activity, IONImageEditorActivity::class.java)
 
         // creates output file
         croppedFilePath = createCaptureFile(
@@ -166,8 +164,8 @@ class EditManager(
         ).absolutePath
         croppedUri = croppedFilePath?.toUri()
 
-        cropIntent.putExtra(ImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS, croppedFilePath)
-        cropIntent.putExtra(ImageEditorActivity.IMAGE_INPUT_URI_EXTRAS, picUri.toString())
+        cropIntent.putExtra(IONImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS, croppedFilePath)
+        cropIntent.putExtra(IONImageEditorActivity.IMAGE_INPUT_URI_EXTRAS, picUri.toString())
 
         launcher.launch(cropIntent)
     }
@@ -190,7 +188,7 @@ class EditManager(
         onMediaResult: (IONMediaResult) -> Unit,
         onError: (IONError) -> Unit
     ) {
-        val resultImagePath = intent?.getStringExtra(ImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS)
+        val resultImagePath = intent?.getStringExtra(IONImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS)
         if (resultImagePath.isNullOrEmpty()) {
             Log.d(LOG_TAG, "Image file path is null or empty")
             onError(IONError.EDIT_IMAGE_ERROR)
@@ -269,7 +267,7 @@ class EditManager(
 
     private fun savePictureInGallery(activity: Activity, encodingType: Int, srcUri: Uri?): Boolean {
         return try {
-            val galleryPathVO: OSCAMRGalleryHelper = getPicturesPath(encodingType)
+            val galleryPathVO: IONGalleryHelper = getPicturesPath(encodingType)
             val fileFromGalleryPath = File(galleryPathVO.galleryPath)
             val galleryUri = Uri.fromFile(fileFromGalleryPath)
 
@@ -289,7 +287,7 @@ class EditManager(
         }
     }
 
-    private fun getPicturesPath(encodingType: Int): OSCAMRGalleryHelper {
+    private fun getPicturesPath(encodingType: Int): IONGalleryHelper {
         val timeStamp =
             SimpleDateFormat(TIME_FORMAT).format(
                 Date()
@@ -300,7 +298,7 @@ class EditManager(
             Environment.DIRECTORY_PICTURES
         )
         storageDir.mkdirs()
-        return OSCAMRGalleryHelper(storageDir.absolutePath, imageFileName)
+        return IONGalleryHelper(storageDir.absolutePath, imageFileName)
     }
 
     @Throws(IOException::class)
@@ -317,7 +315,7 @@ class EditManager(
     private fun writeTakenPictureToGalleryStartingFromAndroidQ(
         activity: Activity?,
         srcUri: Uri?,
-        galleryPathVO: OSCAMRGalleryHelper,
+        galleryPathVO: IONGalleryHelper,
         encodingType: Int
     ) {
         // Starting from Android Q, working with the ACTION_MEDIA_SCANNER_SCAN_FILE intent is deprecated

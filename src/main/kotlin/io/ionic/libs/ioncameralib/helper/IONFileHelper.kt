@@ -36,9 +36,9 @@ import java.nio.file.Files
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.*
 
-class OSCAMRFileHelper: OSCAMRFileHelperInterface {
+class IONFileHelper: IONFileHelperInterface {
 
-    companion object {
+    companion object Companion {
         private const val LOG_TAG = "OSCAMRFileHelper"
         private const val EXTERNAL_STORAGE = "com.android.externalstorage.documents"
         private const val DOWNLOADS_DOCUMENTS = "com.android.providers.downloads.documents"

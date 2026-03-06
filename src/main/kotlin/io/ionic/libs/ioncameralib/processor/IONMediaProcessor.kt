@@ -7,11 +7,10 @@ import android.graphics.Matrix
 import android.media.ExifInterface
 import android.net.Uri
 import android.util.Log
-import io.ionic.libs.ioncameralib.helper.OSCAMRExifHelperInterface
-import io.ionic.libs.ioncameralib.helper.OSCAMRFileHelperInterface
-import io.ionic.libs.ioncameralib.helper.OSCAMRImageHelperInterface
-import io.ionic.libs.ioncameralib.helper.OSCAMRMediaHelperInterface
-import io.ionic.libs.ioncameralib.manager.EditManager
+import io.ionic.libs.ioncameralib.helper.IONExifHelperInterface
+import io.ionic.libs.ioncameralib.helper.IONFileHelperInterface
+import io.ionic.libs.ioncameralib.helper.IONImageHelperInterface
+import io.ionic.libs.ioncameralib.helper.IONMediaHelperInterface
 import io.ionic.libs.ioncameralib.model.IONCameraParameters
 import io.ionic.libs.ioncameralib.model.IONError
 import io.ionic.libs.ioncameralib.model.IONMediaMetadata
@@ -24,10 +23,10 @@ import java.text.SimpleDateFormat
 import java.util.Date
 
 class IONMediaProcessor(
-    private val exif: OSCAMRExifHelperInterface,
-    private val fileHelper: OSCAMRFileHelperInterface,
-    private val mediaHelper: OSCAMRMediaHelperInterface,
-    private val imageHelper: OSCAMRImageHelperInterface
+    private val exif: IONExifHelperInterface,
+    private val fileHelper: IONFileHelperInterface,
+    private val mediaHelper: IONMediaHelperInterface,
+    private val imageHelper: IONImageHelperInterface
 ) {
     private var orientationCorrected = false
     private val TARGET_THUMBNAIL_DIMENSION: Int = 480
