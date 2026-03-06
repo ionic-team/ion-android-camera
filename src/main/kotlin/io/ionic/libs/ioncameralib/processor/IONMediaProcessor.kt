@@ -21,6 +21,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.text.SimpleDateFormat
 import java.util.Date
+import kotlin.math.roundToInt
 
 class IONMediaProcessor(
     private val exif: IONExifHelperInterface,
@@ -276,9 +277,10 @@ class IONMediaProcessor(
         var metadata: IONMediaMetadata? = null
         if (includeMetadata) {
             val resolution = getMediaResolution(activity, false, videoPath, uri)
+            (mediaHelper.getVideoDuration(activity, uri).toDouble() / 1000).roundToInt()
             metadata = IONMediaMetadata(
                 fileHelper.getFileSizeFromUri(activity, mediaUri),
-                mediaHelper.getVideoDuration(activity, uri),
+                (mediaHelper.getVideoDuration(activity, uri).toDouble() / 1000).roundToInt(),
                 fileHelper.getFileExtension(videoPath),
                 resolution,
                 fileHelper.getFileCreationDate(file),
@@ -322,7 +324,7 @@ class IONMediaProcessor(
             val resolution = getMediaResolution(activity, false, videoPath, uri)
             metadata = IONMediaMetadata(
                 fileHelper.getFileSizeFromUri(activity, uri),
-                mediaHelper.getVideoDuration(activity, uri),
+                (mediaHelper.getVideoDuration(activity, uri).toDouble() / 1000).roundToInt(),
                 fileHelper.getFileExtension(videoPath),
                 resolution,
                 fileHelper.getFileCreationDate(file),

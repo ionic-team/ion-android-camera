@@ -111,7 +111,7 @@ class IONMediaHelper : IONMediaHelperInterface {
         return intent.resolveActivity(packageManager) != null
     }
 
-    /*override fun openDeviceVideo(
+    override fun openDeviceVideo(
         activity: Activity?,
         intent: Intent,
         videoFileUri: Uri?,
@@ -122,7 +122,7 @@ class IONMediaHelper : IONMediaHelperInterface {
             intent,
             if (!saveToGallery) REQUEST_VIDEO_CAPTURE else REQUEST_VIDEO_CAPTURE_SAVE_TO_GALLERY
         )
-    }*/
+    }
 
     override fun createDeviceVideoIntent(activity: Activity?, intent: Intent, videoFileUri: Uri?, saveToGallery: Boolean, ): Intent? {
         val safeActivity = activity ?: return null
