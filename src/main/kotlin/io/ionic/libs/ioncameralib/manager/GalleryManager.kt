@@ -7,24 +7,24 @@ import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import androidx.activity.result.ActivityResultLauncher
-import io.ionic.libs.ioncameralib.helper.OSCAMRExifHelperInterface
-import io.ionic.libs.ioncameralib.helper.OSCAMRFileHelperInterface
-import io.ionic.libs.ioncameralib.helper.OSCAMRImageHelperInterface
-import io.ionic.libs.ioncameralib.helper.OSCAMRMediaHelperInterface
+import io.ionic.libs.ioncameralib.helper.IONExifHelperInterface
+import io.ionic.libs.ioncameralib.helper.IONFileHelperInterface
+import io.ionic.libs.ioncameralib.helper.IONImageHelperInterface
+import io.ionic.libs.ioncameralib.helper.IONMediaHelperInterface
 import io.ionic.libs.ioncameralib.model.IONError
 import io.ionic.libs.ioncameralib.model.IONMediaResult
 import io.ionic.libs.ioncameralib.model.IONMediaType
 import io.ionic.libs.ioncameralib.processor.IONMediaProcessor
 import io.ionic.libs.ioncameralib.view.IONOpenPhotoPickerActivity
 import io.ionic.libs.ioncameralib.view.IONLoadingActivity
-import io.ionic.libs.ioncameralib.view.ImageEditorActivity
+import io.ionic.libs.ioncameralib.view.IONImageEditorActivity
 import java.io.File
 
 class GalleryManager(
-    private var exif: OSCAMRExifHelperInterface,
-    private var fileHelper: OSCAMRFileHelperInterface,
-    private var mediaHelper: OSCAMRMediaHelperInterface,
-    private var imageHelper: OSCAMRImageHelperInterface
+    private var exif: IONExifHelperInterface,
+    private var fileHelper: IONFileHelperInterface,
+    private var mediaHelper: IONMediaHelperInterface,
+    private var imageHelper: IONImageHelperInterface
 ) {
     private var croppedUri: Uri? = null
     private var croppedFilePath: String? = null
@@ -54,6 +54,7 @@ class GalleryManager(
      * @param mediaType  The type of content the user is allowed to select.
      * @param allowMultiSelect  Whether or not the user should be allowed to select multiple items
      *                          from gallery.
+     * @param launcher ActivityResultLauncher to use when launching the gallery activity
      */
     fun chooseFromGallery(
         activity: Activity,
@@ -169,7 +170,7 @@ class GalleryManager(
 
                 // An empty string here will trigger EDIT_IMAGE_ERROR later
                 val fileLocation =
-                    intent.getStringExtra(ImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS) ?: ""
+                    intent.getStringExtra(IONImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS) ?: ""
 
                 val mediaResult = createMediaResult(
                     activity,
@@ -199,7 +200,7 @@ class GalleryManager(
         picUri: Uri?,
         launcher: ActivityResultLauncher<Intent>
     ) {
-        val cropIntent = Intent(activity, ImageEditorActivity::class.java)
+        val cropIntent = Intent(activity, IONImageEditorActivity::class.java)
 
         // creates output file
         croppedFilePath = createCaptureFile(
@@ -209,8 +210,8 @@ class GalleryManager(
         ).absolutePath
         croppedUri = Uri.parse(croppedFilePath)
 
-        cropIntent.putExtra(ImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS, croppedFilePath)
-        cropIntent.putExtra(ImageEditorActivity.IMAGE_INPUT_URI_EXTRAS, picUri.toString())
+        cropIntent.putExtra(IONImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS, croppedFilePath)
+        cropIntent.putExtra(IONImageEditorActivity.IMAGE_INPUT_URI_EXTRAS, picUri.toString())
 
         launcher.launch(cropIntent)
     }

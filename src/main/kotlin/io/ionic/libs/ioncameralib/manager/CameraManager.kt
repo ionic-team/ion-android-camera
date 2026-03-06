@@ -5,7 +5,6 @@ import androidx.activity.result.ActivityResultLauncher
 import android.content.ContentResolver
 import android.content.ContentValues
 import android.content.Intent
-import android.media.ExifInterface
 import android.media.MediaScannerConnection
 import android.media.MediaScannerConnection.MediaScannerConnectionClient
 import android.net.Uri
@@ -13,18 +12,17 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
-import io.ionic.libs.ioncameralib.helper.OSCAMRExifHelperInterface
-import io.ionic.libs.ioncameralib.helper.OSCAMRFileHelperInterface
-import io.ionic.libs.ioncameralib.helper.OSCAMRImageHelperInterface
-import io.ionic.libs.ioncameralib.helper.OSCAMRMediaHelperInterface
-import io.ionic.libs.ioncameralib.helper.OSCAMRGalleryHelper
+import io.ionic.libs.ioncameralib.helper.IONExifHelperInterface
+import io.ionic.libs.ioncameralib.helper.IONFileHelperInterface
+import io.ionic.libs.ioncameralib.helper.IONImageHelperInterface
+import io.ionic.libs.ioncameralib.helper.IONMediaHelperInterface
+import io.ionic.libs.ioncameralib.helper.IONGalleryHelper
 import io.ionic.libs.ioncameralib.model.IONError
 import io.ionic.libs.ioncameralib.model.IONMediaResult
 import io.ionic.libs.ioncameralib.model.IONMediaType
 import io.ionic.libs.ioncameralib.model.IONCameraParameters
-import io.ionic.libs.ioncameralib.view.ImageEditorActivity
+import io.ionic.libs.ioncameralib.view.IONImageEditorActivity
 import io.ionic.libs.ioncameralib.processor.IONMediaProcessor
-import kotlinx.coroutines.Job
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -36,10 +34,10 @@ import java.util.Date
 class CameraManager(
     private var applicationId: String,
     private var authority: String,
-    private var exif: OSCAMRExifHelperInterface,
-    private var fileHelper: OSCAMRFileHelperInterface,
-    private var mediaHelper: OSCAMRMediaHelperInterface,
-    private var imageHelper: OSCAMRImageHelperInterface
+    private var exif: IONExifHelperInterface,
+    private var fileHelper: IONFileHelperInterface,
+    private var mediaHelper: IONMediaHelperInterface,
+    private var imageHelper: IONImageHelperInterface
 ) : MediaScannerConnectionClient {
     private var imageFilePath: String? = null
     private var imageUri: Uri? = null
@@ -64,26 +62,13 @@ class CameraManager(
         private const val PNG_EXTENSION = ".$PNG_TYPE"
         private const val PNG_MIME_TYPE = "image/png"
         private const val JPEG_MIME_TYPE = "image/jpeg"
-
-        private const val GET_PICTURE = "Get Picture"
-
         private const val TIME_FORMAT = "yyyyMMdd_HHmmss"
         private const val LOG_TAG = "CameraManager"
-
-        private const val CLOSING_INPUT_STREAM_ERROR = "Exception while closing file input stream."
-
-        const val EDIT_REQUEST_CODE = 7
-        const val EDIT_FROM_GALLERY_REQUEST_CODE = 11
-
         private const val PICTURE_NAMES_PREFIX = "PIC_"
         private const val VIDEO_NAMES_PREFIX = "VID_"
         private const val VIDEO_FORMAT = ".mp4"
-        private const val IMAGE_MAX_RESOLUTION = 1080
-        private const val IMAGE_MAX_QUALITY = 100
         private const val STORE = "CameraStore"
         private const val EDIT_FILE_NAME_KEY = "EditFileName"
-        private const val ALLOW_MULTIPLE = "allowMultiple"
-        private const val MEDIA_TYPE = "mediaType"
     }
 
     /**
@@ -103,6 +88,7 @@ class CameraManager(
      * Take a picture with the camera.
      * @param activity  Activity object that will be necessary to take the picture
      * @param encodingType  JPEG or PNG.
+     * @param launcher ActivityResultLauncher to use when launching the camera activity
      */
     fun takePhoto(activity: Activity, encodingType: Int, launcher: ActivityResultLauncher<Intent>) {
         // Save filename to fetch later (needed when allowEdit is true)
@@ -132,6 +118,7 @@ class CameraManager(
      * Calls the intent to open the device's camera to record a video.
      * @param activity  Activity object that will be necessary to launch the edit activity.
      * @param saveVideoToGallery Indicates if the recorded video should be saved to the device gallery
+     * @param launcher ActivityResultLauncher to use when launching the camera activity
      * @param onError callback that will be used when an error occurs.
      */
     fun recordVideo(
@@ -175,7 +162,7 @@ class CameraManager(
         picUri: Uri?,
         launcher: ActivityResultLauncher<Intent>
     ) {
-        val cropIntent = Intent(activity, ImageEditorActivity::class.java)
+        val cropIntent = Intent(activity, IONImageEditorActivity::class.java)
 
         // creates output file
         croppedFilePath = createCaptureFile(
@@ -185,8 +172,8 @@ class CameraManager(
         ).absolutePath
         croppedUri = Uri.parse(croppedFilePath)
 
-        cropIntent.putExtra(ImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS, croppedFilePath)
-        cropIntent.putExtra(ImageEditorActivity.IMAGE_INPUT_URI_EXTRAS, picUri.toString())
+        cropIntent.putExtra(IONImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS, croppedFilePath)
+        cropIntent.putExtra(IONImageEditorActivity.IMAGE_INPUT_URI_EXTRAS, picUri.toString())
 
         launcher.launch(cropIntent)
     }
@@ -337,7 +324,7 @@ class CameraManager(
 
     private fun savePictureInGallery(activity: Activity, encodingType: Int, srcUri: Uri?): Boolean {
         return try {
-            val galleryPathVO: OSCAMRGalleryHelper = getPicturesPath(encodingType)
+            val galleryPathVO: IONGalleryHelper = getPicturesPath(encodingType)
             val fileFromGalleryPath = File(galleryPathVO.galleryPath)
             val galleryUri = Uri.fromFile(fileFromGalleryPath)
 
@@ -371,7 +358,7 @@ class CameraManager(
     private fun writeTakenPictureToGalleryStartingFromAndroidQ(
         activity: Activity?,
         srcUri: Uri?,
-        galleryPathVO: OSCAMRGalleryHelper,
+        galleryPathVO: IONGalleryHelper,
         encodingType: Int
     ) {
         // Starting from Android Q, working with the ACTION_MEDIA_SCANNER_SCAN_FILE intent is deprecated
@@ -416,7 +403,7 @@ class CameraManager(
         fileHelper.writeUncompressedImage(activity, fis, dest)
     }
 
-    private fun getPicturesPath(encodingType: Int): OSCAMRGalleryHelper {
+    private fun getPicturesPath(encodingType: Int): IONGalleryHelper {
         val timeStamp =
             SimpleDateFormat(TIME_FORMAT).format(
                 Date()
@@ -427,7 +414,7 @@ class CameraManager(
             Environment.DIRECTORY_PICTURES
         )
         storageDir.mkdirs()
-        return OSCAMRGalleryHelper(storageDir.absolutePath, imageFileName)
+        return IONGalleryHelper(storageDir.absolutePath, imageFileName)
     }
 
     fun onDestroy(activity: Activity) {

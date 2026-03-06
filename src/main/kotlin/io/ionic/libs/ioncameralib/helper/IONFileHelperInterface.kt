@@ -7,7 +7,7 @@ import android.net.Uri
 import java.io.File
 import java.io.InputStream
 
-interface OSCAMRFileHelperInterface {
+interface IONFileHelperInterface {
     fun getRealPath(uri: Uri?, context: Context?): String?
     fun getRealPath(uriString: String, context: Context): String?
     fun getUriFromString(uriString: String): Uri

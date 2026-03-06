@@ -25,11 +25,11 @@
                 android:adjustViewBounds="true">
         </ImageView>
 
-        <io.ionic.libs.ioncameralib.view.ImageCropperView
+        <io.ionic.libs.ioncameralib.view.IONImageCropperView
                 android:id="@+id/cropperView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
-        </io.ionic.libs.ioncameralib.view.ImageCropperView>
+        </io.ionic.libs.ioncameralib.view.IONImageCropperView>
 
     </FrameLayout>
 

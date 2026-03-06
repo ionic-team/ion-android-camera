@@ -12,17 +12,18 @@ import android.provider.MediaStore
 import android.util.Base64
 import android.util.Log
 import androidx.activity.result.ActivityResultLauncher
-import io.ionic.libs.ioncameralib.helper.OSCAMRFileHelperInterface
-import io.ionic.libs.ioncameralib.helper.OSCAMRImageHelperInterface
+import io.ionic.libs.ioncameralib.helper.IONFileHelperInterface
+import io.ionic.libs.ioncameralib.helper.IONImageHelperInterface
 import io.ionic.libs.ioncameralib.model.IONError
-import io.ionic.libs.ioncameralib.model.IONMediaMetadata
 import io.ionic.libs.ioncameralib.model.IONMediaResult
-import io.ionic.libs.ioncameralib.model.IONMediaType
 import io.ionic.libs.ioncameralib.model.IONEditParameters
-import io.ionic.libs.ioncameralib.view.ImageEditorActivity
+import io.ionic.libs.ioncameralib.view.IONImageEditorActivity
 import java.io.File
 import androidx.core.net.toUri
-import io.ionic.libs.ioncameralib.helper.OSCAMRGalleryHelper
+import io.ionic.libs.ioncameralib.helper.IONExifHelperInterface
+import io.ionic.libs.ioncameralib.helper.IONGalleryHelper
+import io.ionic.libs.ioncameralib.helper.IONMediaHelperInterface
+import io.ionic.libs.ioncameralib.processor.IONMediaProcessor
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.io.InputStream
@@ -35,12 +36,21 @@ import java.util.Date
 class EditManager(
     private var applicationId: String,
     private var authority: String,
-    private var fileHelper: OSCAMRFileHelperInterface,
-    private var imageHelper: OSCAMRImageHelperInterface,
+    private var exif: IONExifHelperInterface,
+    private var fileHelper: IONFileHelperInterface,
+    private var mediaHelper: IONMediaHelperInterface,
+    private var imageHelper: IONImageHelperInterface,
 ) {
 
     private var croppedUri: Uri? = null
     private var croppedFilePath: String? = null
+
+    private val mediaProcessor = IONMediaProcessor(
+        exif = exif,
+        fileHelper = fileHelper,
+        mediaHelper = mediaHelper,
+        imageHelper = imageHelper
+    )
 
     companion object {
         private const val JPEG = 0
@@ -53,7 +63,6 @@ class EditManager(
         private const val IMAGE_MAX_QUALITY = 100
         private const val LOG_TAG = "EditManager"
         private const val TIME_FORMAT = "yyyyMMdd_HHmmss"
-
         private const val PNG_MIME_TYPE = "image/png"
         private const val JPEG_MIME_TYPE = "image/jpeg"
     }
@@ -145,7 +154,7 @@ class EditManager(
         picUri: Uri?,
         launcher: ActivityResultLauncher<Intent>
     ) {
-        val cropIntent = Intent(activity, ImageEditorActivity::class.java)
+        val cropIntent = Intent(activity, IONImageEditorActivity::class.java)
 
         // creates output file
         croppedFilePath = createCaptureFile(
@@ -155,8 +164,8 @@ class EditManager(
         ).absolutePath
         croppedUri = croppedFilePath?.toUri()
 
-        cropIntent.putExtra(ImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS, croppedFilePath)
-        cropIntent.putExtra(ImageEditorActivity.IMAGE_INPUT_URI_EXTRAS, picUri.toString())
+        cropIntent.putExtra(IONImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS, croppedFilePath)
+        cropIntent.putExtra(IONImageEditorActivity.IMAGE_INPUT_URI_EXTRAS, picUri.toString())
 
         launcher.launch(cropIntent)
     }
@@ -179,7 +188,7 @@ class EditManager(
         onMediaResult: (IONMediaResult) -> Unit,
         onError: (IONError) -> Unit
     ) {
-        val resultImagePath = intent?.getStringExtra(ImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS)
+        val resultImagePath = intent?.getStringExtra(IONImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS)
         if (resultImagePath.isNullOrEmpty()) {
             Log.d(LOG_TAG, "Image file path is null or empty")
             onError(IONError.EDIT_IMAGE_ERROR)
@@ -197,24 +206,27 @@ class EditManager(
                 onError(IONError.EDIT_IMAGE_ERROR)
                 return
             }
-            val mediaResult = createImageMediaResult(
-                activity,
-                resultImagePath,
-                resultImageUri,
-                editParameters.includeMetadata
-            )
-            if (mediaResult == null) {
-                Log.d(LOG_TAG, "MediaResult is null")
-                onError(IONError.EDIT_IMAGE_ERROR)
-                return
-            }
+
+            var savedSuccessfully = false
+
             if (editParameters.saveToGallery) {
-                savePictureInGallery(
+                savedSuccessfully = savePictureInGallery(
                     activity,
                     if (fileHelper.getFileExtension(resultImagePath) == JPEG_TYPE) 0 else 1,
-                    resultImageUri)
+                    resultImageUri
+                )
             }
-            onMediaResult(mediaResult)
+
+            mediaProcessor.processEditedImage(
+                activity = activity,
+                imagePath = resultImagePath,
+                uri = resultImageUri,
+                includeMetadata = editParameters.includeMetadata,
+                savedSuccessfully = savedSuccessfully,
+                onMediaResult = onMediaResult,
+                onError = onError
+            )
+
         } else {
             val result = imageHelper.decodeFile(resultImagePath)
             imageHelper.bitmapToBase64(
@@ -253,74 +265,29 @@ class EditManager(
         return fileHelper.createCaptureFile(activity, fileName)
     }
 
-    /**
-     * Transforms the image media item uri into a media result object.
-     * @param imagePath  A string with the path for the image media item.
-     * @return An object containing relevant information for the media item.
-     *          Null if an error occurred.
-     */
-    private fun createImageMediaResult(
-        activity: Activity,
-        imagePath: String,
-        mediaUri: Uri,
-        includeMetadata: Boolean
-    ): IONMediaResult? {
-        var base64Image = ""
-        var error: IONError? = null
+    private fun savePictureInGallery(activity: Activity, encodingType: Int, srcUri: Uri?): Boolean {
+        return try {
+            val galleryPathVO: IONGalleryHelper = getPicturesPath(encodingType)
+            val fileFromGalleryPath = File(galleryPathVO.galleryPath)
+            val galleryUri = Uri.fromFile(fileFromGalleryPath)
 
-        val file = File(imagePath)
-        if (!fileHelper.fileExists(file)) return null
-
-        val decodedImage = imageHelper.decodeFile(imagePath)
-
-        if(decodedImage == null) return null
-
-        val downsizedImage = imageHelper.downsizeBitmapIfNeeded(decodedImage, IMAGE_MAX_RESOLUTION)
-        val compressedImage = imageHelper.compressBitmap(downsizedImage, 100)
-
-        imageHelper.bitmapToBase64(compressedImage,
-            resolution = IMAGE_MAX_RESOLUTION,
-            quality = IMAGE_MAX_QUALITY,
-            onSuccess = { base64Image = it },
-            onError = { error = it }
-        )
-
-        if (error != null) {
-            return null
-        }
-
-        var metadata: IONMediaMetadata? = null
-        if (includeMetadata) {
-            metadata = IONMediaMetadata(
-                fileHelper.getFileSizeFromUri(activity, mediaUri),
-                null,
-                fileHelper.getFileExtension(imagePath),
-                "${decodedImage.height}x${decodedImage.width}",
-                fileHelper.getFileCreationDate(file),
-            )
-        }
-
-        return IONMediaResult(IONMediaType.PICTURE.type, imagePath, base64Image, metadata, true)
-    }
-
-    private fun savePictureInGallery(activity: Activity, encodingType: Int, srcUri: Uri?) {
-        val galleryPathVO: OSCAMRGalleryHelper = getPicturesPath(encodingType)
-        val fileFromGalleryPath = File(galleryPathVO.galleryPath)
-        val galleryUri = Uri.fromFile(fileFromGalleryPath)
-
-        if (Build.VERSION.SDK_INT <= 28) {
-            writeTakenPictureToGalleryLowerThanAndroidQ(activity, srcUri, galleryUri)
-        } else {
-            writeTakenPictureToGalleryStartingFromAndroidQ(
-                activity,
-                srcUri,
-                galleryPathVO,
-                encodingType
-            )
+            if (Build.VERSION.SDK_INT <= 28) {
+                writeTakenPictureToGalleryLowerThanAndroidQ(activity, srcUri, galleryUri)
+            } else {
+                writeTakenPictureToGalleryStartingFromAndroidQ(
+                    activity,
+                    srcUri,
+                    galleryPathVO,
+                    encodingType
+                )
+            }
+            true
+        } catch (e: Exception) {
+            false
         }
     }
 
-    private fun getPicturesPath(encodingType: Int): OSCAMRGalleryHelper {
+    private fun getPicturesPath(encodingType: Int): IONGalleryHelper {
         val timeStamp =
             SimpleDateFormat(TIME_FORMAT).format(
                 Date()
@@ -331,11 +298,15 @@ class EditManager(
             Environment.DIRECTORY_PICTURES
         )
         storageDir.mkdirs()
-        return OSCAMRGalleryHelper(storageDir.absolutePath, imageFileName)
+        return IONGalleryHelper(storageDir.absolutePath, imageFileName)
     }
 
     @Throws(IOException::class)
-    private fun writeTakenPictureToGalleryLowerThanAndroidQ(activity: Activity?, srcUri: Uri?, galleryUri: Uri?) {
+    private fun writeTakenPictureToGalleryLowerThanAndroidQ(
+        activity: Activity?,
+        srcUri: Uri?,
+        galleryUri: Uri?
+    ) {
         writeUncompressedImage(activity, srcUri, galleryUri)
         fileHelper.refreshGallery(activity, galleryUri)
     }
@@ -344,7 +315,7 @@ class EditManager(
     private fun writeTakenPictureToGalleryStartingFromAndroidQ(
         activity: Activity?,
         srcUri: Uri?,
-        galleryPathVO: OSCAMRGalleryHelper,
+        galleryPathVO: IONGalleryHelper,
         encodingType: Int
     ) {
         // Starting from Android Q, working with the ACTION_MEDIA_SCANNER_SCAN_FILE intent is deprecated
