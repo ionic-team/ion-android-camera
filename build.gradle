@@ -61,6 +61,10 @@ android {
                 "outputs/code-coverage/connected/*coverage.ec"
         ]))
     }
+
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
 }
 
 repositories {

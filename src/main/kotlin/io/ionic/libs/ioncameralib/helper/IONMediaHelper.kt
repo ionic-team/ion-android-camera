@@ -154,12 +154,10 @@ class IONMediaHelper : IONMediaHelperInterface {
         return null
     }
 
-    override fun getVideoDuration(activity: Activity, uri: Uri): Long {
-        val mediaPlayer = MediaPlayer.create(activity, uri)
-        val duration = mediaPlayer?.duration?.toLong() ?: 0L
-        mediaPlayer?.release()
-        return duration
+    override fun getVideoDuration(activity: Activity, uri: Uri): Int {
+        return MediaPlayer.create(activity, uri).duration
     }
+
 
     override fun getVideoResolution(activity: Activity?, uri: Uri): Pair<Int, Int> {
         val metaRetriever = MediaMetadataRetriever()

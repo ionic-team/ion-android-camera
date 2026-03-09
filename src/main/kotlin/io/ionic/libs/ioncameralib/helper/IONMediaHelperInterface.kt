@@ -18,7 +18,7 @@ interface IONMediaHelperInterface {
     fun createDeviceVideoIntent(activity: Activity?, intent: Intent, videoFileUri: Uri?, saveToGallery: Boolean): Intent?
     fun getVideoPathFromUri(activity: Activity, uri: Uri): String?
     suspend fun getThumbnailBase64String(activity: Activity, videoUri: Uri, targetDimension: Int): String?
-    fun getVideoDuration(activity: Activity, uri: Uri): Long
+    fun getVideoDuration(activity: Activity, uri: Uri): Int
     fun getVideoResolution(activity: Activity?, uri: Uri): Pair<Int, Int>
     fun getImageResolution(imagePath: String): Pair<Int, Int>
 }
