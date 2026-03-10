@@ -246,23 +246,16 @@ class EditManager(
      * @param fileName or resultant File object.
      * @return a File object pointing to the temporary picture
      */
-    private fun createCaptureFile(
+    fun createCaptureFile(
         activity: Activity?,
         encodingType: Int,
         fileName: String = ""
     ): File {
-        var fileName = fileName
-        if (fileName.isEmpty()) {
-            fileName = ".Pic"
-        }
-        fileName = if (encodingType == JPEG) {
-            fileName + JPEG_EXTENSION
-        } else if (encodingType == PNG) {
-            fileName + PNG_EXTENSION
-        } else {
-            throw IllegalArgumentException("Invalid Encoding Type: $encodingType")
-        }
-        return fileHelper.createCaptureFile(activity, fileName)
+        return mediaProcessor.createCaptureFile(
+            activity = activity,
+            encodingType = encodingType,
+            fileName = fileName
+        )
     }
 
     private fun savePictureInGallery(activity: Activity, encodingType: Int, srcUri: Uri?): Boolean {

@@ -3,14 +3,23 @@ package io.ionic.libs.ioncameralib.manager
 import android.app.Activity
 import android.app.Activity.RESULT_CANCELED
 import android.app.Activity.RESULT_OK
+import android.content.ContentResolver
+import android.content.ContentValues
 import android.content.Intent
+import android.graphics.Bitmap
 import android.net.Uri
+import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
 import androidx.activity.result.ActivityResultLauncher
 import io.ionic.libs.ioncameralib.helper.IONExifHelperInterface
 import io.ionic.libs.ioncameralib.helper.IONFileHelperInterface
+import io.ionic.libs.ioncameralib.helper.IONGalleryHelper
 import io.ionic.libs.ioncameralib.helper.IONImageHelperInterface
 import io.ionic.libs.ioncameralib.helper.IONMediaHelperInterface
+import io.ionic.libs.ioncameralib.model.IONCameraParameters
+import io.ionic.libs.ioncameralib.model.IONEditParameters
 import io.ionic.libs.ioncameralib.model.IONError
 import io.ionic.libs.ioncameralib.model.IONMediaResult
 import io.ionic.libs.ioncameralib.model.IONMediaType
@@ -19,6 +28,11 @@ import io.ionic.libs.ioncameralib.view.IONOpenPhotoPickerActivity
 import io.ionic.libs.ioncameralib.view.IONLoadingActivity
 import io.ionic.libs.ioncameralib.view.IONImageEditorActivity
 import java.io.File
+import java.io.FileNotFoundException
+import java.io.IOException
+import java.io.InputStream
+import java.text.SimpleDateFormat
+import java.util.Date
 
 class GalleryManager(
     private var exif: IONExifHelperInterface,
@@ -46,6 +60,13 @@ class GalleryManager(
         private const val LOG_TAG = "GalleryManager"
         private const val ALLOW_MULTIPLE = "allowMultiple"
         private const val MEDIA_TYPE = "mediaType"
+        private const val EDIT_REQUEST_CODE = 7
+        private const val IMAGE_MAX_RESOLUTION = 1080
+        private const val IMAGE_MAX_QUALITY = 100
+        private const val TIME_FORMAT = "yyyyMMdd_HHmmss"
+        private const val PNG_MIME_TYPE = "image/png"
+        private const val JPEG_MIME_TYPE = "image/jpeg"
+        private const val AUTHORITY = ".camera.provider"
     }
 
     /**
@@ -195,27 +216,6 @@ class GalleryManager(
         }
     }
 
-    fun openCropActivity(
-        activity: Activity?,
-        picUri: Uri?,
-        launcher: ActivityResultLauncher<Intent>
-    ) {
-        val cropIntent = Intent(activity, IONImageEditorActivity::class.java)
-
-        // creates output file
-        croppedFilePath = createCaptureFile(
-            activity,
-            JPEG,
-            System.currentTimeMillis().toString() + ""
-        ).absolutePath
-        croppedUri = Uri.parse(croppedFilePath)
-
-        cropIntent.putExtra(IONImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS, croppedFilePath)
-        cropIntent.putExtra(IONImageEditorActivity.IMAGE_INPUT_URI_EXTRAS, picUri.toString())
-
-        launcher.launch(cropIntent)
-    }
-
     /**
      * Create a file in the applications temporary directory based upon the supplied encoding.
      *
@@ -223,19 +223,16 @@ class GalleryManager(
      * @param fileName or resultant File object.
      * @return a File object pointing to the temporary picture
      */
-    fun createCaptureFile(activity: Activity?, encodingType: Int, fileName: String = ""): File {
-        var fileName = fileName
-        if (fileName.isEmpty()) {
-            fileName = ".Pic"
-        }
-        fileName = if (encodingType == JPEG) {
-            fileName + JPEG_EXTENSION
-        } else if (encodingType == PNG) {
-            fileName + PNG_EXTENSION
-        } else {
-            throw IllegalArgumentException("Invalid Encoding Type: $encodingType")
-        }
-        return fileHelper.createCaptureFile(activity, fileName)
+    fun createCaptureFile(
+        activity: Activity?,
+        encodingType: Int,
+        fileName: String = ""
+    ): File {
+        return mediaProcessor.createCaptureFile(
+            activity = activity,
+            encodingType = encodingType,
+            fileName = fileName
+        )
     }
 
     /**
@@ -274,4 +271,253 @@ class GalleryManager(
     private fun dismissLoadingScreen(activity: Activity) {
         activity.sendBroadcast(Intent(IONLoadingActivity.DISMISS_INTENT_FILTER))
     }
+
+// ---------------------------------------------------------------------
+// Legacy API (startActivityForResult) – kept for backward compatibility
+// ---------------------------------------------------------------------
+
+    /**
+     * Get image from photo library.
+     *
+     * @param srcType           The album to get image from.
+     * @param returnType        Set the type of image to return.
+     */
+    fun getImage(
+        activity: Activity?,
+        srcType: Int,
+        returnType: Int,
+        camParameters: IONCameraParameters
+    ) {
+        val intent = Intent()
+        croppedUri = null
+        croppedFilePath = null
+        intent.type = IONMediaType.PICTURE.mimeType
+        intent.action = Intent.ACTION_PICK
+        if (camParameters.allowEdit) {
+            intent.putExtra("crop", "true")
+            if (camParameters.targetWidth > 0) {
+                intent.putExtra("outputX", camParameters.targetWidth)
+            }
+            if (camParameters.targetHeight > 0) {
+                intent.putExtra("outputY", camParameters.targetHeight)
+            }
+            if (camParameters.targetHeight > 0 && camParameters.targetWidth > 0 && camParameters.targetWidth == camParameters.targetHeight) {
+                intent.putExtra("aspectX", 1)
+                intent.putExtra("aspectY", 1)
+            }
+            val croppedFile = createCaptureFile(activity, JPEG)
+            croppedFilePath = croppedFile.absolutePath
+            croppedUri = Uri.fromFile(croppedFile)
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, croppedUri)
+        }
+        activity?.startActivityForResult(intent, (srcType + 1) * 16 + returnType + 1)
+    }
+
+    fun openCropActivity(activity: Activity?, picUri: Uri?, requestCode: Int?, destType: Int?) {
+        val cropIntent = createCropIntent(activity, picUri)
+        var code = EDIT_REQUEST_CODE
+        if (requestCode != null && destType != null) {
+            code = requestCode + destType
+        }
+        activity?.startActivityForResult(cropIntent, code)
+    }
+
+    private fun createCropIntent(activity: Activity?, picUri: Uri?): Intent {
+        val cropIntent = Intent(activity, IONImageEditorActivity::class.java)
+        croppedFilePath = createCaptureFile(
+            activity,
+            JPEG,
+            System.currentTimeMillis().toString() + ""
+        ).absolutePath
+        croppedUri = Uri.parse(croppedFilePath)
+
+        cropIntent.putExtra(IONImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS, croppedFilePath)
+        cropIntent.putExtra(IONImageEditorActivity.IMAGE_INPUT_URI_EXTRAS, picUri.toString())
+        return cropIntent
+    }
+
+    /**
+     * Applies all needed transformation to the image received from the gallery.
+     *
+     * @param intent   An Intent, which can return result data to the caller (various data can be attached to Intent "extras").
+     */
+    fun processResultFromGallery(
+        activity: Activity?,
+        intent: Intent,
+        camParameters: IONCameraParameters,
+        onSuccess: (String) -> Unit,
+        onError: (IONError) -> Unit
+    ) {
+        mediaProcessor.processResultFromGallery(
+            activity = activity,
+            intent = intent,
+            camParameters = camParameters,
+            onSuccess = onSuccess,
+            onError = onError
+        )
+    }
+
+    /**
+     * Applies all needed transformation to the image received from the Edit screen.
+     *
+     * @param intent An intent, containing the file path of the image that was just edited.
+     * @param fromUri Indicates if image editing was made from an input uri or base64.
+     * @param onImage callback that will be used when base64 image should be returned.
+     * @param onMediaResult callback that will be used when MediaResult object should be returned.
+     * @param onError callback that will be used when an error occurs.
+     */
+    fun processResultFromEdit(
+        activity: Activity,
+        intent: Intent?,
+        editParameters: IONEditParameters,
+        onImage: (String) -> Unit,
+        authority: String,
+        onMediaResult: (IONMediaResult) -> Unit,
+        onError: (IONError) -> Unit
+    ) {
+        val resultImagePath = intent?.getStringExtra(IONImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS)
+        if (resultImagePath.isNullOrEmpty()) {
+            Log.d(LOG_TAG, "Image file path is null or empty")
+            onError(IONError.EDIT_IMAGE_ERROR)
+            return
+        }
+        if (editParameters.fromUri) {
+            val imageFile = File(resultImagePath)
+            val resultImageUri = fileHelper.getUriForFile(
+                activity,
+                authority,
+                imageFile
+            )
+            if (resultImageUri == null) {
+                Log.d(LOG_TAG, "Image URI is null")
+                onError(IONError.EDIT_IMAGE_ERROR)
+                return
+            }
+
+            val mediaResult = mediaProcessor.createImageMediaResult(
+                activity,
+                resultImagePath,
+                resultImageUri,
+                editParameters.includeMetadata,
+                null
+            )
+
+            if (mediaResult == null) {
+                Log.d(LOG_TAG, "MediaResult is null")
+                onError(IONError.EDIT_IMAGE_ERROR)
+                return
+            }
+            if (editParameters.saveToGallery) {
+
+
+                savePictureInGallery(
+                    activity,
+                    if (fileHelper.getFileExtension(resultImagePath) == JPEG_TYPE) 0 else 1,
+                    resultImageUri
+                )
+            }
+            onMediaResult(mediaResult)
+        } else {
+            val result = imageHelper.decodeFile(resultImagePath)
+            imageHelper.bitmapToBase64(
+                result = result,
+                resolution = IMAGE_MAX_RESOLUTION,
+                quality = IMAGE_MAX_QUALITY,
+                onSuccess = { onImage(it) },
+                onError = { onError(it) }
+            )
+        }
+    }
+
+    private fun savePictureInGallery(activity: Activity, encodingType: Int, srcUri: Uri?) {
+        val galleryPathVO: IONGalleryHelper = getPicturesPath(encodingType)
+        val fileFromGalleryPath = File(galleryPathVO.galleryPath)
+        val galleryUri = Uri.fromFile(fileFromGalleryPath)
+
+        if (Build.VERSION.SDK_INT <= 28) {
+            writeTakenPictureToGalleryLowerThanAndroidQ(activity, srcUri, galleryUri)
+        } else {
+            writeTakenPictureToGalleryStartingFromAndroidQ(
+                activity,
+                srcUri,
+                galleryPathVO,
+                encodingType
+            )
+        }
+    }
+
+    private fun getPicturesPath(encodingType: Int): IONGalleryHelper {
+        val timeStamp =
+            SimpleDateFormat(TIME_FORMAT).format(
+                Date()
+            )
+        val imageFileName =
+            "IMG_" + timeStamp + if (encodingType == JPEG) JPEG_EXTENSION else PNG_EXTENSION
+        val storageDir = Environment.getExternalStoragePublicDirectory(
+            Environment.DIRECTORY_PICTURES
+        )
+        storageDir.mkdirs()
+        return IONGalleryHelper(storageDir.absolutePath, imageFileName)
+    }
+
+    @Throws(IOException::class)
+    private fun writeTakenPictureToGalleryLowerThanAndroidQ(
+        activity: Activity?,
+        srcUri: Uri?,
+        galleryUri: Uri?
+    ) {
+        writeUncompressedImage(activity, srcUri, galleryUri)
+        fileHelper.refreshGallery(activity, galleryUri)
+    }
+
+    @Throws(IOException::class)
+    private fun writeTakenPictureToGalleryStartingFromAndroidQ(
+        activity: Activity?,
+        srcUri: Uri?,
+        galleryPathVO: IONGalleryHelper,
+        encodingType: Int
+    ) {
+        // Starting from Android Q, working with the ACTION_MEDIA_SCANNER_SCAN_FILE intent is deprecated
+        // https://developer.android.com/reference/android/content/Intent#ACTION_MEDIA_SCANNER_SCAN_FILE
+        // we must start working with the MediaStore from Android Q on.
+        val resolver: ContentResolver? = activity?.contentResolver
+        val contentValues = ContentValues()
+        contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, galleryPathVO.galleryFileName)
+        contentValues.put(MediaStore.MediaColumns.MIME_TYPE, getMimetypeForFormat(encodingType))
+        val galleryOutputUri =
+            resolver?.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+        val fileStream: InputStream? =
+            fileHelper.getInputStreamFromUriString(
+                srcUri.toString(),
+                activity
+            )
+        fileHelper.writeUncompressedImage(activity, fileStream, galleryOutputUri)
+    }
+
+
+    /**
+     * In the special case where the default width, height and quality are unchanged
+     * we just write the file out to disk saving the expensive Bitmap.compress function.
+     *
+     * @param src
+     * @throws FileNotFoundException
+     * @throws IOException
+     */
+    @Throws(FileNotFoundException::class, IOException::class)
+    private fun writeUncompressedImage(activity: Activity?, src: Uri?, dest: Uri?) {
+        val fis: InputStream? = fileHelper.getInputStreamFromUriString(src.toString(), activity)
+        fileHelper.writeUncompressedImage(activity, fis, dest)
+    }
+
+    /**
+     * Converts output image format int value to string value of mime type.
+     * @param outputFormat int Output format of camera API.
+     * Must be value of either JPEG or PNG constant
+     * @return String String value of mime type or empty string if mime type is not supported
+     */
+    private fun getMimetypeForFormat(outputFormat: Int): String? {
+        if (outputFormat == PNG) return PNG_MIME_TYPE
+        return if (outputFormat == JPEG) JPEG_MIME_TYPE else ""
+    }
+
 }

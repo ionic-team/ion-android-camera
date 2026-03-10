@@ -5,6 +5,7 @@ import androidx.activity.result.ActivityResultLauncher
 import android.content.ContentResolver
 import android.content.ContentValues
 import android.content.Intent
+import android.graphics.Bitmap
 import android.media.MediaScannerConnection
 import android.media.MediaScannerConnection.MediaScannerConnectionClient
 import android.net.Uri
@@ -12,6 +13,7 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
+import androidx.core.net.toUri
 import io.ionic.libs.ioncameralib.helper.IONExifHelperInterface
 import io.ionic.libs.ioncameralib.helper.IONFileHelperInterface
 import io.ionic.libs.ioncameralib.helper.IONImageHelperInterface
@@ -69,6 +71,7 @@ class CameraManager(
         private const val VIDEO_FORMAT = ".mp4"
         private const val STORE = "CameraStore"
         private const val EDIT_FILE_NAME_KEY = "EditFileName"
+        const val EDIT_REQUEST_CODE = 7
     }
 
     /**
@@ -157,27 +160,6 @@ class CameraManager(
         }
     }
 
-    fun openCropActivity(
-        activity: Activity?,
-        picUri: Uri?,
-        launcher: ActivityResultLauncher<Intent>
-    ) {
-        val cropIntent = Intent(activity, IONImageEditorActivity::class.java)
-
-        // creates output file
-        croppedFilePath = createCaptureFile(
-            activity,
-            JPEG,
-            System.currentTimeMillis().toString() + ""
-        ).absolutePath
-        croppedUri = Uri.parse(croppedFilePath)
-
-        cropIntent.putExtra(IONImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS, croppedFilePath)
-        cropIntent.putExtra(IONImageEditorActivity.IMAGE_INPUT_URI_EXTRAS, picUri.toString())
-
-        launcher.launch(cropIntent)
-    }
-
     /**
      * Create a file in the applications temporary directory based upon the supplied encoding.
      *
@@ -185,19 +167,16 @@ class CameraManager(
      * @param fileName or resultant File object.
      * @return a File object pointing to the temporary picture
      */
-    fun createCaptureFile(activity: Activity?, encodingType: Int, fileName: String = ""): File {
-        var fileName = fileName
-        if (fileName.isEmpty()) {
-            fileName = ".Pic"
-        }
-        fileName = if (encodingType == JPEG) {
-            fileName + JPEG_EXTENSION
-        } else if (encodingType == PNG) {
-            fileName + PNG_EXTENSION
-        } else {
-            throw IllegalArgumentException("Invalid Encoding Type: $encodingType")
-        }
-        return fileHelper.createCaptureFile(activity, fileName)
+    fun createCaptureFile(
+        activity: Activity?,
+        encodingType: Int,
+        fileName: String = ""
+    ): File {
+        return mediaProcessor.createCaptureFile(
+            activity = activity,
+            encodingType = encodingType,
+            fileName = fileName
+        )
     }
 
     /**
@@ -220,20 +199,23 @@ class CameraManager(
     @Throws(IOException::class)
     fun processResultFromCamera(
         activity: Activity,
+        intent: Intent?,
         camParameters: IONCameraParameters,
         onImage: (String) -> Unit,
         onMediaResult: (IONMediaResult) -> Unit,
         onError: (IONError) -> Unit
     ) {
-        // Create an ExifHelper to save the exif data that is lost during compression
-        //no longer necessary, this will be passed by dependency injection through the constructor
-        //val exif = OSCAMRExifHelper()
-        val sourcePath =
-            if (camParameters.allowEdit && this.croppedUri != null) this.croppedFilePath else imageFilePath
+        val intentEditedPath =
+            intent?.getStringExtra(IONImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS)
 
-        if (sourcePath == null) {
-            onError(IONError.TAKE_PHOTO_ERROR)
-            return
+        // NOTE: croppedUri/croppedFilePath are kept only for the legacy flow
+        // The new API returns the edited image
+        // via IMAGE_OUTPUT_URI_EXTRAS. This can be removed once
+        // the legacy flow is removed.
+        val sourcePath = when {
+            camParameters.allowEdit && this.croppedUri != null && !this.croppedFilePath.isNullOrEmpty() -> this.croppedFilePath
+            camParameters.allowEdit && !intentEditedPath.isNullOrEmpty() -> intentEditedPath
+            else -> imageFilePath
         }
 
         if (camParameters.encodingType == JPEG) {
@@ -250,10 +232,12 @@ class CameraManager(
         // CB-5479 When this option is given the unchanged image should be saved
         // in the gallery and the modified image is saved in the temporary directory
         if (camParameters.saveToPhotoAlbum) {
-            val srcUri: Uri? = if (camParameters.allowEdit && this.croppedUri != null) {
-                croppedUri
-            } else {
-                imageUri
+            val srcUri: Uri? = sourcePath?.let {
+                fileHelper.getUriForFile(
+                    activity,
+                    "$applicationId$authority",
+                    File(it)
+                )
             }
 
             savedSuccessfully = savePictureInGallery(activity, camParameters.encodingType, srcUri)
@@ -261,6 +245,7 @@ class CameraManager(
 
         mediaProcessor.processCameraImage(
             activity = activity,
+            intent = intent,
             sourcePath = sourcePath,
             "$applicationId$authority",
             camParameters = camParameters,
@@ -435,4 +420,62 @@ class CameraManager(
             )
         }
     }
+
+// ---------------------------------------------------------------------
+// Legacy API (startActivityForResult) – kept for backward compatibility
+// ---------------------------------------------------------------------
+
+    /**
+     * Take a picture with the camera.
+     * @param activity  Activity object that will be necessary to take the picture
+     * @param encodingType  JPEG or PNG.
+     */
+    fun takePicture(activity: Activity, returnType: Int, encodingType: Int) {
+        // Save filename to fetch later (needed when allowEdit is true)
+        val fileName = PICTURE_NAMES_PREFIX + SimpleDateFormat(
+            TIME_FORMAT
+        ).format(Date())
+        fileHelper.saveStringSharedPreferences(
+            activity,
+            EDIT_FILE_NAME_KEY, fileName
+        )
+
+        // Specify file so that large image is captured and returned
+        val photo: File = createCaptureFile(
+            activity,
+            encodingType,
+            fileName
+        )
+        this.imageFilePath = photo.absolutePath
+        this.imageUri = fileHelper.getUriForFile(activity, "$applicationId.camera.provider", photo)
+
+        mediaHelper.openDeviceCamera(activity, imageUri, returnType)
+    }
+
+    fun openCropActivity(activity: Activity?, picUri: Uri?, requestCode: Int?, destType: Int?) {
+        val cropIntent = createCropIntent(activity, picUri)
+        var code = EDIT_REQUEST_CODE
+        if (requestCode != null && destType != null) {
+            code = requestCode + destType
+        }
+        activity?.startActivityForResult(
+            cropIntent,
+            code
+        )
+    }
+
+    private fun createCropIntent(activity: Activity?, picUri: Uri?): Intent {
+        val cropIntent = Intent(activity, IONImageEditorActivity::class.java)
+        croppedFilePath = createCaptureFile(
+            activity,
+            JPEG,
+            System.currentTimeMillis().toString() + ""
+        ).absolutePath
+        croppedUri = Uri.parse(croppedFilePath)
+
+        cropIntent.putExtra(IONImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS, croppedFilePath)
+        cropIntent.putExtra(IONImageEditorActivity.IMAGE_INPUT_URI_EXTRAS, picUri.toString())
+        return cropIntent
+    }
+
 }

@@ -1,6 +1,7 @@
 package io.ionic.libs.ioncameralib.processor
 
 import android.app.Activity
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory.Options
 import android.graphics.Matrix
@@ -34,6 +35,7 @@ class IONMediaProcessor(
 
     companion object Companion {
         private const val JPEG = 0
+        private const val PNG = 1
         private const val JPEG_TYPE = "jpg"
         private const val PNG_TYPE = "png"
         private const val JPEG_EXTENSION = ".$JPEG_TYPE"
@@ -176,7 +178,8 @@ class IONMediaProcessor(
 
     fun processCameraImage(
         activity: Activity,
-        sourcePath: String,
+        intent: Intent?,
+        sourcePath: String?,
         authority: String,
         camParameters: IONCameraParameters,
         savedSuccessfully: Boolean,
@@ -184,25 +187,29 @@ class IONMediaProcessor(
         onMediaResult: (IONMediaResult) -> Unit,
         onError: (IONError) -> Unit
     ) {
+        var bitmap: Bitmap?
         if (camParameters.latestVersion) {
 
-            val imageUri = fileHelper.getUriForFile(
-                activity,
-                authority,
-                File(sourcePath)
-            )
-            if (imageUri == null) {
-                onError(IONError.TAKE_PHOTO_ERROR)
-                return
-            }
-            val mediaResult = createImageMediaResult(
-                activity,
-                sourcePath,
-                imageUri,
-                camParameters.includeMetadata,
-                camParameters,
-                savedSuccessfully
-            )
+            val mediaResult =
+                sourcePath?.let {
+                    val imageUri = fileHelper.getUriForFile(
+                        activity,
+                        authority,
+                        File(sourcePath)
+                    )
+                    if (imageUri == null) {
+                        onError(IONError.TAKE_PHOTO_ERROR)
+                        return
+                    }
+                    createImageMediaResult(
+                        activity,
+                        it,
+                        imageUri,
+                        camParameters.includeMetadata,
+                        camParameters,
+                        savedSuccessfully
+                    )
+                }
 
             if (mediaResult == null) {
                 onError(IONError.TAKE_PHOTO_ERROR)
@@ -211,11 +218,22 @@ class IONMediaProcessor(
             onMediaResult(mediaResult)
         } else {
             //get bitmap
-            val bitmap = getScaledAndRotatedBitmap(activity, sourcePath, camParameters)
+            bitmap = sourcePath?.let { getScaledAndRotatedBitmap(activity, it, camParameters) }
             if (bitmap == null) {
-                onError(IONError.PROCESS_IMAGE_ERROR)
-                return
+                // Try to get the bitmap from intent.
+                if (intent != null) {
+                    try {
+                        // getExtras can throw different exceptions
+                        val extras = intent.extras
+                        if (extras != null) {
+                            bitmap = extras["data"] as Bitmap?
+                        }
+                    } catch (e: Exception) {
+                        // Don't let the exception bubble up, bitmap will be null (check below)
+                    }
+                }
             }
+
             //get base64 representation of bitmap
             imageHelper.processPicture(
                 bitmap, camParameters.encodingType, camParameters.mQuality,
@@ -338,6 +356,28 @@ class IONMediaProcessor(
             recordedInGallery
         )
         onSuccess(mediaResult)
+    }
+
+    /**
+     * Create a file in the applications temporary directory based upon the supplied encoding.
+     *
+     * @param encodingType of the image to be taken
+     * @param fileName or resultant File object.
+     * @return a File object pointing to the temporary picture
+     */
+    fun createCaptureFile(activity: Activity?, encodingType: Int, fileName: String = ""): File {
+        var fileName = fileName
+        if (fileName.isEmpty()) {
+            fileName = ".Pic"
+        }
+        fileName = if (encodingType == JPEG) {
+            fileName + JPEG_EXTENSION
+        } else if (encodingType == PNG) {
+            fileName + PNG_EXTENSION
+        } else {
+            throw IllegalArgumentException("Invalid Encoding Type: $encodingType")
+        }
+        return fileHelper.createCaptureFile(activity, fileName)
     }
 
 
@@ -631,5 +671,47 @@ class IONMediaProcessor(
         } else {
             0
         }
+    }
+
+
+// ---------------------------------------------------------------------
+// Legacy API (startActivityForResult) – kept for backward compatibility
+// ---------------------------------------------------------------------
+
+
+    /**
+     * Applies all needed transformation to the image received from the gallery.
+     *
+     * @param intent   An Intent, which can return result data to the caller (various data can be attached to Intent "extras").
+     */
+    fun processResultFromGallery(
+        activity: Activity?,
+        intent: Intent,
+        camParameters: IONCameraParameters,
+        onSuccess: (String) -> Unit,
+        onError: (IONError) -> Unit
+    ) {
+        var uri = intent.data
+        val fileLocation = fileHelper.getRealPath(uri, activity)
+        Log.d(LOG_TAG, "File location is: $fileLocation")
+        val uriString = fileHelper.getUriString(uri)
+
+        var bitmap: Bitmap? = null
+        try {
+            bitmap = getScaledAndRotatedBitmap(activity, uriString, camParameters)
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+        imageHelper.processPicture(
+            bitmap, camParameters.encodingType, camParameters.mQuality,
+            {
+                onSuccess(it)
+            },
+            {
+                onError(it)
+            }
+        )
+        bitmap?.recycle()
+        System.gc()
     }
 }
