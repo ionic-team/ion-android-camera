@@ -7,22 +7,26 @@ import android.net.Uri
 import android.os.Environment
 import android.util.Base64
 import android.util.Log
-import io.ionic.libs.ioncameralib.manager.OSCAMRController
-import io.ionic.libs.ioncameralib.mocks.IONMediaHelperMock
+import androidx.activity.result.ActivityResultLauncher
+import io.ionic.libs.ioncameralib.manager.CameraManager
+import io.ionic.libs.ioncameralib.manager.EditManager
 import io.ionic.libs.ioncameralib.mocks.IONExifHelperMock
 import io.ionic.libs.ioncameralib.mocks.IONFileHelperMock
 import io.ionic.libs.ioncameralib.mocks.IONImageHelperMock
+import io.ionic.libs.ioncameralib.mocks.IONMediaHelperMock
+import io.ionic.libs.ioncameralib.model.IONCameraParameters
 import io.ionic.libs.ioncameralib.model.IONEditParameters
 import io.ionic.libs.ioncameralib.model.IONError
-import io.ionic.libs.ioncameralib.model.IONCameraParameters
 import io.ionic.libs.ioncameralib.view.IONImageEditorActivity
 import org.junit.After
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.MockedStatic
 import org.mockito.Mockito
+import org.mockito.kotlin.mock
 import java.io.File
 
 /**
@@ -37,6 +41,7 @@ class EditPictureTests {
     private val mFile = Mockito.mock(File::class.java)
     private val mockUri = Mockito.mock(Uri::class.java)
     private val mockDrawable = Mockito.mock(Drawable::class.java)
+    private val mActivityLauncher = mock<ActivityResultLauncher<Intent>>()
 
     private lateinit var mLog: MockedStatic<Log>
     private lateinit var mEnvironment: MockedStatic<Environment>
@@ -91,7 +96,14 @@ class EditPictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val editManager = EditManager(
+            "someAppId",
+            "authority",
+            exifHelperMock,
+            fileHelperMock,
+            camHelperMock,
+            imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
@@ -102,8 +114,8 @@ class EditPictureTests {
 
         imgHelperMock.bitmapToBase64Success = true
 
-        camController.editImage(null, "imageInBinary", null, null)
-        camController.processResultFromEdit(mockActivity, mIntent, editOptions,
+        editManager.editImage(null, "imageInBinary", mActivityLauncher)
+        editManager.processResultFromEdit(mockActivity, mIntent, editOptions,
             {
                 assertEquals(it, IONImageHelperMock.SAMPLE_BASE64_THUMBNAIL)
             },
@@ -123,7 +135,14 @@ class EditPictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val editManager = EditManager(
+            "someAppId",
+            "authority",
+            exifHelperMock,
+            fileHelperMock,
+            camHelperMock,
+            imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
@@ -132,8 +151,8 @@ class EditPictureTests {
 
         imgHelperMock.bitmapToBase64Success = false
 
-        camController.editImage(null, "imageInBinary", null, null)
-        camController.processResultFromEdit(mockActivity, mIntent, editOptions,
+        editManager.editImage(null, "imageInBinary", mActivityLauncher)
+        editManager.processResultFromEdit(mockActivity, mIntent, editOptions,
             {
                 fail()
             },
@@ -167,16 +186,31 @@ class EditPictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val cameraManager = CameraManager(
+            "someAppId",
+            "authority",
+            exifHelperMock,
+            fileHelperMock,
+            camHelperMock,
+            imgHelperMock
+        )
+        val editManager = EditManager(
+            "someAppId",
+            "authority",
+            exifHelperMock,
+            fileHelperMock,
+            camHelperMock,
+            imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
         imgHelperMock.processPicSuccess = true
         imgHelperMock.areOptionsZero = false
 
-        camController.takePicture(mockActivity, 0, 0)
-        camController.openCropActivity(null, mUri, 1, 1)
-        camController.processResultFromCamera(mockActivity, mIntent, camParameters,
+        cameraManager.takePicture(mockActivity, 0, 0)
+        editManager.openCropActivity(null, mUri, mActivityLauncher)
+        cameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
             onImage = {
                 assertEquals(it, PROCESS_SUCCESS)
             },
@@ -209,16 +243,31 @@ class EditPictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val cameraManager = CameraManager(
+            "someAppId",
+            "authority",
+            exifHelperMock,
+            fileHelperMock,
+            camHelperMock,
+            imgHelperMock
+        )
+        val editManager = EditManager(
+            "someAppId",
+            "authority",
+            exifHelperMock,
+            fileHelperMock,
+            camHelperMock,
+            imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
         imgHelperMock.processPicSuccess = false
         imgHelperMock.areOptionsZero = false
 
-        camController.takePicture(mockActivity, 0, 0)
-        camController.openCropActivity(null, mUri, 1, 1)
-        camController.processResultFromCamera(mockActivity, mIntent, camParameters,
+        cameraManager.takePicture(mockActivity, 0, 0)
+        editManager.openCropActivity(null, mUri, mActivityLauncher)
+        cameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
             onImage = {
                 fail()
             },
@@ -238,11 +287,17 @@ class EditPictureTests {
         val fileHelperMock = IONFileHelperMock()
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val editManager = EditManager(
+            "someAppId",
+            "authority",
+            exifHelperMock,
+            fileHelperMock,
+            camHelperMock,
+            imgHelperMock
+        )
         fileHelperMock.fileExists = false
 
-        camController.editURIPicture(mockActivity, FILE_LOCATION, null, null
-        ) {
+        editManager.editURIPicture(mockActivity, FILE_LOCATION, mActivityLauncher) {
             assertEquals(it.code, IONError.FILE_DOES_NOT_EXIST_ERROR.code)
             assertEquals(it.description, IONError.FILE_DOES_NOT_EXIST_ERROR.description)
         }
@@ -256,7 +311,14 @@ class EditPictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val editManager = EditManager(
+            "someAppId",
+            "authority",
+            exifHelperMock,
+            fileHelperMock,
+            camHelperMock,
+            imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
@@ -276,11 +338,10 @@ class EditPictureTests {
         )
 
         fileHelperMock.fileExists = true
-        camController.editURIPicture(mockActivity, FILE_LOCATION, null, null
-        ) {
+        editManager.editURIPicture(mockActivity, FILE_LOCATION, mActivityLauncher) {
             fail()
         }
-        camController.processResultFromEdit(mockActivity, mIntent, options,
+        editManager.processResultFromEdit(mockActivity, mIntent, options,
             {
                 fail()
             },
@@ -301,7 +362,14 @@ class EditPictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val editManager = EditManager(
+            "someAppId",
+            "authority",
+            exifHelperMock,
+            fileHelperMock,
+            camHelperMock,
+            imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
@@ -321,11 +389,10 @@ class EditPictureTests {
         )
 
         fileHelperMock.fileExists = true
-        camController.editURIPicture(mockActivity, FILE_LOCATION, null, null
-        ) {
+        editManager.editURIPicture(mockActivity, FILE_LOCATION, mActivityLauncher) {
             fail()
         }
-        camController.processResultFromEdit(mockActivity, mIntent, options,
+        editManager.processResultFromEdit(mockActivity, mIntent, options,
             {
                 fail()
             },
@@ -346,7 +413,14 @@ class EditPictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val editManager = EditManager(
+            "someAppId",
+            "authority",
+            exifHelperMock,
+            fileHelperMock,
+            camHelperMock,
+            imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
@@ -367,11 +441,10 @@ class EditPictureTests {
         )
 
         fileHelperMock.fileExists = true
-        camController.editURIPicture(mockActivity, FILE_LOCATION, null, null
-        ) {
+        editManager.editURIPicture(mockActivity, FILE_LOCATION, mActivityLauncher) {
             fail()
         }
-        camController.processResultFromEdit(mockActivity, mIntent, options,
+        editManager.processResultFromEdit(mockActivity, mIntent, options,
             {
                 fail()
             },
@@ -391,7 +464,14 @@ class EditPictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val editManager = EditManager(
+            "someAppId",
+            "authority",
+            exifHelperMock,
+            fileHelperMock,
+            camHelperMock,
+            imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
@@ -407,22 +487,28 @@ class EditPictureTests {
         Mockito.`when`(Drawable.createFromPath(anyString())).thenReturn(null)
 
         fileHelperMock.fileExists = true
-        camController.editURIPicture(mockActivity, FILE_LOCATION, null, null
-        ) {
+        editManager.editURIPicture(mockActivity, FILE_LOCATION, mActivityLauncher) {
             assertEquals(it.code, IONError.FETCH_IMAGE_FROM_URI_ERROR.code)
             assertEquals(it.description, IONError.FETCH_IMAGE_FROM_URI_ERROR.description)
         }
     }
 
     @Test
-    fun givenMediaResultNullWhenEditURIPictureThenError() {
+    fun givenImageBitmapNullWhenEditURIPictureThenError() {
 
         val exifHelperMock = IONExifHelperMock()
         val fileHelperMock = IONFileHelperMock()
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val editManager = EditManager(
+            "someAppId",
+            "authority",
+            exifHelperMock,
+            fileHelperMock,
+            camHelperMock,
+            imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
@@ -443,11 +529,10 @@ class EditPictureTests {
             includeMetadata = true
         )
 
-        camController.editURIPicture(mockActivity, FILE_LOCATION, null, null
-        ) {
+        editManager.editURIPicture(mockActivity, FILE_LOCATION, mActivityLauncher) {
             fail()
         }
-        camController.processResultFromEdit(mockActivity, mIntent, options,
+        editManager.processResultFromEdit(mockActivity, mIntent, options,
             {
                 fail()
             },
@@ -468,7 +553,14 @@ class EditPictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val editManager = EditManager(
+            "someAppId",
+            "authority",
+            exifHelperMock,
+            fileHelperMock,
+            camHelperMock,
+            imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
@@ -492,11 +584,10 @@ class EditPictureTests {
             includeMetadata = true
         )
 
-        camController.editURIPicture(mockActivity, FILE_LOCATION, null, null
-        ) {
+        editManager.editURIPicture(mockActivity, FILE_LOCATION, mActivityLauncher) {
             fail()
         }
-        camController.processResultFromEdit(mockActivity, mIntent, options,
+        editManager.processResultFromEdit(mockActivity, mIntent, options,
             {
                 fail()
             },
@@ -523,7 +614,14 @@ class EditPictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val editManager = EditManager(
+            "someAppId",
+            "authority",
+            exifHelperMock,
+            fileHelperMock,
+            camHelperMock,
+            imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
@@ -544,11 +642,10 @@ class EditPictureTests {
             includeMetadata = false
         )
 
-        camController.editURIPicture(mockActivity, FILE_LOCATION, null, null
-        ) {
+        editManager.editURIPicture(mockActivity, FILE_LOCATION, mActivityLauncher) {
             fail()
         }
-        camController.processResultFromEdit(mockActivity, mIntent, options,
+        editManager.processResultFromEdit(mockActivity, mIntent, options,
             {
                 fail()
             },

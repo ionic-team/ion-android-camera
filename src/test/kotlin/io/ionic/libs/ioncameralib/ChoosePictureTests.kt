@@ -6,22 +6,22 @@ import android.net.Uri
 import android.os.Environment
 import android.util.Base64
 import android.util.Log
-import io.ionic.libs.ioncameralib.manager.OSCAMRController
-import io.ionic.libs.ioncameralib.mocks.IONMediaHelperMock
+import io.ionic.libs.ioncameralib.manager.GalleryManager
 import io.ionic.libs.ioncameralib.mocks.IONExifHelperMock
 import io.ionic.libs.ioncameralib.mocks.IONFileHelperMock
 import io.ionic.libs.ioncameralib.mocks.IONImageHelperMock
+import io.ionic.libs.ioncameralib.mocks.IONMediaHelperMock
+import io.ionic.libs.ioncameralib.model.IONCameraParameters
 import io.ionic.libs.ioncameralib.model.IONEditParameters
 import io.ionic.libs.ioncameralib.model.IONError
-import io.ionic.libs.ioncameralib.model.IONCameraParameters
 import io.ionic.libs.ioncameralib.view.IONImageEditorActivity
-import org.junit.Assert.*
+import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
 import org.mockito.Mockito
 import java.io.File
-import java.lang.reflect.Field
-import java.lang.reflect.Modifier
 
 /**
  * Example local unit test, which will execute on the development machine (host).
@@ -47,26 +47,24 @@ class ChoosePictureTests {
     )
 
     companion object{
-        private const val URI_STRING = "file://myUriString"
         private const val PROCESS_SUCCESS = "myImage"
         private const val FILE_LOCATION = "file://content/storage/emulated/sampleFileLocation"
         private const val PNG_MIME_TYPE = "image/png"
         private const val JPEG_MIME_TYPE = "image/jpeg"
-        private const val FILE_LOCATION_TIME = "file://myPath/sampleFileLocation"
 
-        @Throws(Exception::class)
-        fun setFinalStatic(field: Field, newValue: Any?) {
-            field.setAccessible(true)
-            val modifiersField: Field = Field::class.java.getDeclaredField("modifiers")
-            modifiersField.setAccessible(true)
-            modifiersField.setInt(field, field.modifiers and Modifier.FINAL.inv())
-            field.set(null, newValue)
-        }
     }
 
     @Before
     fun before() {
         mockActivity = Mockito.mock(Activity::class.java)
+    }
+
+    @After
+    fun after() {
+        mEnvironment.close()
+        mLog.close()
+        mUriStatic.close()
+        mBase64.close()
     }
 
     @Test
@@ -90,7 +88,12 @@ class ChoosePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val galleryManager = GalleryManager(
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
@@ -100,19 +103,14 @@ class ChoosePictureTests {
         imgHelperMock.processPicSuccess = true
         fileHelperMock.fileLocationNotNull = true
 
-        camController.getImage(null, 0, 0, camParameters)
-        camController.processResultFromGallery(null, mIntent, camParameters,
+        galleryManager.getImage(null, 0, 0, camParameters)
+        galleryManager.processResultFromGallery(null, mIntent, camParameters,
             {
                 assertEquals(it, PROCESS_SUCCESS)
             },
             {
                 fail()
             })
-
-        mEnvironment.close()
-        mLog.close()
-        mUriStatic.close()
-        mBase64.close()
     }
 
     @Test
@@ -136,7 +134,12 @@ class ChoosePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val galleryManager = GalleryManager(
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
@@ -146,19 +149,14 @@ class ChoosePictureTests {
         imgHelperMock.processPicSuccess = true
         fileHelperMock.fileLocationNotNull = true
 
-        camController.getImage(null, 0, 0, camParameters)
-        camController.processResultFromGallery(null, mIntent, camParameters,
+        galleryManager.getImage(null, 0, 0, camParameters)
+        galleryManager.processResultFromGallery(null, mIntent, camParameters,
             {
                 assertEquals(it, PROCESS_SUCCESS)
             },
             {
                 fail()
             })
-
-        mEnvironment.close()
-        mLog.close()
-        mUriStatic.close()
-        mBase64.close()
     }
 
     @Test
@@ -182,7 +180,12 @@ class ChoosePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val galleryManager = GalleryManager(
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
@@ -192,19 +195,14 @@ class ChoosePictureTests {
         imgHelperMock.processPicSuccess = true
         fileHelperMock.fileLocationNotNull = true
 
-        camController.getImage(null, 0, 0, camParameters)
-        camController.processResultFromGallery(null, mIntent, camParameters,
+        galleryManager.getImage(null, 0, 0, camParameters)
+        galleryManager.processResultFromGallery(null, mIntent, camParameters,
             {
                 assertEquals(it, PROCESS_SUCCESS)
             },
             {
                 fail()
             })
-
-        mEnvironment.close()
-        mLog.close()
-        mUriStatic.close()
-        mBase64.close()
     }
 
     @Test
@@ -228,7 +226,12 @@ class ChoosePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val galleryManager = GalleryManager(
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
@@ -239,19 +242,14 @@ class ChoosePictureTests {
         fileHelperMock.fileLocationNotNull = true
         fileHelperMock.mimeType = JPEG_MIME_TYPE
 
-        camController.getImage(null, 0, 0, camParameters)
-        camController.processResultFromGallery(null, mIntent, camParameters,
+        galleryManager.getImage(null, 0, 0, camParameters)
+        galleryManager.processResultFromGallery(null, mIntent, camParameters,
             {
                 assertEquals(it, PROCESS_SUCCESS)
             },
             {
                 fail()
             })
-
-        mEnvironment.close()
-        mLog.close()
-        mUriStatic.close()
-        mBase64.close()
     }
 
     @Test
@@ -275,7 +273,12 @@ class ChoosePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val galleryManager = GalleryManager(
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
@@ -287,23 +290,18 @@ class ChoosePictureTests {
         fileHelperMock.fileLocationNotNull = true
         fileHelperMock.mimeType = JPEG_MIME_TYPE
 
-        camController.getImage(null, 0, 0, camParameters)
-        camController.processResultFromGallery(null, mIntent, camParameters,
+        galleryManager.getImage(null, 0, 0, camParameters)
+        galleryManager.processResultFromGallery(null, mIntent, camParameters,
             {
                 assertEquals(it, PROCESS_SUCCESS)
             },
             {
                 fail()
             })
-
-        mEnvironment.close()
-        mLog.close()
-        mUriStatic.close()
-        mBase64.close()
     }
 
     @Test
-    fun givenGetPictureWhenProcessResultMimeTypeJPEGErrorThenError() {
+    fun givenGetPictureWhenProcessFailsResultMimeTypeJPEGErrorThenError() {
 
         val camParameters = IONCameraParameters(
             60,
@@ -323,7 +321,12 @@ class ChoosePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val galleryManager = GalleryManager(
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
@@ -335,8 +338,8 @@ class ChoosePictureTests {
         fileHelperMock.fileLocationNotNull = true
         fileHelperMock.mimeType = JPEG_MIME_TYPE
 
-        camController.getImage(null, 0, 0, camParameters)
-        camController.processResultFromGallery(null, mIntent, camParameters,
+        galleryManager.getImage(null, 0, 0, camParameters)
+        galleryManager.processResultFromGallery(null, mIntent, camParameters,
             {
                 fail()
             },
@@ -344,11 +347,6 @@ class ChoosePictureTests {
                 assertEquals(it.code, IONError.PROCESS_IMAGE_ERROR.code)
                 assertEquals(it.description, IONError.PROCESS_IMAGE_ERROR.description)
             })
-
-        mEnvironment.close()
-        mLog.close()
-        mUriStatic.close()
-        mBase64.close()
     }
 
     @Test
@@ -372,7 +370,12 @@ class ChoosePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val galleryManager = GalleryManager(
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
@@ -384,23 +387,18 @@ class ChoosePictureTests {
         fileHelperMock.fileLocationNotNull = true
         fileHelperMock.mimeType = PNG_MIME_TYPE
 
-        camController.getImage(null, 0, 0, camParameters)
-        camController.processResultFromGallery(null, mIntent, camParameters,
+        galleryManager.getImage(null, 0, 0, camParameters)
+        galleryManager.processResultFromGallery(null, mIntent, camParameters,
             {
                 assertEquals(it, PROCESS_SUCCESS)
             },
             {
                 fail()
             })
-
-        mEnvironment.close()
-        mLog.close()
-        mUriStatic.close()
-        mBase64.close()
     }
 
     @Test
-    fun givenGetPictureWhenProcessResultMimeTypePNGErrorThenError() {
+    fun givenGetPictureWhenProcessFailsResultMimeTypePNGErrorThenError() {
 
         val camParameters = IONCameraParameters(
             60,
@@ -420,7 +418,12 @@ class ChoosePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val galleryManager = GalleryManager(
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
@@ -432,8 +435,8 @@ class ChoosePictureTests {
         fileHelperMock.fileLocationNotNull = true
         fileHelperMock.mimeType = PNG_MIME_TYPE
 
-        camController.getImage(null, 0, 0, camParameters)
-        camController.processResultFromGallery(null, mIntent, camParameters,
+        galleryManager.getImage(null, 0, 0, camParameters)
+        galleryManager.processResultFromGallery(null, mIntent, camParameters,
             {
                 fail()
             },
@@ -441,11 +444,6 @@ class ChoosePictureTests {
                 assertEquals(it.code, IONError.PROCESS_IMAGE_ERROR.code)
                 assertEquals(it.description, IONError.PROCESS_IMAGE_ERROR.description)
             })
-
-        mEnvironment.close()
-        mLog.close()
-        mUriStatic.close()
-        mBase64.close()
     }
 
     @Test
@@ -468,7 +466,12 @@ class ChoosePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val galleryManager = GalleryManager(
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
@@ -482,23 +485,19 @@ class ChoosePictureTests {
         fileHelperMock.fileLocationNotNull = true
         fileHelperMock.mimeType = PNG_MIME_TYPE
 
-        camController.getImage(null, 0, 0, camParameters)
-        camController.openCropActivity(null, mUri, 1, 1)
-        camController.processResultFromEdit(mockActivity, mIntent, editOptions,
+        galleryManager.getImage(null, 0, 0, camParameters)
+        galleryManager.openCropActivity(null, mUri, 1, 1)
+        galleryManager.processResultFromEdit(mockActivity, mIntent, editOptions,
             {
                 assertEquals(it, IONImageHelperMock.SAMPLE_BASE64_THUMBNAIL)
             },
+            ".camera.provider",
             {
                 fail()
             },
             {
                 fail()
             })
-
-        mEnvironment.close()
-        mLog.close()
-        mUriStatic.close()
-        mBase64.close()
     }
 
     @Test
@@ -522,7 +521,12 @@ class ChoosePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val galleryManager = GalleryManager(
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
@@ -534,12 +538,13 @@ class ChoosePictureTests {
         fileHelperMock.fileLocationNotNull = true
         fileHelperMock.mimeType = PNG_MIME_TYPE
 
-        camController.getImage(null, 0, 0, camParameters)
-        camController.openCropActivity(null, mUri, 1, 1)
-        camController.processResultFromEdit(mockActivity, mIntent, editOptions,
+        galleryManager.getImage(null, 0, 0, camParameters)
+        galleryManager.openCropActivity(null, mUri, 1, 1)
+        galleryManager.processResultFromEdit(mockActivity, mIntent, editOptions,
             {
                 fail()
             },
+            ".camera.provider",
             {
                 fail()
             },
@@ -547,11 +552,6 @@ class ChoosePictureTests {
                 assertEquals(it.code, IONError.EDIT_IMAGE_ERROR.code)
                 assertEquals(it.description, IONError.EDIT_IMAGE_ERROR.description)
             })
-
-        mEnvironment.close()
-        mLog.close()
-        mUriStatic.close()
-        mBase64.close()
     }
 
 }

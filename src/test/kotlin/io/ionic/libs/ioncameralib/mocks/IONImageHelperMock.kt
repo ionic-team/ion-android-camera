@@ -22,7 +22,10 @@ class IONImageHelperMock : IONImageHelperInterface {
     var bitmapToBase64Success = false
     var writeBitmapToFileByNameError = false
     var intentUris: List<Uri> = listOf()
-    var bitmap: Bitmap? = Mockito.mock(Bitmap::class.java)
+    var bitmap: Bitmap? = Mockito.mock(Bitmap::class.java).apply {
+        Mockito.lenient().`when`(this.width).thenReturn(1080)
+        Mockito.lenient().`when`(this.height).thenReturn(1080)
+    }
     var isBitmapNull = false
 
     override fun getBitmapForInputStream(fileStream: InputStream?): Bitmap? {
@@ -76,7 +79,11 @@ class IONImageHelperMock : IONImageHelperInterface {
     }
 
     override fun decodeFile(resultImagePath: String?): Bitmap? {
-        return bitmap
+        return if (isBitmapNull) {
+            null
+        } else {
+            bitmap
+        }
     }
 
     override fun bitmapToBase64(

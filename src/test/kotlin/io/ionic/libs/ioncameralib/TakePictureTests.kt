@@ -6,7 +6,7 @@ import android.media.ExifInterface
 import android.net.Uri
 import android.os.Environment
 import android.util.Log
-import io.ionic.libs.ioncameralib.manager.OSCAMRController
+import io.ionic.libs.ioncameralib.manager.CameraManager
 import io.ionic.libs.ioncameralib.mocks.IONMediaHelperMock
 import io.ionic.libs.ioncameralib.mocks.IONExifHelperMock
 import io.ionic.libs.ioncameralib.mocks.IONFileHelperMock
@@ -88,11 +88,18 @@ class TakePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
-        camController.processResultFromCamera(mockActivity, mIntent, camParameters,
+        cameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
             onImage = {
                 fail()
             },
@@ -126,11 +133,18 @@ class TakePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
-        camController.processResultFromCamera(mockActivity, mIntent, camParameters,
+        cameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
             onImage = {
                 fail()
             },
@@ -164,12 +178,19 @@ class TakePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
-        camController.takePicture(mockActivity, 0, 0)
-        camController.processResultFromCamera(mockActivity, mIntent, camParameters,
+        cameraManager.takePicture(mockActivity, 0, 0)
+        cameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
             onImage = {
                 fail()
             },
@@ -202,14 +223,21 @@ class TakePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
         imgHelperMock.processPicSuccess = true
 
-        camController.takePicture(mockActivity, 0, 0)
-        camController.processResultFromCamera(mockActivity, mIntent, camParameters,
+        cameraManager.takePicture(mockActivity, 0, 0)
+        cameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
             onImage = {
                 assertEquals(PROCESS_SUCCESS, it)
             },
@@ -241,15 +269,22 @@ class TakePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
         imgHelperMock.processPicSuccess = true
         fileHelperMock.isUriNull = true
 
-        camController.takePicture(mockActivity, 0, 0)
-        camController.processResultFromCamera(mockActivity, mIntent, camParameters,
+        cameraManager.takePicture(mockActivity, 0, 0)
+        cameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
             onImage = {
                 fail()
             },
@@ -282,7 +317,14 @@ class TakePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
@@ -291,8 +333,8 @@ class TakePictureTests {
         fileHelperMock.isUriNull = false
         fileHelperMock.isFileStreamNull = true
 
-        camController.takePicture(mockActivity, 0, 0)
-        camController.processResultFromCamera(mockActivity, mIntent, camParameters,
+        cameraManager.takePicture(mockActivity, 0, 0)
+        cameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
             onImage = {
                 fail()
             },
@@ -325,7 +367,14 @@ class TakePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
@@ -335,8 +384,8 @@ class TakePictureTests {
         fileHelperMock.isFileStreamNull = false
         imgHelperMock.isBitmapNull = true
 
-        camController.takePicture(mockActivity, 0, 0)
-        camController.processResultFromCamera(mockActivity, mIntent, camParameters,
+        cameraManager.takePicture(mockActivity, 0, 0)
+        cameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
             onImage = {
                 fail()
             },
@@ -369,7 +418,14 @@ class TakePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
@@ -381,8 +437,8 @@ class TakePictureTests {
         imgHelperMock.bitmapToBase64Success = true
         fileHelperMock.fileExtension = "jpg"
 
-        camController.takePicture(mockActivity, 0, 0)
-        camController.processResultFromCamera(mockActivity, mIntent, camParameters,
+        cameraManager.takePicture(mockActivity, 0, 0)
+        cameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
             onImage = {
                 fail()
             },
@@ -422,14 +478,21 @@ class TakePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
         imgHelperMock.processPicSuccess = true
 
-        camController.takePicture(mockActivity, 0, 1)
-        camController.processResultFromCamera(mockActivity, mIntent, camParameters,
+        cameraManager.takePicture(mockActivity, 0, 1)
+        cameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
             onImage = {
                 assertEquals(PROCESS_SUCCESS, it)
             },
@@ -461,14 +524,21 @@ class TakePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
         imgHelperMock.processPicSuccess = false
 
-        camController.takePicture(mockActivity, 0, 0)
-        camController.processResultFromCamera(mockActivity, mIntent, camParameters,
+        cameraManager.takePicture(mockActivity, 0, 0)
+        cameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
             onImage = {
                 fail()
             },
@@ -502,14 +572,21 @@ class TakePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
         imgHelperMock.processPicSuccess = false
 
-        camController.takePicture(mockActivity, 0, 1)
-        camController.processResultFromCamera(mockActivity, mIntent, camParameters,
+        cameraManager.takePicture(mockActivity, 0, 1)
+        cameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
             onImage = {
                 fail()
             },
@@ -542,15 +619,22 @@ class TakePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
         imgHelperMock.processPicSuccess = true
         fileHelperMock.getUriResult = IONFileHelperMock.GET_URI_SUCCESS
 
-        camController.takePicture(mockActivity, 0, 0)
-        camController.processResultFromCamera(mockActivity, mIntent, camParameters,
+        cameraManager.takePicture(mockActivity, 0, 0)
+        cameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
             onImage = {
                 assertEquals(PROCESS_SUCCESS, it)
             },
@@ -582,15 +666,22 @@ class TakePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
         imgHelperMock.processPicSuccess = true
         fileHelperMock.getUriResult = IONFileHelperMock.GET_URI_SUCCESS
 
-        camController.takePicture(mockActivity, 0, 1)
-        camController.processResultFromCamera(mockActivity, mIntent, camParameters,
+        cameraManager.takePicture(mockActivity, 0, 1)
+        cameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
             onImage = {
                 assertEquals(PROCESS_SUCCESS, it)
             },
@@ -622,15 +713,22 @@ class TakePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
         imgHelperMock.processPicSuccess = true
         fileHelperMock.getUriResult = IONFileHelperMock.GET_URI_SUCCESS
 
-        camController.takePicture(mockActivity, 0, 0)
-        camController.processResultFromCamera(mockActivity, mIntent, camParameters,
+        cameraManager.takePicture(mockActivity, 0, 0)
+        cameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
             onImage = {
                 assertEquals(PROCESS_SUCCESS, it)
             },
@@ -662,15 +760,22 @@ class TakePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
         imgHelperMock.processPicSuccess = true
         fileHelperMock.getUriResult = IONFileHelperMock.GET_URI_SUCCESS
 
-        camController.takePicture(mockActivity, 0, 1)
-        camController.processResultFromCamera(mockActivity, mIntent, camParameters,
+        cameraManager.takePicture(mockActivity, 0, 1)
+        cameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
             onImage = {
                 assertEquals(PROCESS_SUCCESS, it)
             },
@@ -702,15 +807,22 @@ class TakePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
         imgHelperMock.processPicSuccess = true
         imgHelperMock.areOptionsZero = false
 
-        camController.takePicture(mockActivity, 0, 0)
-        camController.processResultFromCamera(mockActivity, mIntent, camParameters,
+        cameraManager.takePicture(mockActivity, 0, 0)
+        cameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
             onImage = {
                 assertEquals(PROCESS_SUCCESS, it)
             },
@@ -742,15 +854,22 @@ class TakePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
         imgHelperMock.processPicSuccess = true
         imgHelperMock.areOptionsZero = false
 
-        camController.takePicture(mockActivity, 0, 1)
-        camController.processResultFromCamera(mockActivity, mIntent, camParameters,
+        cameraManager.takePicture(mockActivity, 0, 1)
+        cameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
             onImage = {
                 assertEquals(PROCESS_SUCCESS, it)
             },
@@ -782,15 +901,22 @@ class TakePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
         imgHelperMock.processPicSuccess = false
         imgHelperMock.areOptionsZero = false
 
-        camController.takePicture(mockActivity, 0, 0)
-        camController.processResultFromCamera(mockActivity, mIntent, camParameters,
+        cameraManager.takePicture(mockActivity, 0, 0)
+        cameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
             onImage = {
                 fail()
             },
@@ -823,15 +949,22 @@ class TakePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
         imgHelperMock.processPicSuccess = false
         imgHelperMock.areOptionsZero = false
 
-        camController.takePicture(mockActivity, 0, 1)
-        camController.processResultFromCamera(mockActivity, mIntent, camParameters,
+        cameraManager.takePicture(mockActivity, 0, 1)
+        cameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
             onImage = {
                 fail()
             },
@@ -864,15 +997,22 @@ class TakePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
         imgHelperMock.processPicSuccess = false
         imgHelperMock.areOptionsZero = true
 
-        camController.takePicture(mockActivity, 0, 0)
-        camController.processResultFromCamera(mockActivity, mIntent, camParameters,
+        cameraManager.takePicture(mockActivity, 0, 0)
+        cameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
             onImage = {
                 fail()
             },
@@ -905,15 +1045,22 @@ class TakePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
         imgHelperMock.processPicSuccess = false
         imgHelperMock.areOptionsZero = true
 
-        camController.takePicture(mockActivity, 0, 1)
-        camController.processResultFromCamera(mockActivity, mIntent, camParameters,
+        cameraManager.takePicture(mockActivity, 0, 1)
+        cameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
             onImage = {
                 fail()
             },
@@ -946,14 +1093,21 @@ class TakePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
         imgHelperMock.processPicSuccess = true
 
-        camController.takePicture(mockActivity, 0, 0)
-        camController.processResultFromCamera(mockActivity, mIntent, camParameters,
+        cameraManager.takePicture(mockActivity, 0, 0)
+        cameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
             onImage = {
                 assertEquals(PROCESS_SUCCESS, it)
             },
@@ -985,14 +1139,21 @@ class TakePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
         imgHelperMock.processPicSuccess = true
 
-        camController.takePicture(mockActivity, 0, 1)
-        camController.processResultFromCamera(mockActivity, mIntent, camParameters,
+        cameraManager.takePicture(mockActivity, 0, 1)
+        cameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
             onImage = {
                 assertEquals(PROCESS_SUCCESS, it)
             },
@@ -1024,14 +1185,21 @@ class TakePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
         imgHelperMock.compressImageSuccess = false
 
-        camController.takePicture(mockActivity, 0, 0)
-        camController.processResultFromCamera(mockActivity, mIntent, camParameters,
+        cameraManager.takePicture(mockActivity, 0, 0)
+        cameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
             onImage = {
                 fail()
             },
@@ -1064,14 +1232,21 @@ class TakePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
         imgHelperMock.compressImageSuccess = false
 
-        camController.takePicture(mockActivity, 0, 1)
-        camController.processResultFromCamera(mockActivity, mIntent, camParameters,
+        cameraManager.takePicture(mockActivity, 0, 1)
+        cameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
             onImage = {
                 fail()
             },
@@ -1105,7 +1280,14 @@ class TakePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
@@ -1115,8 +1297,8 @@ class TakePictureTests {
         imgHelperMock.outWidth = 10
         exifHelperMock.testOrientation = ExifInterface.ORIENTATION_ROTATE_90
 
-        camController.takePicture(mockActivity, 0, 0)
-        camController.processResultFromCamera(mockActivity, mIntent, camParameters,
+        cameraManager.takePicture(mockActivity, 0, 0)
+        cameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
             onImage = {
                 assertEquals(it, PROCESS_SUCCESS)
             },
@@ -1148,7 +1330,14 @@ class TakePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
@@ -1158,8 +1347,8 @@ class TakePictureTests {
         imgHelperMock.outWidth = 10
         exifHelperMock.testOrientation = ExifInterface.ORIENTATION_ROTATE_90
 
-        camController.takePicture(mockActivity, 0, 1)
-        camController.processResultFromCamera(mockActivity, mIntent, camParameters,
+        cameraManager.takePicture(mockActivity, 0, 1)
+        cameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
             onImage = {
                 assertEquals(it, PROCESS_SUCCESS)
             },
@@ -1191,7 +1380,14 @@ class TakePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
@@ -1201,8 +1397,8 @@ class TakePictureTests {
         imgHelperMock.outWidth = 10
         exifHelperMock.testOrientation = ExifInterface.ORIENTATION_ROTATE_90
 
-        camController.takePicture(mockActivity, 0, 0)
-        camController.processResultFromCamera(mockActivity, mIntent, camParameters,
+        cameraManager.takePicture(mockActivity, 0, 0)
+        cameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
             onImage = {
                 assertEquals(it, PROCESS_SUCCESS)
             },
@@ -1234,7 +1430,14 @@ class TakePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
@@ -1244,8 +1447,8 @@ class TakePictureTests {
         imgHelperMock.outWidth = 10
         exifHelperMock.testOrientation = ExifInterface.ORIENTATION_ROTATE_90
 
-        camController.takePicture(mockActivity, 0, 1)
-        camController.processResultFromCamera(mockActivity, mIntent, camParameters,
+        cameraManager.takePicture(mockActivity, 0, 1)
+        cameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
             onImage = {
                 assertEquals(it, PROCESS_SUCCESS)
             },
@@ -1277,7 +1480,14 @@ class TakePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
@@ -1287,8 +1497,8 @@ class TakePictureTests {
         imgHelperMock.outWidth = 12
         exifHelperMock.testOrientation = ExifInterface.ORIENTATION_ROTATE_90
 
-        camController.takePicture(mockActivity, 0, 0)
-        camController.processResultFromCamera(mockActivity, mIntent, camParameters,
+        cameraManager.takePicture(mockActivity, 0, 0)
+        cameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
             onImage = {
                 assertEquals(it, PROCESS_SUCCESS)
             },
@@ -1320,7 +1530,14 @@ class TakePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
@@ -1330,8 +1547,8 @@ class TakePictureTests {
         imgHelperMock.outWidth = 12
         exifHelperMock.testOrientation = ExifInterface.ORIENTATION_ROTATE_90
 
-        camController.takePicture(mockActivity, 0, 1)
-        camController.processResultFromCamera(mockActivity, mIntent, camParameters,
+        cameraManager.takePicture(mockActivity, 0, 1)
+        cameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
             onImage = {
                 assertEquals(it, PROCESS_SUCCESS)
             },
@@ -1363,7 +1580,14 @@ class TakePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
@@ -1373,8 +1597,8 @@ class TakePictureTests {
         imgHelperMock.outWidth = -1
         exifHelperMock.testOrientation = ExifInterface.ORIENTATION_ROTATE_90
 
-        camController.takePicture(mockActivity, 0, 0)
-        camController.processResultFromCamera(mockActivity, mIntent, camParameters,
+        cameraManager.takePicture(mockActivity, 0, 0)
+        cameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
             onImage = {
                 assertEquals(it, PROCESS_SUCCESS)
             },
@@ -1406,7 +1630,14 @@ class TakePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
@@ -1416,8 +1647,8 @@ class TakePictureTests {
         imgHelperMock.outWidth = -1
         exifHelperMock.testOrientation = ExifInterface.ORIENTATION_ROTATE_90
 
-        camController.takePicture(mockActivity, 0, 1)
-        camController.processResultFromCamera(mockActivity, mIntent, camParameters,
+        cameraManager.takePicture(mockActivity, 0, 1)
+        cameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
             onImage = {
                 assertEquals(it, PROCESS_SUCCESS)
             },
@@ -1449,7 +1680,14 @@ class TakePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
@@ -1459,8 +1697,8 @@ class TakePictureTests {
         imgHelperMock.outWidth = 1
         exifHelperMock.testOrientation = ExifInterface.ORIENTATION_ROTATE_90
 
-        camController.takePicture(mockActivity, 0, 0)
-        camController.processResultFromCamera(mockActivity, mIntent, camParameters,
+        cameraManager.takePicture(mockActivity, 0, 0)
+        cameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
             onImage = {
                 assertEquals(it, PROCESS_SUCCESS)
             },
@@ -1492,7 +1730,14 @@ class TakePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
@@ -1502,8 +1747,8 @@ class TakePictureTests {
         imgHelperMock.outWidth = 1
         exifHelperMock.testOrientation = ExifInterface.ORIENTATION_ROTATE_90
 
-        camController.takePicture(mockActivity, 0, 1)
-        camController.processResultFromCamera(mockActivity, mIntent, camParameters,
+        cameraManager.takePicture(mockActivity, 0, 1)
+        cameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
             onImage = {
                 assertEquals(it, PROCESS_SUCCESS)
             },
@@ -1535,7 +1780,14 @@ class TakePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
@@ -1545,8 +1797,8 @@ class TakePictureTests {
         imgHelperMock.outWidth = -1
         exifHelperMock.testOrientation = ExifInterface.ORIENTATION_ROTATE_90
 
-        camController.takePicture(mockActivity, 0, 0)
-        camController.processResultFromCamera(mockActivity, mIntent, camParameters,
+        cameraManager.takePicture(mockActivity, 0, 0)
+        cameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
             onImage = {
                 assertEquals(it, PROCESS_SUCCESS)
             },
@@ -1578,7 +1830,14 @@ class TakePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
@@ -1588,8 +1847,8 @@ class TakePictureTests {
         imgHelperMock.outWidth = -1
         exifHelperMock.testOrientation = ExifInterface.ORIENTATION_ROTATE_90
 
-        camController.takePicture(mockActivity, 0, 1)
-        camController.processResultFromCamera(mockActivity, mIntent, camParameters,
+        cameraManager.takePicture(mockActivity, 0, 1)
+        cameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
             onImage = {
                 assertEquals(it, PROCESS_SUCCESS)
             },
@@ -1621,7 +1880,14 @@ class TakePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
@@ -1629,8 +1895,8 @@ class TakePictureTests {
         imgHelperMock.areOptionsZero = false
         exifHelperMock.testOrientation = ExifInterface.ORIENTATION_ROTATE_180
 
-        camController.takePicture(mockActivity, 0, 0)
-        camController.processResultFromCamera(mockActivity, mIntent, camParameters,
+        cameraManager.takePicture(mockActivity, 0, 0)
+        cameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
             onImage = {
                 assertEquals(it, PROCESS_SUCCESS)
             },
@@ -1662,7 +1928,14 @@ class TakePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
@@ -1670,8 +1943,8 @@ class TakePictureTests {
         imgHelperMock.areOptionsZero = false
         exifHelperMock.testOrientation = ExifInterface.ORIENTATION_ROTATE_180
 
-        camController.takePicture(mockActivity, 0, 1)
-        camController.processResultFromCamera(mockActivity, mIntent, camParameters,
+        cameraManager.takePicture(mockActivity, 0, 1)
+        cameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
             onImage = {
                 assertEquals(it, PROCESS_SUCCESS)
             },
@@ -1703,15 +1976,22 @@ class TakePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
         imgHelperMock.processPicSuccess = true
         imgHelperMock.areOptionsZero = false
 
-        camController.takePicture(mockActivity, 0, 0)
-        camController.processResultFromCamera(mockActivity, mIntent, camParameters,
+        cameraManager.takePicture(mockActivity, 0, 0)
+        cameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
             onImage = {
                 assertEquals(it, PROCESS_SUCCESS)
             },
@@ -1743,15 +2023,22 @@ class TakePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
         imgHelperMock.processPicSuccess = true
         imgHelperMock.areOptionsZero = false
 
-        camController.takePicture(mockActivity, 0, 0)
-        camController.processResultFromCamera(mockActivity, mIntent, camParameters,
+        cameraManager.takePicture(mockActivity, 0, 0)
+        cameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
             onImage = {
                 assertEquals(it, PROCESS_SUCCESS)
             },
@@ -1783,15 +2070,22 @@ class TakePictureTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController("someAppId", exifHelperMock, fileHelperMock, camHelperMock, imgHelperMock)
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
         imgHelperMock.processPicSuccess = true
         imgHelperMock.areOptionsZero = false
 
-        camController.takePicture(mockActivity, 0, 0)
-        camController.processResultFromCamera(mockActivity, mIntent, camParameters,
+        cameraManager.takePicture(mockActivity, 0, 0)
+        cameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
             onImage = {
                 assertEquals(it, PROCESS_SUCCESS)
             },
