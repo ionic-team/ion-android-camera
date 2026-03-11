@@ -6,8 +6,9 @@ import android.net.Uri
 import android.os.Environment
 import android.util.Base64
 import android.util.Log
-import io.ionic.libs.ioncameralib.manager.OSCAMRController
+import androidx.activity.result.ActivityResultLauncher
 import io.ionic.libs.ioncameralib.helper.IONMediaHelper
+import io.ionic.libs.ioncameralib.manager.CameraManager
 import io.ionic.libs.ioncameralib.mocks.IONMediaHelperMock
 import io.ionic.libs.ioncameralib.mocks.IONExifHelperMock
 import io.ionic.libs.ioncameralib.mocks.IONFileHelperMock
@@ -19,6 +20,7 @@ import org.junit.Assert.*
 import org.junit.runner.RunWith
 import org.mockito.Mockito
 import org.mockito.junit.MockitoJUnitRunner
+import org.mockito.kotlin.mock
 import java.io.File
 
 /**
@@ -36,7 +38,7 @@ class CaptureVideoTests {
     private lateinit var mUri: Uri
     private val mFile = Mockito.mock(File::class.java)
     private val mBase64 = Mockito.mockStatic(Base64::class.java)
-
+    private val mActivityLauncher = mock<ActivityResultLauncher<Intent>>()
 
     private lateinit var mockActivity: Activity
 
@@ -76,23 +78,24 @@ class CaptureVideoTests {
 
         fileHelperMock.fileExists = true
 
-        val camController = OSCAMRController(
-            "someAppId",
-            exifHelperMock,
-            fileHelperMock,
-            camHelperMock,
-            imgHelperMock
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
         )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES))
             .thenReturn(mFile)
 
-        camController.captureVideo(mockActivity) {
+        cameraManager.recordVideo(mockActivity, saveVideoToGallery = false, mActivityLauncher) {
             // do nothing
         }
 
         runBlocking {
-            camController.processResultFromVideo(mockActivity,
+            cameraManager.processResultFromVideo(mockActivity,
                 mUri,
                 fromGallery = false,
                 includeMetadata = false,
@@ -106,7 +109,7 @@ class CaptureVideoTests {
                     fail()
                 }
             )
-            camController.processResultFromVideo(mockActivity,
+            cameraManager.processResultFromVideo(mockActivity,
                 mUri,
                 fromGallery = true,
                 includeMetadata = false,
@@ -138,23 +141,24 @@ class CaptureVideoTests {
         camHelperMock.resolution = Pair(1920, 1080)
         camHelperMock.duration = 2222
 
-        val camController = OSCAMRController(
-            "someAppId",
-            exifHelperMock,
-            fileHelperMock,
-            camHelperMock,
-            imgHelperMock
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
         )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES))
             .thenReturn(mFile)
 
-        camController.captureVideo(mockActivity) {
+        cameraManager.recordVideo(mockActivity, saveVideoToGallery = false, mActivityLauncher) {
             // do nothing
         }
 
         runBlocking {
-            camController.processResultFromVideo(mockActivity,
+            cameraManager.processResultFromVideo(mockActivity,
                 mUri,
                 fromGallery = false,
                 includeMetadata = true,
@@ -173,7 +177,7 @@ class CaptureVideoTests {
                     fail()
                 }
             )
-            camController.processResultFromVideo(mockActivity,
+            cameraManager.processResultFromVideo(mockActivity,
                 mUri,
                 fromGallery = true,
                 includeMetadata = true,
@@ -203,12 +207,13 @@ class CaptureVideoTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController(
-            "someAppId",
-            exifHelperMock,
-            fileHelperMock,
-            camHelperMock,
-            imgHelperMock
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
         )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES))
@@ -216,7 +221,7 @@ class CaptureVideoTests {
 
         camHelperMock.existsActivity = false
 
-        camController.captureVideo(mockActivity) {
+        cameraManager.recordVideo(mockActivity, saveVideoToGallery = false, mActivityLauncher) {
             assertEquals(it.code, IONError.NO_CAMERA_AVAILABLE_ERROR.code)
             assertEquals(it.description, IONError.NO_CAMERA_AVAILABLE_ERROR.description)
         }
@@ -231,22 +236,23 @@ class CaptureVideoTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController(
-            "someAppId",
-            exifHelperMock,
-            fileHelperMock,
-            camHelperMock,
-            imgHelperMock
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
         )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES))
             .thenReturn(mFile)
 
-        camController.captureVideo(mockActivity) {
+        cameraManager.recordVideo(mockActivity, saveVideoToGallery = false, mActivityLauncher) {
             // do nothing
         }
         runBlocking {
-            camController.processResultFromVideo(mockActivity, mUri,
+            cameraManager.processResultFromVideo(mockActivity, mUri,
                 fromGallery = false,
                 includeMetadata = false,
                 {
@@ -257,11 +263,11 @@ class CaptureVideoTests {
                     assertEquals(it.description, IONError.MEDIA_PATH_ERROR.description)
                 }
             )
-            camController.processResultFromVideo(mockActivity, mUri,
+            cameraManager.processResultFromVideo(mockActivity, mUri,
                 fromGallery = true,
                 includeMetadata = false,
                 {
-                    assert(true)
+                    fail()
                 },
                 {
                     assertEquals(it.code, IONError.MEDIA_PATH_ERROR.code)
@@ -279,22 +285,23 @@ class CaptureVideoTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController(
-            "someAppId",
-            exifHelperMock,
-            fileHelperMock,
-            camHelperMock,
-            imgHelperMock
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
         )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES))
             .thenReturn(mFile)
 
-        camController.captureVideo(mockActivity) {
+        cameraManager.recordVideo(mockActivity, saveVideoToGallery = false, mActivityLauncher) {
             // do nothing
         }
         runBlocking {
-            camController.processResultFromVideo(mockActivity, mUri,
+            cameraManager.processResultFromVideo(mockActivity, mUri,
                 fromGallery = false,
                 includeMetadata = false,
                 {
@@ -305,7 +312,7 @@ class CaptureVideoTests {
                     assertEquals(it.description, IONError.MEDIA_PATH_ERROR.description)
                 }
             )
-            camController.processResultFromVideo(mockActivity, mUri,
+            cameraManager.processResultFromVideo(mockActivity, mUri,
                 fromGallery = true,
                 includeMetadata = false,
                 {
@@ -328,23 +335,24 @@ class CaptureVideoTests {
 
         fileHelperMock.fileExists = true
 
-        val camController = OSCAMRController(
-            "someAppId",
-            exifHelperMock,
-            fileHelperMock,
-            camHelperMock,
-            imgHelperMock
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
         )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES))
             .thenReturn(mFile)
 
-        camController.captureVideo(mockActivity) {
+        cameraManager.recordVideo(mockActivity, saveVideoToGallery = false, mActivityLauncher) {
             // do nothing
         }
 
         runBlocking {
-            camController.processResultFromVideo(mockActivity, mUri,
+            cameraManager.processResultFromVideo(mockActivity, mUri,
                 fromGallery = false,
                 includeMetadata = false,
                 {
@@ -357,7 +365,7 @@ class CaptureVideoTests {
                     fail()
                 }
             )
-            camController.processResultFromVideo(mockActivity, mUri,
+            cameraManager.processResultFromVideo(mockActivity, mUri,
                 fromGallery = true,
                 includeMetadata = false,
                 {
@@ -372,7 +380,7 @@ class CaptureVideoTests {
             )
         }
 
-        camController.deleteVideoFilesFromCache(mockActivity)
+        cameraManager.deleteVideoFilesFromCache(mockActivity)
         assertEquals(2, fileHelperMock.deleteCallsCount)
     }
 
@@ -385,22 +393,23 @@ class CaptureVideoTests {
 
         fileHelperMock.fileExists = true
 
-        val camController = OSCAMRController(
-            "someAppId",
-            exifHelperMock,
-            fileHelperMock,
-            camHelperMock,
-            imgHelperMock
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
         )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES))
             .thenReturn(mFile)
 
-        camController.captureVideo(mockActivity) {
+        cameraManager.recordVideo(mockActivity, saveVideoToGallery = false, mActivityLauncher) {
             // do nothing
         }
         runBlocking {
-            camController.processResultFromVideo(mockActivity, mUri,
+            cameraManager.processResultFromVideo(mockActivity, mUri,
                 fromGallery = false,
                 includeMetadata = false,
                 {
@@ -413,7 +422,7 @@ class CaptureVideoTests {
                     fail()
                 }
             )
-            camController.processResultFromVideo(mockActivity, mUri,
+            cameraManager.processResultFromVideo(mockActivity, mUri,
                 fromGallery = true,
                 includeMetadata = false,
                 {
@@ -428,12 +437,12 @@ class CaptureVideoTests {
             )
         }
 
-        camController.captureVideo(mockActivity) {
+        cameraManager.recordVideo(mockActivity, saveVideoToGallery = false, mActivityLauncher) {
             // do nothing
         }
 
         runBlocking {
-            camController.processResultFromVideo(mockActivity, mUri,
+            cameraManager.processResultFromVideo(mockActivity, mUri,
                 fromGallery = false,
                 includeMetadata = false,
                 {
@@ -447,7 +456,7 @@ class CaptureVideoTests {
                 }
             )
         }
-        camController.deleteVideoFilesFromCache(mockActivity)
+        cameraManager.deleteVideoFilesFromCache(mockActivity)
         assertEquals(2, fileHelperMock.deleteCallsCount)
     }
 
@@ -476,12 +485,13 @@ class CaptureVideoTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController(
-            "someAppId",
-            exifHelperMock,
-            fileHelperMock,
-            camHelperMock,
-            imgHelperMock
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
         )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES))
@@ -489,7 +499,7 @@ class CaptureVideoTests {
 
         camHelperMock.existsActivity = false
 
-        camController.captureVideo(mockActivity) {
+        cameraManager.recordVideo(mockActivity, saveVideoToGallery = false, mActivityLauncher) {
             assertEquals(it.code, IONError.NO_CAMERA_AVAILABLE_ERROR.code)
             assertEquals(it.description, IONError.NO_CAMERA_AVAILABLE_ERROR.description)
         }
@@ -505,12 +515,13 @@ class CaptureVideoTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController(
-            "someAppId",
-            exifHelperMock,
-            fileHelperMock,
-            camHelperMock,
-            imgHelperMock
+        val cameraManager = CameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
         )
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES))
@@ -519,11 +530,11 @@ class CaptureVideoTests {
         Mockito.doReturn(null).`when`(mIntent).data
         val mUri = mIntent.data
 
-        camController.captureVideo(mockActivity) {
+        cameraManager.recordVideo(mockActivity, saveVideoToGallery = false, mActivityLauncher) {
             // do nothing
         }
         runBlocking {
-            camController.processResultFromVideo(mockActivity, mUri,
+            cameraManager.processResultFromVideo(mockActivity, mUri,
                 fromGallery = false,
                 includeMetadata = false,
                 {
