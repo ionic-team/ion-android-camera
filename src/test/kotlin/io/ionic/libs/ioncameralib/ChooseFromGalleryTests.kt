@@ -3,19 +3,21 @@ package io.ionic.libs.ioncameralib
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
-import io.ionic.libs.ioncameralib.manager.OSCAMRController
+import androidx.activity.result.ActivityResultLauncher
+import io.ionic.libs.ioncameralib.manager.GalleryManager
 import io.ionic.libs.ioncameralib.mocks.IONExifHelperMock
 import io.ionic.libs.ioncameralib.mocks.IONFileHelperMock
 import io.ionic.libs.ioncameralib.mocks.IONImageHelperMock
 import io.ionic.libs.ioncameralib.mocks.IONMediaHelperMock
-import io.ionic.libs.ioncameralib.model.IONMediaType
 import io.ionic.libs.ioncameralib.model.IONError
+import io.ionic.libs.ioncameralib.model.IONMediaType
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito
 import org.mockito.junit.MockitoJUnitRunner
+import org.mockito.kotlin.mock
 
 @RunWith(MockitoJUnitRunner::class)
 class ChooseFromGalleryTests {
@@ -23,6 +25,7 @@ class ChooseFromGalleryTests {
     private val mIntent = Mockito.mock(Intent::class.java)
     private val mockActivity = Mockito.mock(Activity::class.java)
     private val mUri = Mockito.mock(Uri::class.java)
+    private val mActivityLauncher = mock<ActivityResultLauncher<Intent>>()
 
     @Test
     fun givenChoosePictureFromGalleryWhenSingleSelectSuccessThenSuccess() {
@@ -32,37 +35,35 @@ class ChooseFromGalleryTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController(
-            "someAppId",
-            exifHelperMock,
-            fileHelperMock,
-            camHelperMock,
-            imgHelperMock
+        val galleryManager = GalleryManager(
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
         )
 
         imgHelperMock.bitmapToBase64Success = true
         fileHelperMock.fileLocationNotNull = true
         fileHelperMock.mimeType = IONMediaType.PICTURE.mimeType
         imgHelperMock.intentUris = listOf(
-            Uri.parse(SAMPLE_IMAGE_URI)
+            mUri
         )
+        fileHelperMock.mUri = mUri
         fileHelperMock.fileExists = true
 
-        camController.chooseFromGallery(
+        galleryManager.chooseFromGallery(
             mockActivity,
             IONMediaType.PICTURE,
             false,
-            0
+            mActivityLauncher
         )
 
         runBlocking {
-            camController.onChooseFromGalleryResult(
+            galleryManager.onChooseFromGalleryResult(
                 mockActivity,
                 RESULT_OK,
                 mIntent,
                 false,
-                false,
-                IONMediaType.PICTURE,
                 {
                     Assert.assertEquals(1, it.size)
                     Assert.assertEquals(IONFileHelperMock.FILE_LOCATION, it.first().uri)
@@ -93,12 +94,11 @@ class ChooseFromGalleryTests {
         camHelperMock.resolution = Pair(1920, 1080)
         camHelperMock.duration = 2222
 
-        val camController = OSCAMRController(
-            "someAppId",
-            exifHelperMock,
-            fileHelperMock,
-            camHelperMock,
-            imgHelperMock
+        val galleryManager = GalleryManager(
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
         )
 
         imgHelperMock.bitmapToBase64Success = true
@@ -107,23 +107,22 @@ class ChooseFromGalleryTests {
         imgHelperMock.intentUris = listOf(
             mUri
         )
+        fileHelperMock.mUri = mUri
         fileHelperMock.fileExists = true
 
-        camController.chooseFromGallery(
+        galleryManager.chooseFromGallery(
             mockActivity,
             IONMediaType.PICTURE,
             false,
-            0
+            mActivityLauncher
         )
 
         runBlocking {
-            camController.onChooseFromGalleryResult(
+            galleryManager.onChooseFromGalleryResult(
                 mockActivity,
                 RESULT_OK,
                 mIntent,
                 true,
-                false,
-                IONMediaType.PICTURE,
                 {
                     Assert.assertEquals(1, it.size)
                     Assert.assertEquals(IONFileHelperMock.FILE_LOCATION, it.first().uri)
@@ -159,12 +158,11 @@ class ChooseFromGalleryTests {
         camHelperMock.resolution = Pair(1920, 1080)
         camHelperMock.duration = 2222
 
-        val camController = OSCAMRController(
-            "someAppId",
-            exifHelperMock,
-            fileHelperMock,
-            camHelperMock,
-            imgHelperMock
+        val galleryManager = GalleryManager(
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
         )
 
         imgHelperMock.bitmapToBase64Success = true
@@ -173,23 +171,22 @@ class ChooseFromGalleryTests {
         imgHelperMock.intentUris = listOf(
             mUri
         )
+        fileHelperMock.mUri = mUri
         fileHelperMock.fileExists = false
 
-        camController.chooseFromGallery(
+        galleryManager.chooseFromGallery(
             mockActivity,
             IONMediaType.PICTURE,
             false,
-            0
+            mActivityLauncher
         )
 
         runBlocking {
-            camController.onChooseFromGalleryResult(
+            galleryManager.onChooseFromGalleryResult(
                 mockActivity,
                 RESULT_OK,
                 mIntent,
                 true,
-                false,
-                IONMediaType.PICTURE,
                 {
                     Assert.fail()
                 },
@@ -204,7 +201,7 @@ class ChooseFromGalleryTests {
     }
 
     @Test
-    fun givenChooseVideoFromGalleryWhenFileDoesNotExistThenSuccess() {
+    fun givenChooseVideoFromGalleryWhenFileDoesNotExistThenError() {
 
         val exifHelperMock = IONExifHelperMock()
         val fileHelperMock = IONFileHelperMock()
@@ -218,12 +215,11 @@ class ChooseFromGalleryTests {
         camHelperMock.resolution = Pair(1920, 1080)
         camHelperMock.duration = 2222
 
-        val camController = OSCAMRController(
-            "someAppId",
-            exifHelperMock,
-            fileHelperMock,
-            camHelperMock,
-            imgHelperMock
+        val galleryManager = GalleryManager(
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
         )
 
         imgHelperMock.bitmapToBase64Success = true
@@ -236,21 +232,19 @@ class ChooseFromGalleryTests {
         fileHelperMock.mUri = mUri
         fileHelperMock.fileExists = false
 
-        camController.chooseFromGallery(
+        galleryManager.chooseFromGallery(
             mockActivity,
             IONMediaType.VIDEO,
             true,
-            0
+            mActivityLauncher
         )
 
         runBlocking {
-            camController.onChooseFromGalleryResult(
+            galleryManager.onChooseFromGalleryResult(
                 mockActivity,
                 RESULT_OK,
                 mIntent,
                 true,
-                false,
-                IONMediaType.VIDEO,
                 {
                     Assert.fail()
                 },
@@ -280,12 +274,11 @@ class ChooseFromGalleryTests {
         camHelperMock.resolution = Pair(1920, 1080)
         camHelperMock.duration = 2222
 
-        val camController = OSCAMRController(
-            "someAppId",
-            exifHelperMock,
-            fileHelperMock,
-            camHelperMock,
-            imgHelperMock
+        val galleryManager = GalleryManager(
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
         )
 
         imgHelperMock.bitmapToBase64Success = true
@@ -298,21 +291,19 @@ class ChooseFromGalleryTests {
         fileHelperMock.mUri = mUri
         fileHelperMock.fileExists = true
 
-        camController.chooseFromGallery(
+        galleryManager.chooseFromGallery(
             mockActivity,
             IONMediaType.VIDEO,
             true,
-            0
+            mActivityLauncher
         )
 
         runBlocking {
-            camController.onChooseFromGalleryResult(
+            galleryManager.onChooseFromGalleryResult(
                 mockActivity,
                 RESULT_OK,
                 mIntent,
                 true,
-                false,
-                IONMediaType.VIDEO,
                 {
                     Assert.assertEquals(2, it.size)
                     Assert.assertEquals(
@@ -341,39 +332,36 @@ class ChooseFromGalleryTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController(
-            "someAppId",
-            exifHelperMock,
-            fileHelperMock,
-            camHelperMock,
-            imgHelperMock
+        val galleryManager = GalleryManager(
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
         )
 
         imgHelperMock.bitmapToBase64Success = true
         fileHelperMock.fileLocationNotNull = true
         fileHelperMock.mimeType = IONMediaType.VIDEO.mimeType
         imgHelperMock.intentUris = listOf(
-            Uri.parse(SAMPLE_VIDEO_URI),
-            Uri.parse(SAMPLE_VIDEO_URI)
+            mUri,
+            mUri
         )
         fileHelperMock.mUri = mUri
         fileHelperMock.fileExists = true
 
-        camController.chooseFromGallery(
+        galleryManager.chooseFromGallery(
             mockActivity,
             IONMediaType.VIDEO,
             true,
-            0
+            mActivityLauncher
         )
 
         runBlocking {
-            camController.onChooseFromGalleryResult(
+            galleryManager.onChooseFromGalleryResult(
                 mockActivity,
                 RESULT_OK,
                 mIntent,
                 false,
-                false,
-                IONMediaType.VIDEO,
                 {
                     Assert.assertEquals(2, it.size)
                     Assert.assertEquals(
@@ -397,29 +385,26 @@ class ChooseFromGalleryTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController(
-            "someAppId",
-            exifHelperMock,
-            fileHelperMock,
-            camHelperMock,
-            imgHelperMock
+        val galleryManager = GalleryManager(
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
         )
 
-        camController.chooseFromGallery(
+        galleryManager.chooseFromGallery(
             mockActivity,
             IONMediaType.PICTURE,
             false,
-            0
+            mActivityLauncher
         )
 
         runBlocking {
-            camController.onChooseFromGalleryResult(
+            galleryManager.onChooseFromGalleryResult(
                 mockActivity,
                 RESULT_CANCELLED,
                 mIntent,
                 false,
-                false,
-                IONMediaType.PICTURE,
                 {
                     Assert.fail()
                 },
@@ -441,28 +426,25 @@ class ChooseFromGalleryTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController(
-            "someAppId",
-            exifHelperMock,
-            fileHelperMock,
-            camHelperMock,
-            imgHelperMock
+        val galleryManager = GalleryManager(
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
         )
 
-        camController.chooseFromGallery(
+        galleryManager.chooseFromGallery(
             mockActivity,
             IONMediaType.PICTURE,
             false,
-            0
+            mActivityLauncher
         )
         runBlocking {
-            camController.onChooseFromGalleryResult(
+            galleryManager.onChooseFromGalleryResult(
                 mockActivity,
                 RESULT_NOK,
                 mIntent,
                 false,
-                false,
-                IONMediaType.PICTURE,
                 {
                     Assert.fail()
                 },
@@ -484,36 +466,35 @@ class ChooseFromGalleryTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController(
-            "someAppId",
-            exifHelperMock,
-            fileHelperMock,
-            camHelperMock,
-            imgHelperMock
+        val galleryManager = GalleryManager(
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
         )
 
         imgHelperMock.bitmapToBase64Success = false
         fileHelperMock.fileLocationNotNull = true
         fileHelperMock.mimeType = IONMediaType.PICTURE.mimeType
         imgHelperMock.intentUris = listOf(
-            Uri.parse(SAMPLE_IMAGE_URI)
+            mUri
         )
+        fileHelperMock.mUri = mUri
+        fileHelperMock.fileExists = true
 
-        camController.chooseFromGallery(
+        galleryManager.chooseFromGallery(
             mockActivity,
             IONMediaType.PICTURE,
             false,
-            0
+            mActivityLauncher
         )
 
         runBlocking {
-            camController.onChooseFromGalleryResult(
+            galleryManager.onChooseFromGalleryResult(
                 mockActivity,
                 RESULT_OK,
                 mIntent,
                 false,
-                false,
-                IONMediaType.PICTURE,
                 {
                     Assert.fail()
                 },
@@ -535,43 +516,35 @@ class ChooseFromGalleryTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController(
-            "someAppId",
-            exifHelperMock,
-            fileHelperMock,
-            camHelperMock,
-            imgHelperMock
+        val galleryManager = GalleryManager(
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
         )
 
         imgHelperMock.bitmapToBase64Success = true
         fileHelperMock.fileLocationNotNull = true
         fileHelperMock.mimeType = IONMediaType.PICTURE.mimeType
         imgHelperMock.intentUris = listOf(
-            Uri.parse(SAMPLE_IMAGE_URI)
+            mUri
         )
         fileHelperMock.mUri = mUri
         fileHelperMock.fileExists = true
-        camController.chooseFromGallery(
+        galleryManager.chooseFromGallery(
             mockActivity,
             IONMediaType.PICTURE,
             false,
-            0
+            mActivityLauncher
         )
 
         runBlocking {
-            camController.chooseFromGallery(
-                mockActivity,
-                IONMediaType.PICTURE,
-                false,
-                0)
-
-            camController.onChooseFromGalleryResult(
+            // Test onChooseFromGalleryResult
+            galleryManager.onChooseFromGalleryResult(
                 mockActivity,
                 RESULT_OK,
                 mIntent,
                 true,
-                true,
-                IONMediaType.PICTURE,
                 {
                     Assert.assertEquals(1, it.size)
                     Assert.assertEquals(
@@ -584,7 +557,8 @@ class ChooseFromGalleryTests {
                     Assert.fail()
                 })
 
-            camController.onChooseFromGalleryEditResult(
+            // Test onChooseFromGalleryEditResult
+            galleryManager.onChooseFromGalleryEditResult(
                 mockActivity,
                 RESULT_OK,
                 mIntent,
@@ -611,31 +585,30 @@ class ChooseFromGalleryTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController(
-            "someAppId",
-            exifHelperMock,
-            fileHelperMock,
-            camHelperMock,
-            imgHelperMock
+        val galleryManager = GalleryManager(
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
         )
 
         imgHelperMock.bitmapToBase64Success = true
         fileHelperMock.fileLocationNotNull = true
         fileHelperMock.mimeType = IONMediaType.PICTURE.mimeType
         imgHelperMock.intentUris = listOf(
-            Uri.parse(SAMPLE_IMAGE_URI)
+            mUri
         )
         fileHelperMock.mUri = mUri
         fileHelperMock.fileExists = true
-        camController.chooseFromGallery(
+        galleryManager.chooseFromGallery(
             mockActivity,
             IONMediaType.PICTURE,
             false,
-            0
+            mActivityLauncher
         )
 
         runBlocking {
-            camController.onChooseFromGalleryEditResult(
+            galleryManager.onChooseFromGalleryEditResult(
                 mockActivity,
                 RESULT_CANCELLED,
                 mIntent,
@@ -658,31 +631,30 @@ class ChooseFromGalleryTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController(
-            "someAppId",
-            exifHelperMock,
-            fileHelperMock,
-            camHelperMock,
-            imgHelperMock
+        val galleryManager = GalleryManager(
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
         )
 
         imgHelperMock.bitmapToBase64Success = true
         fileHelperMock.fileLocationNotNull = true
         fileHelperMock.mimeType = IONMediaType.PICTURE.mimeType
         imgHelperMock.intentUris = listOf(
-            Uri.parse(SAMPLE_IMAGE_URI)
+            mUri
         )
         fileHelperMock.mUri = mUri
         fileHelperMock.fileExists = true
-        camController.chooseFromGallery(
+        galleryManager.chooseFromGallery(
             mockActivity,
             IONMediaType.PICTURE,
             false,
-            0
+            mActivityLauncher
         )
 
         runBlocking {
-            camController.onChooseFromGalleryEditResult(
+            galleryManager.onChooseFromGalleryEditResult(
                 mockActivity,
                 RESULT_NOK,
                 mIntent,
@@ -705,20 +677,18 @@ class ChooseFromGalleryTests {
         val camHelperMock = IONMediaHelperMock()
         val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController(
-            "someAppId",
-            exifHelperMock,
-            fileHelperMock,
-            camHelperMock,
-            imgHelperMock
+        val galleryManager = GalleryManager(
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
         )
 
         runBlocking {
-            camController.onChooseFromGalleryResult(
+            galleryManager.onChooseFromGalleryResult(
                 mockActivity,
                 RESULT_OK,
                 null,
-                galleryMediaType = IONMediaType.PICTURE,
                 onSuccess = {
                     Assert.fail()
                 },
@@ -728,7 +698,7 @@ class ChooseFromGalleryTests {
                 }
             )
 
-            camController.onChooseFromGalleryEditResult(
+            galleryManager.onChooseFromGalleryEditResult(
                 mockActivity,
                 RESULT_OK,
                 null,
@@ -757,22 +727,19 @@ class ChooseFromGalleryTests {
         fileHelperMock.mUri = mUri
         fileHelperMock.fileExists = true
 
-        val camController = OSCAMRController(
-            "someAppId",
-            exifHelperMock,
-            fileHelperMock,
-            camHelperMock,
-            imgHelperMock
+        val galleryManager = GalleryManager(
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
         )
 
         runBlocking {
-            camController.onChooseFromGalleryResult(
+            galleryManager.onChooseFromGalleryResult(
                 mockActivity,
                 RESULT_OK,
                 mIntent,
                 false,
-                false,
-                IONMediaType.PICTURE,
                 {
                     Assert.assertEquals(1, it.size)
                 },
@@ -786,8 +753,6 @@ class ChooseFromGalleryTests {
         private const val RESULT_OK = -1
         private const val RESULT_NOK = 2
         private const val RESULT_CANCELLED = 0
-        private const val SAMPLE_IMAGE_URI = "file://image.bmp"
-        private const val SAMPLE_VIDEO_URI = "file://video.mp4"
         private const val METADATA_SIZE = 23456L
         private const val METADATA_DURATION = 2
         private const val METADATA_FORMAT = "mp4"
