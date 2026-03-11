@@ -3,19 +3,13 @@ package io.ionic.libs.ioncameralib.manager
 import android.app.Activity
 import android.app.Activity.RESULT_CANCELED
 import android.app.Activity.RESULT_OK
-import android.content.ContentResolver
-import android.content.ContentValues
 import android.content.Intent
-import android.graphics.Bitmap
 import android.net.Uri
-import android.os.Build
-import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import androidx.activity.result.ActivityResultLauncher
 import io.ionic.libs.ioncameralib.helper.IONExifHelperInterface
 import io.ionic.libs.ioncameralib.helper.IONFileHelperInterface
-import io.ionic.libs.ioncameralib.helper.IONGalleryHelper
 import io.ionic.libs.ioncameralib.helper.IONImageHelperInterface
 import io.ionic.libs.ioncameralib.helper.IONMediaHelperInterface
 import io.ionic.libs.ioncameralib.model.IONCameraParameters
@@ -28,11 +22,6 @@ import io.ionic.libs.ioncameralib.view.IONOpenPhotoPickerActivity
 import io.ionic.libs.ioncameralib.view.IONLoadingActivity
 import io.ionic.libs.ioncameralib.view.IONImageEditorActivity
 import java.io.File
-import java.io.FileNotFoundException
-import java.io.IOException
-import java.io.InputStream
-import java.text.SimpleDateFormat
-import java.util.Date
 
 class GalleryManager(
     private var exif: IONExifHelperInterface,
@@ -42,7 +31,6 @@ class GalleryManager(
 ) {
     private var croppedUri: Uri? = null
     private var croppedFilePath: String? = null
-
     private val mediaProcessor = IONMediaProcessor(
         exif = exif,
         fileHelper = fileHelper,
@@ -52,21 +40,13 @@ class GalleryManager(
 
     companion object {
         private const val JPEG = 0
-        private const val PNG = 1
         private const val JPEG_TYPE = "jpg"
-        private const val PNG_TYPE = "png"
-        private const val JPEG_EXTENSION = ".$JPEG_TYPE"
-        private const val PNG_EXTENSION = ".${PNG_TYPE}"
         private const val LOG_TAG = "GalleryManager"
         private const val ALLOW_MULTIPLE = "allowMultiple"
         private const val MEDIA_TYPE = "mediaType"
         private const val EDIT_REQUEST_CODE = 7
         private const val IMAGE_MAX_RESOLUTION = 1080
         private const val IMAGE_MAX_QUALITY = 100
-        private const val TIME_FORMAT = "yyyyMMdd_HHmmss"
-        private const val PNG_MIME_TYPE = "image/png"
-        private const val JPEG_MIME_TYPE = "image/jpeg"
-        private const val AUTHORITY = ".camera.provider"
     }
 
     /**
@@ -408,9 +388,7 @@ class GalleryManager(
                 return
             }
             if (editParameters.saveToGallery) {
-
-
-                savePictureInGallery(
+                mediaProcessor.savePictureInGallery(
                     activity,
                     if (fileHelper.getFileExtension(resultImagePath) == JPEG_TYPE) 0 else 1,
                     resultImageUri
@@ -427,97 +405,6 @@ class GalleryManager(
                 onError = { onError(it) }
             )
         }
-    }
-
-    private fun savePictureInGallery(activity: Activity, encodingType: Int, srcUri: Uri?) {
-        val galleryPathVO: IONGalleryHelper = getPicturesPath(encodingType)
-        val fileFromGalleryPath = File(galleryPathVO.galleryPath)
-        val galleryUri = Uri.fromFile(fileFromGalleryPath)
-
-        if (Build.VERSION.SDK_INT <= 28) {
-            writeTakenPictureToGalleryLowerThanAndroidQ(activity, srcUri, galleryUri)
-        } else {
-            writeTakenPictureToGalleryStartingFromAndroidQ(
-                activity,
-                srcUri,
-                galleryPathVO,
-                encodingType
-            )
-        }
-    }
-
-    private fun getPicturesPath(encodingType: Int): IONGalleryHelper {
-        val timeStamp =
-            SimpleDateFormat(TIME_FORMAT).format(
-                Date()
-            )
-        val imageFileName =
-            "IMG_" + timeStamp + if (encodingType == JPEG) JPEG_EXTENSION else PNG_EXTENSION
-        val storageDir = Environment.getExternalStoragePublicDirectory(
-            Environment.DIRECTORY_PICTURES
-        )
-        storageDir.mkdirs()
-        return IONGalleryHelper(storageDir.absolutePath, imageFileName)
-    }
-
-    @Throws(IOException::class)
-    private fun writeTakenPictureToGalleryLowerThanAndroidQ(
-        activity: Activity?,
-        srcUri: Uri?,
-        galleryUri: Uri?
-    ) {
-        writeUncompressedImage(activity, srcUri, galleryUri)
-        fileHelper.refreshGallery(activity, galleryUri)
-    }
-
-    @Throws(IOException::class)
-    private fun writeTakenPictureToGalleryStartingFromAndroidQ(
-        activity: Activity?,
-        srcUri: Uri?,
-        galleryPathVO: IONGalleryHelper,
-        encodingType: Int
-    ) {
-        // Starting from Android Q, working with the ACTION_MEDIA_SCANNER_SCAN_FILE intent is deprecated
-        // https://developer.android.com/reference/android/content/Intent#ACTION_MEDIA_SCANNER_SCAN_FILE
-        // we must start working with the MediaStore from Android Q on.
-        val resolver: ContentResolver? = activity?.contentResolver
-        val contentValues = ContentValues()
-        contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, galleryPathVO.galleryFileName)
-        contentValues.put(MediaStore.MediaColumns.MIME_TYPE, getMimetypeForFormat(encodingType))
-        val galleryOutputUri =
-            resolver?.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
-        val fileStream: InputStream? =
-            fileHelper.getInputStreamFromUriString(
-                srcUri.toString(),
-                activity
-            )
-        fileHelper.writeUncompressedImage(activity, fileStream, galleryOutputUri)
-    }
-
-
-    /**
-     * In the special case where the default width, height and quality are unchanged
-     * we just write the file out to disk saving the expensive Bitmap.compress function.
-     *
-     * @param src
-     * @throws FileNotFoundException
-     * @throws IOException
-     */
-    @Throws(FileNotFoundException::class, IOException::class)
-    private fun writeUncompressedImage(activity: Activity?, src: Uri?, dest: Uri?) {
-        val fis: InputStream? = fileHelper.getInputStreamFromUriString(src.toString(), activity)
-        fileHelper.writeUncompressedImage(activity, fis, dest)
-    }
-
-    /**
-     * Converts output image format int value to string value of mime type.
-     * @param outputFormat int Output format of camera API.
-     * Must be value of either JPEG or PNG constant
-     * @return String String value of mime type or empty string if mime type is not supported
-     */
-    private fun getMimetypeForFormat(outputFormat: Int): String? {
-        if (outputFormat == PNG) return PNG_MIME_TYPE
-        return if (outputFormat == JPEG) JPEG_MIME_TYPE else ""
     }
 
 }
