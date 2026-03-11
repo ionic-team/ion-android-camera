@@ -1,14 +1,14 @@
 package io.ionic.libs.ioncameralib
 
 import android.app.Activity
-import io.ionic.libs.ioncameralib.manager.OSCAMRController
-import io.ionic.libs.ioncameralib.mocks.IONMediaHelperMock
-import io.ionic.libs.ioncameralib.mocks.IONExifHelperMock
+import io.ionic.libs.ioncameralib.manager.VideoManager
 import io.ionic.libs.ioncameralib.mocks.IONFileHelperMock
-import io.ionic.libs.ioncameralib.mocks.IONImageHelperMock
 import io.ionic.libs.ioncameralib.model.IONError
-import org.junit.*
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
+import org.junit.Before
+import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito
 import org.mockito.junit.MockitoJUnitRunner
@@ -34,22 +34,16 @@ class PlayVideoTests {
     @Test
     fun givenFileExistsWhenPlayVideoThenSuccess() {
 
-        val exifHelperMock = IONExifHelperMock()
         val fileHelperMock = IONFileHelperMock()
-        val camHelperMock = IONMediaHelperMock()
-        val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController(
-            "someAppId",
-            exifHelperMock,
+        val videoManager = VideoManager(
+            "authority",
             fileHelperMock,
-            camHelperMock,
-            imgHelperMock
         )
 
         fileHelperMock.fileExists = true
 
-        camController.playVideo(mockActivity, VIDEO_URI,
+        videoManager.playVideo(mockActivity, VIDEO_URI,
             {
                 assertTrue(true)
             },
@@ -62,22 +56,16 @@ class PlayVideoTests {
     @Test
     fun givenFileDoesNotExistWhenPlayVideoThenError() {
 
-        val exifHelperMock = IONExifHelperMock()
         val fileHelperMock = IONFileHelperMock()
-        val camHelperMock = IONMediaHelperMock()
-        val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController(
-            "someAppId",
-            exifHelperMock,
+        val videoManager = VideoManager(
+            "authority",
             fileHelperMock,
-            camHelperMock,
-            imgHelperMock
         )
 
         fileHelperMock.fileExists = false
 
-        camController.playVideo(mockActivity, VIDEO_URI,
+        videoManager.playVideo(mockActivity, VIDEO_URI,
             {
                 fail()
             },
@@ -91,23 +79,17 @@ class PlayVideoTests {
     @Test
     fun givenNullMimeTypeWhenPlayVideoThenError() {
 
-        val exifHelperMock = IONExifHelperMock()
         val fileHelperMock = IONFileHelperMock()
-        val camHelperMock = IONMediaHelperMock()
-        val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController(
-            "someAppId",
-            exifHelperMock,
+        val videoManager = VideoManager(
+            "authority",
             fileHelperMock,
-            camHelperMock,
-            imgHelperMock
         )
 
         fileHelperMock.fileExists = true
         fileHelperMock.mimeType = null
 
-        camController.playVideo(mockActivity, VIDEO_URI,
+        videoManager.playVideo(mockActivity, VIDEO_URI,
             {
                 fail()
             },
@@ -121,23 +103,17 @@ class PlayVideoTests {
     @Test
     fun givenEmptyMimeTypeWhenPlayVideoThenError() {
 
-        val exifHelperMock = IONExifHelperMock()
         val fileHelperMock = IONFileHelperMock()
-        val camHelperMock = IONMediaHelperMock()
-        val imgHelperMock = IONImageHelperMock()
 
-        val camController = OSCAMRController(
-            "someAppId",
-            exifHelperMock,
+        val videoManager = VideoManager(
+            "authority",
             fileHelperMock,
-            camHelperMock,
-            imgHelperMock
         )
 
         fileHelperMock.fileExists = true
         fileHelperMock.mimeType = ""
 
-        camController.playVideo(mockActivity, VIDEO_URI,
+        videoManager.playVideo(mockActivity, VIDEO_URI,
             {
                 fail()
             },
