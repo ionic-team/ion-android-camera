@@ -494,7 +494,7 @@ class EditPictureTests {
     }
 
     @Test
-    fun givenMediaResultNullWhenEditURIPictureThenError() {
+    fun givenImageBitmapNullWhenEditURIPictureThenError() {
 
         val exifHelperMock = IONExifHelperMock()
         val fileHelperMock = IONFileHelperMock()
