@@ -44,6 +44,7 @@ class GalleryManager(
         private const val LOG_TAG = "GalleryManager"
         private const val ALLOW_MULTIPLE = "allowMultiple"
         private const val MEDIA_TYPE = "mediaType"
+        private const val MEDIA_LIMIT = "limit"
         private const val EDIT_REQUEST_CODE = 7
         private const val IMAGE_MAX_RESOLUTION = 1080
         private const val IMAGE_MAX_QUALITY = 100
@@ -61,12 +62,15 @@ class GalleryManager(
         activity: Activity,
         mediaType: IONMediaType,
         allowMultiSelect: Boolean,
+        limit: Int,
         launcher: ActivityResultLauncher<Intent>
     ) {
         try {
             val intent = Intent(activity, IONOpenPhotoPickerActivity::class.java).apply {
                 putExtra(ALLOW_MULTIPLE, allowMultiSelect)
                 putExtra(MEDIA_TYPE, mediaType.mimeType)
+                putExtra(MEDIA_LIMIT, limit)
+
             }
 
             launcher.launch(intent)
