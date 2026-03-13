@@ -1,32 +1,41 @@
 package io.ionic.libs.ioncameralib.processor
 
 import android.app.Activity
+import android.content.ContentResolver
+import android.content.ContentValues
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory.Options
 import android.graphics.Matrix
 import android.media.ExifInterface
 import android.net.Uri
+import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
-import io.ionic.libs.ioncameralib.helper.OSCAMRExifHelperInterface
-import io.ionic.libs.ioncameralib.helper.OSCAMRFileHelperInterface
-import io.ionic.libs.ioncameralib.helper.OSCAMRImageHelperInterface
-import io.ionic.libs.ioncameralib.helper.OSCAMRMediaHelperInterface
+import io.ionic.libs.ioncameralib.helper.IONExifHelperInterface
+import io.ionic.libs.ioncameralib.helper.IONFileHelperInterface
+import io.ionic.libs.ioncameralib.helper.IONGalleryHelper
+import io.ionic.libs.ioncameralib.helper.IONImageHelperInterface
+import io.ionic.libs.ioncameralib.helper.IONMediaHelperInterface
 import io.ionic.libs.ioncameralib.model.IONCameraParameters
 import io.ionic.libs.ioncameralib.model.IONError
 import io.ionic.libs.ioncameralib.model.IONMediaMetadata
 import io.ionic.libs.ioncameralib.model.IONMediaResult
 import io.ionic.libs.ioncameralib.model.IONMediaType
 import java.io.File
+import java.io.FileNotFoundException
 import java.io.IOException
 import java.io.InputStream
 import java.text.SimpleDateFormat
 import java.util.Date
+import kotlin.math.roundToInt
 
 class IONMediaProcessor(
-    private val exif: OSCAMRExifHelperInterface,
-    private val fileHelper: OSCAMRFileHelperInterface,
-    private val mediaHelper: OSCAMRMediaHelperInterface,
-    private val imageHelper: OSCAMRImageHelperInterface
+    private val exif: IONExifHelperInterface,
+    private val fileHelper: IONFileHelperInterface,
+    private val mediaHelper: IONMediaHelperInterface,
+    private val imageHelper: IONImageHelperInterface
 ) {
     private var orientationCorrected = false
     private val TARGET_THUMBNAIL_DIMENSION: Int = 480
@@ -36,30 +45,15 @@ class IONMediaProcessor(
         private const val PNG = 1
         private const val JPEG_TYPE = "jpg"
         private const val PNG_TYPE = "png"
-        private const val JPEG_EXTENSION = ".$JPEG_TYPE"
-        private const val PNG_EXTENSION = ".$PNG_TYPE"
         private const val PNG_MIME_TYPE = "image/png"
         private const val JPEG_MIME_TYPE = "image/jpeg"
-
-        private const val GET_PICTURE = "Get Picture"
-
+        private const val JPEG_EXTENSION = ".$JPEG_TYPE"
+        private const val PNG_EXTENSION = ".$PNG_TYPE"
         private const val TIME_FORMAT = "yyyyMMdd_HHmmss"
         private const val LOG_TAG = "MediaProcessor"
-
         private const val CLOSING_INPUT_STREAM_ERROR = "Exception while closing file input stream."
-
-        const val EDIT_REQUEST_CODE = 7
-        const val EDIT_FROM_GALLERY_REQUEST_CODE = 11
-
-        private const val PICTURE_NAMES_PREFIX = "PIC_"
-        private const val VIDEO_NAMES_PREFIX = "VID_"
-        private const val VIDEO_FORMAT = ".mp4"
         private const val IMAGE_MAX_RESOLUTION = 1080
         private const val IMAGE_MAX_QUALITY = 100
-        private const val STORE = "CameraStore"
-        private const val EDIT_FILE_NAME_KEY = "EditFileName"
-        private const val ALLOW_MULTIPLE = "allowMultiple"
-        private const val MEDIA_TYPE = "mediaType"
     }
 
     /**
@@ -138,9 +132,65 @@ class IONMediaProcessor(
         return IONMediaResult(IONMediaType.PICTURE.type, imagePath, base64Image, metadata, saved)
     }
 
+    /**
+     * Transforms the image media item uri into a media result object.
+     * @param imagePath  A string with the path for the image media item.
+     * @return An object containing relevant information for the media item.
+     *          Null if an error occurred.
+     */
+    private fun createEditedImageMediaResult(
+        activity: Activity,
+        imagePath: String,
+        mediaUri: Uri,
+        includeMetadata: Boolean,
+        saved: Boolean = false
+    ): IONMediaResult? {
+        var base64Image = ""
+        var error: IONError? = null
+
+        val file = File(imagePath)
+        if (!fileHelper.fileExists(file)) return null
+
+        val decodedImage = imageHelper.decodeFile(imagePath)
+
+        if (decodedImage == null) return null
+
+        val downsizedImage = imageHelper.downsizeBitmapIfNeeded(
+            decodedImage,
+            IMAGE_MAX_RESOLUTION
+        )
+        val compressedImage = imageHelper.compressBitmap(downsizedImage, 100)
+
+        imageHelper.bitmapToBase64(
+            compressedImage,
+            resolution = IMAGE_MAX_RESOLUTION,
+            quality = IMAGE_MAX_QUALITY,
+            onSuccess = { base64Image = it },
+            onError = { error = it }
+        )
+
+        if (error != null) {
+            return null
+        }
+
+        var metadata: IONMediaMetadata? = null
+        if (includeMetadata) {
+            metadata = IONMediaMetadata(
+                fileHelper.getFileSizeFromUri(activity, mediaUri),
+                null,
+                fileHelper.getFileExtension(imagePath),
+                "${decodedImage.height}x${decodedImage.width}",
+                fileHelper.getFileCreationDate(file),
+            )
+        }
+
+        return IONMediaResult(IONMediaType.PICTURE.type, imagePath, base64Image, metadata, saved)
+    }
+
     fun processCameraImage(
         activity: Activity,
-        sourcePath: String,
+        intent: Intent?,
+        sourcePath: String?,
         authority: String,
         camParameters: IONCameraParameters,
         savedSuccessfully: Boolean,
@@ -148,25 +198,29 @@ class IONMediaProcessor(
         onMediaResult: (IONMediaResult) -> Unit,
         onError: (IONError) -> Unit
     ) {
+        var bitmap: Bitmap?
         if (camParameters.latestVersion) {
 
-            val imageUri = fileHelper.getUriForFile(
-                activity,
-                authority,
-                File(sourcePath)
-            )
-            if (imageUri == null) {
-                onError(IONError.TAKE_PHOTO_ERROR)
-                return
-            }
-            val mediaResult = createImageMediaResult(
-                activity,
-                sourcePath,
-                imageUri,
-                camParameters.includeMetadata,
-                camParameters,
-                savedSuccessfully
-            )
+            val mediaResult =
+                sourcePath?.let {
+                    val imageUri = fileHelper.getUriForFile(
+                        activity,
+                        authority,
+                        File(sourcePath)
+                    )
+                    if (imageUri == null) {
+                        onError(IONError.TAKE_PHOTO_ERROR)
+                        return
+                    }
+                    createImageMediaResult(
+                        activity,
+                        it,
+                        imageUri,
+                        camParameters.includeMetadata,
+                        camParameters,
+                        savedSuccessfully
+                    )
+                }
 
             if (mediaResult == null) {
                 onError(IONError.TAKE_PHOTO_ERROR)
@@ -175,11 +229,22 @@ class IONMediaProcessor(
             onMediaResult(mediaResult)
         } else {
             //get bitmap
-            val bitmap = getScaledAndRotatedBitmap(activity, sourcePath, camParameters)
+            bitmap = sourcePath?.let { getScaledAndRotatedBitmap(activity, it, camParameters) }
             if (bitmap == null) {
-                onError(IONError.PROCESS_IMAGE_ERROR)
-                return
+                // Try to get the bitmap from intent.
+                if (intent != null) {
+                    try {
+                        // getExtras can throw different exceptions
+                        val extras = intent.extras
+                        if (extras != null) {
+                            bitmap = extras["data"] as Bitmap?
+                        }
+                    } catch (e: Exception) {
+                        // Don't let the exception bubble up, bitmap will be null (check below)
+                    }
+                }
             }
+
             //get base64 representation of bitmap
             imageHelper.processPicture(
                 bitmap, camParameters.encodingType, camParameters.mQuality,
@@ -191,6 +256,31 @@ class IONMediaProcessor(
                 }
             )
         }
+    }
+
+    fun processEditedImage(
+        activity: Activity,
+        imagePath: String,
+        uri: Uri,
+        includeMetadata: Boolean,
+        savedSuccessfully: Boolean,
+        onMediaResult: (IONMediaResult) -> Unit,
+        onError: (IONError) -> Unit
+    ) {
+        val mediaResult = createEditedImageMediaResult(
+            activity,
+            imagePath,
+            uri,
+            includeMetadata,
+            savedSuccessfully
+        )
+
+        if (mediaResult == null) {
+            onError(IONError.EDIT_IMAGE_ERROR)
+            return
+        }
+
+        onMediaResult(mediaResult)
     }
 
     /**
@@ -216,9 +306,10 @@ class IONMediaProcessor(
         var metadata: IONMediaMetadata? = null
         if (includeMetadata) {
             val resolution = getMediaResolution(activity, false, videoPath, uri)
+            (mediaHelper.getVideoDuration(activity, uri).toDouble() / 1000).roundToInt()
             metadata = IONMediaMetadata(
                 fileHelper.getFileSizeFromUri(activity, mediaUri),
-                mediaHelper.getVideoDuration(activity, uri),
+                (mediaHelper.getVideoDuration(activity, uri).toDouble() / 1000).roundToInt(),
                 fileHelper.getFileExtension(videoPath),
                 resolution,
                 fileHelper.getFileCreationDate(file),
@@ -262,7 +353,7 @@ class IONMediaProcessor(
             val resolution = getMediaResolution(activity, false, videoPath, uri)
             metadata = IONMediaMetadata(
                 fileHelper.getFileSizeFromUri(activity, uri),
-                mediaHelper.getVideoDuration(activity, uri),
+                (mediaHelper.getVideoDuration(activity, uri).toDouble() / 1000).roundToInt(),
                 fileHelper.getFileExtension(videoPath),
                 resolution,
                 fileHelper.getFileCreationDate(file),
@@ -276,6 +367,28 @@ class IONMediaProcessor(
             recordedInGallery
         )
         onSuccess(mediaResult)
+    }
+
+    /**
+     * Create a file in the applications temporary directory based upon the supplied encoding.
+     *
+     * @param encodingType of the image to be taken
+     * @param fileName or resultant File object.
+     * @return a File object pointing to the temporary picture
+     */
+    fun createCaptureFile(activity: Activity?, encodingType: Int, fileName: String = ""): File {
+        var fileName = fileName
+        if (fileName.isEmpty()) {
+            fileName = ".Pic"
+        }
+        fileName = if (encodingType == JPEG) {
+            fileName + JPEG_EXTENSION
+        } else if (encodingType == PNG) {
+            fileName + PNG_EXTENSION
+        } else {
+            throw IllegalArgumentException("Invalid Encoding Type: $encodingType")
+        }
+        return fileHelper.createCaptureFile(activity, fileName)
     }
 
 
@@ -569,5 +682,144 @@ class IONMediaProcessor(
         } else {
             0
         }
+    }
+
+    internal fun savePictureInGallery(activity: Activity, encodingType: Int, srcUri: Uri?): Boolean {
+        return try {
+            val galleryPathVO: IONGalleryHelper = getPicturesPath(encodingType)
+            val fileFromGalleryPath = File(galleryPathVO.galleryPath)
+            val galleryUri = Uri.fromFile(fileFromGalleryPath)
+
+            if (Build.VERSION.SDK_INT <= 28) {
+                writeTakenPictureToGalleryLowerThanAndroidQ(activity, srcUri, galleryUri)
+            } else {
+                writeTakenPictureToGalleryStartingFromAndroidQ(
+                    activity,
+                    srcUri,
+                    galleryPathVO,
+                    encodingType
+                )
+            }
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    private fun getPicturesPath(encodingType: Int): IONGalleryHelper {
+        val timeStamp =
+            SimpleDateFormat(TIME_FORMAT).format(
+                Date()
+            )
+        val imageFileName =
+            "IMG_" + timeStamp + if (encodingType == JPEG) JPEG_EXTENSION else PNG_EXTENSION
+        val storageDir = Environment.getExternalStoragePublicDirectory(
+            Environment.DIRECTORY_PICTURES
+        )
+        storageDir.mkdirs()
+        return IONGalleryHelper(storageDir.absolutePath, imageFileName)
+    }
+
+    @Throws(IOException::class)
+    private fun writeTakenPictureToGalleryLowerThanAndroidQ(
+        activity: Activity?,
+        srcUri: Uri?,
+        galleryUri: Uri?
+    ) {
+        writeUncompressedImage(activity, srcUri, galleryUri)
+        fileHelper.refreshGallery(activity, galleryUri)
+    }
+
+    @Throws(IOException::class)
+    private fun writeTakenPictureToGalleryStartingFromAndroidQ(
+        activity: Activity?,
+        srcUri: Uri?,
+        galleryPathVO: IONGalleryHelper,
+        encodingType: Int
+    ) {
+        // Starting from Android Q, working with the ACTION_MEDIA_SCANNER_SCAN_FILE intent is deprecated
+        // https://developer.android.com/reference/android/content/Intent#ACTION_MEDIA_SCANNER_SCAN_FILE
+        // we must start working with the MediaStore from Android Q on.
+        val resolver: ContentResolver? = activity?.contentResolver
+        val contentValues = ContentValues()
+        contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, galleryPathVO.galleryFileName)
+        contentValues.put(MediaStore.MediaColumns.MIME_TYPE, getMimetypeForFormat(encodingType))
+        contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES)
+        val galleryOutputUri =
+            resolver?.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+        val fileStream: InputStream? =
+            fileHelper.getInputStreamFromUriString(
+                srcUri.toString(),
+                activity
+            )
+        fileHelper.writeUncompressedImage(activity, fileStream, galleryOutputUri)
+    }
+
+
+    /**
+     * In the special case where the default width, height and quality are unchanged
+     * we just write the file out to disk saving the expensive Bitmap.compress function.
+     *
+     * @param src
+     * @throws FileNotFoundException
+     * @throws IOException
+     */
+    @Throws(FileNotFoundException::class, IOException::class)
+    private fun writeUncompressedImage(activity: Activity?, src: Uri?, dest: Uri?) {
+        val fis: InputStream? = fileHelper.getInputStreamFromUriString(src.toString(), activity)
+        fileHelper.writeUncompressedImage(activity, fis, dest)
+    }
+
+    /**
+     * Converts output image format int value to string value of mime type.
+     * @param outputFormat int Output format of camera API.
+     * Must be value of either JPEG or PNG constant
+     * @return String String value of mime type or empty string if mime type is not supported
+     */
+    private fun getMimetypeForFormat(outputFormat: Int): String? {
+        if (outputFormat == PNG) return PNG_MIME_TYPE
+        return if (outputFormat == JPEG) JPEG_MIME_TYPE else ""
+    }
+
+
+// ---------------------------------------------------------------------
+// Legacy API (startActivityForResult) – kept for backward compatibility
+// ---------------------------------------------------------------------
+
+
+    /**
+     * Applies all needed transformation to the image received from the gallery.
+     *
+     * @param intent   An Intent, which can return result data to the caller (various data can be attached to Intent "extras").
+     */
+    fun processResultFromGallery(
+        activity: Activity?,
+        intent: Intent,
+        camParameters: IONCameraParameters,
+        onSuccess: (String) -> Unit,
+        onError: (IONError) -> Unit
+    ) {
+        var uri = intent.data
+        val fileLocation = fileHelper.getRealPath(uri, activity)
+        Log.d(LOG_TAG, "File location is: $fileLocation")
+        val uriString = fileHelper.getUriString(uri)
+
+        var bitmap: Bitmap? = null
+        try {
+            bitmap = getScaledAndRotatedBitmap(activity, uriString, camParameters)
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+        imageHelper.processPicture(
+            bitmap, camParameters.encodingType, camParameters.mQuality,
+            {
+                onSuccess(it)
+            },
+            {
+                onError(it)
+            }
+        )
+        bitmap?.recycle()
+        System.gc()
     }
 }

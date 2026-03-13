@@ -1,7 +1,6 @@
 package io.ionic.libs.ioncameralib.view
 
 import android.net.Uri
-import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
@@ -10,9 +9,9 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 
-class ImageEditorActivity : ComponentActivity() {
+class IONImageEditorActivity : ComponentActivity() {
 
-    private val editorView by lazy { findViewById<ImageEditorView>(getResourceId("id/imageEditorView")) }
+    private val editorView by lazy { findViewById<IONImageEditorView>(getResourceId("id/imageEditorView")) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,7 +47,7 @@ class ImageEditorActivity : ComponentActivity() {
         return application.resources.getIdentifier(typeAndName, null, application.packageName)
     }
 
-    companion object {
+    companion object Companion {
         const val IMAGE_INPUT_URI_EXTRAS = "IMAGE_EDITOR_IN_URI_EXTRAS"
         const val IMAGE_OUTPUT_URI_EXTRAS = "IMAGE_EDITOR_OUT_URI_EXTRAS"
     }

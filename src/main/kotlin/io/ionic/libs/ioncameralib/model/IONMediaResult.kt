@@ -7,5 +7,5 @@ data class IONMediaResult(
     @SerializedName("uri") val uri: String,
     @SerializedName("thumbnail") val thumbnail: String?,
     @SerializedName("metadata") val metadata: IONMediaMetadata?,
-    @SerializedName("saved") val saved: Boolean,
+    @SerializedName("saved") val saved: Boolean? = null,
 )

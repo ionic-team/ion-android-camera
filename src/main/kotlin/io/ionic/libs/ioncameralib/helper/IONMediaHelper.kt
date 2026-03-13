@@ -16,9 +16,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 
-class OSCAMRMediaHelper : OSCAMRMediaHelperInterface {
+class IONMediaHelper : IONMediaHelperInterface {
 
-    companion object {
+    companion object Companion {
         private const val CAMERA = 1
         private const val LOG_TAG = "OSCAMRMediaHelper"
         const val REQUEST_VIDEO_CAPTURE = 1
@@ -111,7 +111,7 @@ class OSCAMRMediaHelper : OSCAMRMediaHelperInterface {
         return intent.resolveActivity(packageManager) != null
     }
 
-    /*override fun openDeviceVideo(
+    override fun openDeviceVideo(
         activity: Activity?,
         intent: Intent,
         videoFileUri: Uri?,
@@ -122,7 +122,7 @@ class OSCAMRMediaHelper : OSCAMRMediaHelperInterface {
             intent,
             if (!saveToGallery) REQUEST_VIDEO_CAPTURE else REQUEST_VIDEO_CAPTURE_SAVE_TO_GALLERY
         )
-    }*/
+    }
 
     override fun createDeviceVideoIntent(activity: Activity?, intent: Intent, videoFileUri: Uri?, saveToGallery: Boolean, ): Intent? {
         val safeActivity = activity ?: return null
@@ -154,12 +154,10 @@ class OSCAMRMediaHelper : OSCAMRMediaHelperInterface {
         return null
     }
 
-    override fun getVideoDuration(activity: Activity, uri: Uri): Long {
-        val mediaPlayer = MediaPlayer.create(activity, uri)
-        val duration = mediaPlayer?.duration?.toLong() ?: 0L
-        mediaPlayer?.release()
-        return duration
+    override fun getVideoDuration(activity: Activity, uri: Uri): Int {
+        return MediaPlayer.create(activity, uri).duration
     }
+
 
     override fun getVideoResolution(activity: Activity?, uri: Uri): Pair<Int, Int> {
         val metaRetriever = MediaMetadataRetriever()

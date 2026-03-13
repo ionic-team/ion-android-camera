@@ -2,14 +2,13 @@ package io.ionic.libs.ioncameralib.manager
 
 import android.app.Activity
 import android.content.Intent
-import android.util.Log
-import io.ionic.libs.ioncameralib.helper.OSCAMRFileHelperInterface
+import io.ionic.libs.ioncameralib.helper.IONFileHelperInterface
 import io.ionic.libs.ioncameralib.model.IONError
 import java.io.File
 
 class VideoManager(
     private var authority: String,
-    private var fileHelper: OSCAMRFileHelperInterface,
+    private var fileHelper: IONFileHelperInterface,
 ) {
 
     /**

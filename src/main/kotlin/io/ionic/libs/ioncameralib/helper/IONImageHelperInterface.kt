@@ -10,7 +10,7 @@ import io.ionic.libs.ioncameralib.model.IONError
 import java.io.File
 import java.io.InputStream
 
-interface OSCAMRImageHelperInterface {
+interface IONImageHelperInterface {
     fun getBitmapForInputStream(fileStream: InputStream?): Bitmap?
     fun downsizeBitmapIfNeeded(bitmap: Bitmap, resolution: Int): Bitmap
     fun compressBitmap(bitmap: Bitmap, quality: Int): Bitmap

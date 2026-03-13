@@ -25,10 +25,10 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.lifecycle.lifecycleScope
-import io.ionic.libs.ioncameralib.helper.OSCAMRFileHelper
-import io.ionic.libs.ioncameralib.imageeditor.OSCAMRImageEditorControllerInterface
-import io.ionic.libs.ioncameralib.imageeditor.OSCAMRImageEditorController
-import io.ionic.libs.ioncameralib.helper.OSCAMRFileHelperInterface
+import io.ionic.libs.ioncameralib.helper.IONFileHelper
+import io.ionic.libs.ioncameralib.imageeditor.IONImageEditorControllerInterface
+import io.ionic.libs.ioncameralib.imageeditor.IONImageEditorController
+import io.ionic.libs.ioncameralib.helper.IONFileHelperInterface
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.Default
@@ -38,12 +38,12 @@ import java.io.InputStream
 import kotlin.math.floor
 
 
-class ImageEditorView @JvmOverloads constructor(
+class IONImageEditorView @JvmOverloads constructor(
   context: Context,
   attrs: AttributeSet? = null
 ) : FrameLayout(context, attrs) {
 
-  private val cropView by lazy { findViewById<ImageCropperView>(getResourceId("id/cropperView")) }
+  private val cropView by lazy { findViewById<IONImageCropperView>(getResourceId("id/cropperView")) }
   private val imageView by lazy { findViewById<ImageView>(getResourceId("id/imageView")) }
 
   private val cancelButton by lazy { findViewById<Button>(getResourceId("id/cancelButton")) }
@@ -56,8 +56,8 @@ class ImageEditorView @JvmOverloads constructor(
   private var scaleGestureListener: ScaleListener
   private var scaleFactor = 1.0f
 
-  private var imageEditorController : OSCAMRImageEditorControllerInterface = OSCAMRImageEditorController()
-  private var imageFileHelper : OSCAMRFileHelperInterface = OSCAMRFileHelper()
+  private var imageEditorController : IONImageEditorControllerInterface = IONImageEditorController()
+  private var imageFileHelper : IONFileHelperInterface = IONFileHelper()
 
   private var resultUri: Uri? = null
 
@@ -374,7 +374,7 @@ class ImageEditorView @JvmOverloads constructor(
     }
   }
 
-  companion object {
+  companion object Companion {
     private const val TAG = "ImageEditorView"
     private const val IMAGE_OUTPUT_URI_EXTRAS = "IMAGE_EDITOR_OUT_URI_EXTRAS"
     private const val REQUIRED_WIDTH = 1080
