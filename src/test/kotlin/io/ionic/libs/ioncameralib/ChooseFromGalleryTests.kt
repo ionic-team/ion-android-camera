@@ -55,6 +55,7 @@ class ChooseFromGalleryTests {
             mockActivity,
             IONMediaType.PICTURE,
             false,
+            0,
             mActivityLauncher
         )
 
@@ -114,6 +115,7 @@ class ChooseFromGalleryTests {
             mockActivity,
             IONMediaType.PICTURE,
             false,
+            0,
             mActivityLauncher
         )
 
@@ -178,6 +180,7 @@ class ChooseFromGalleryTests {
             mockActivity,
             IONMediaType.PICTURE,
             false,
+            0,
             mActivityLauncher
         )
 
@@ -236,6 +239,7 @@ class ChooseFromGalleryTests {
             mockActivity,
             IONMediaType.VIDEO,
             true,
+            0,
             mActivityLauncher
         )
 
@@ -295,6 +299,7 @@ class ChooseFromGalleryTests {
             mockActivity,
             IONMediaType.VIDEO,
             true,
+            0,
             mActivityLauncher
         )
 
@@ -353,6 +358,7 @@ class ChooseFromGalleryTests {
             mockActivity,
             IONMediaType.VIDEO,
             true,
+            0,
             mActivityLauncher
         )
 
@@ -396,6 +402,7 @@ class ChooseFromGalleryTests {
             mockActivity,
             IONMediaType.PICTURE,
             false,
+            0,
             mActivityLauncher
         )
 
@@ -437,6 +444,7 @@ class ChooseFromGalleryTests {
             mockActivity,
             IONMediaType.PICTURE,
             false,
+            0,
             mActivityLauncher
         )
         runBlocking {
@@ -486,6 +494,7 @@ class ChooseFromGalleryTests {
             mockActivity,
             IONMediaType.PICTURE,
             false,
+            0,
             mActivityLauncher
         )
 
@@ -535,6 +544,7 @@ class ChooseFromGalleryTests {
             mockActivity,
             IONMediaType.PICTURE,
             false,
+            0,
             mActivityLauncher
         )
 
@@ -604,6 +614,7 @@ class ChooseFromGalleryTests {
             mockActivity,
             IONMediaType.PICTURE,
             false,
+            0,
             mActivityLauncher
         )
 
@@ -650,6 +661,7 @@ class ChooseFromGalleryTests {
             mockActivity,
             IONMediaType.PICTURE,
             false,
+            0,
             mActivityLauncher
         )
 
