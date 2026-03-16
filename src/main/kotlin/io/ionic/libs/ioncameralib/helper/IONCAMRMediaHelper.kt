@@ -155,7 +155,10 @@ class IONCAMRMediaHelper : IONCAMRMediaHelperInterface {
     }
 
     override fun getVideoDuration(activity: Activity, uri: Uri): Int {
-        return MediaPlayer.create(activity, uri).duration
+        val mediaPlayer = MediaPlayer.create(activity, uri)
+        val duration = mediaPlayer?.duration ?: 0
+        mediaPlayer?.release()
+        return duration
     }
 
 
