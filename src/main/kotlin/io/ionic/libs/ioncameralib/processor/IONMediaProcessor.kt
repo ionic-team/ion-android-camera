@@ -40,7 +40,7 @@ class IONMediaProcessor(
     private var orientationCorrected = false
     private val TARGET_THUMBNAIL_DIMENSION: Int = 480
 
-    companion object Companion {
+    companion object {
         private const val JPEG = 0
         private const val PNG = 1
         private const val JPEG_TYPE = "jpg"
@@ -306,7 +306,6 @@ class IONMediaProcessor(
         var metadata: IONMediaMetadata? = null
         if (includeMetadata) {
             val resolution = getMediaResolution(activity, false, videoPath, uri)
-            (mediaHelper.getVideoDuration(activity, uri).toDouble() / 1000).roundToInt()
             metadata = IONMediaMetadata(
                 fileHelper.getFileSizeFromUri(activity, mediaUri),
                 (mediaHelper.getVideoDuration(activity, uri).toDouble() / 1000).roundToInt(),

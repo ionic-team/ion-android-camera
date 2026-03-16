@@ -38,7 +38,7 @@ import java.util.*
 
 class IONFileHelper: IONFileHelperInterface {
 
-    companion object Companion {
+    companion object {
         private const val LOG_TAG = "OSCAMRFileHelper"
         private const val EXTERNAL_STORAGE = "com.android.externalstorage.documents"
         private const val DOWNLOADS_DOCUMENTS = "com.android.providers.downloads.documents"
