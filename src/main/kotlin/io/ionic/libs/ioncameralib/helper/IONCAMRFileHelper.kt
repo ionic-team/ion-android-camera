@@ -38,8 +38,8 @@ import java.util.*
 
 class IONCAMRFileHelper: IONCAMRFileHelperInterface {
 
-    companion object Companion {
-        private const val LOG_TAG = "OSCAMRFileHelper"
+    companion object {
+        private const val LOG_TAG = "IONCAMRFileHelper"
         private const val EXTERNAL_STORAGE = "com.android.externalstorage.documents"
         private const val DOWNLOADS_DOCUMENTS = "com.android.providers.downloads.documents"
         private const val PROVIDERS_MEDIA = "com.android.providers.media.documents"

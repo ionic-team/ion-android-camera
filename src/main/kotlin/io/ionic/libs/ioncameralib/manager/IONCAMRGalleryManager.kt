@@ -38,10 +38,10 @@ class IONCAMRGalleryManager(
         imageHelper = imageHelper
     )
 
-    companion object Companion {
+    companion object {
         private const val JPEG = 0
         private const val JPEG_TYPE = "jpg"
-        private const val LOG_TAG = "GalleryManager"
+        private const val LOG_TAG = "IONCAMRGalleryManager"
         private const val ALLOW_MULTIPLE = "allowMultiple"
         private const val MEDIA_TYPE = "mediaType"
         private const val MEDIA_LIMIT = "limit"

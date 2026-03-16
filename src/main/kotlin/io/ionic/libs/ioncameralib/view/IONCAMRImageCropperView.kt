@@ -43,8 +43,8 @@ class IONCAMRImageCropperView @JvmOverloads constructor(
   // Flag to check if the image is ready to be cropped, that is, if frame can be drawn around it
   private var isImageReady: Boolean = false
 
-  companion object Companion {
-    private const val TAG = "ImageCropperView"
+  companion object {
+    private const val TAG = "IONCAMRImageCropperView"
 
     private const val BORDER_WIDTH = 2
     private const val DEFAULT_BACKGROUND_ALPHA = 0.7f

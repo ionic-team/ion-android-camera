@@ -18,9 +18,9 @@ import java.io.ByteArrayOutputStream
 
 class IONCAMRMediaHelper : IONCAMRMediaHelperInterface {
 
-    companion object Companion {
+    companion object {
         private const val CAMERA = 1
-        private const val LOG_TAG = "OSCAMRMediaHelper"
+        private const val LOG_TAG = "IONCAMRMediaHelper"
         const val REQUEST_VIDEO_CAPTURE = 1
         const val REQUEST_VIDEO_CAPTURE_SAVE_TO_GALLERY = 2
     }

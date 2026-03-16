@@ -41,13 +41,13 @@ class IONCAMREditManager(
         imageHelper = imageHelper
     )
 
-    companion object Companion {
+    companion object {
         private const val JPEG = 0
         private const val PNG = 1
         private const val JPEG_TYPE = "jpg"
         private const val IMAGE_MAX_RESOLUTION = 1080
         private const val IMAGE_MAX_QUALITY = 100
-        private const val LOG_TAG = "EditManager"
+        private const val LOG_TAG = "IONCAMREditManager"
     }
 
     /**

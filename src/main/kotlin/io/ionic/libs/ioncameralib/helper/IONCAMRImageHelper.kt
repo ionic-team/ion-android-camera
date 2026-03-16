@@ -15,7 +15,7 @@ import java.io.*
 
 class IONCAMRImageHelper: IONCAMRImageHelperInterface {
 
-    companion object Companion {
+    companion object {
         private const val JPEG = 0
     }
 

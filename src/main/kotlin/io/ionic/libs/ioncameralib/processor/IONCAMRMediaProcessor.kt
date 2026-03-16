@@ -40,7 +40,7 @@ class IONCAMRMediaProcessor(
     private var orientationCorrected = false
     private val TARGET_THUMBNAIL_DIMENSION: Int = 480
 
-    companion object Companion {
+    companion object {
         private const val JPEG = 0
         private const val PNG = 1
         private const val JPEG_TYPE = "jpg"
@@ -50,7 +50,7 @@ class IONCAMRMediaProcessor(
         private const val JPEG_EXTENSION = ".$JPEG_TYPE"
         private const val PNG_EXTENSION = ".$PNG_TYPE"
         private const val TIME_FORMAT = "yyyyMMdd_HHmmss"
-        private const val LOG_TAG = "MediaProcessor"
+        private const val LOG_TAG = "IONCAMRMediaProcessor"
         private const val CLOSING_INPUT_STREAM_ERROR = "Exception while closing file input stream."
         private const val IMAGE_MAX_RESOLUTION = 1080
         private const val IMAGE_MAX_QUALITY = 100

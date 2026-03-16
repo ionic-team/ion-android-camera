@@ -15,7 +15,7 @@ import io.ionic.libs.ioncameralib.model.IONCAMRMediaType
 
 class IONCAMROpenPhotoPickerActivity : ComponentActivity() {
 
-    companion object Companion {
+    companion object {
         private const val ALLOW_MULTIPLE = "allowMultiple"
         private const val MEDIA_TYPE = "mediaType"
         private const val MEDIA_LIMIT = "limit"

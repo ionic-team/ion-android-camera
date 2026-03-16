@@ -13,7 +13,7 @@ import io.ionic.libs.ioncameralib.R
 
 class IONCAMRLoadingActivity : ComponentActivity() {
 
-    companion object Companion {
+    companion object {
         const val DISMISS_INTENT_FILTER = "LoadingActivity_Dismiss"
     }
 

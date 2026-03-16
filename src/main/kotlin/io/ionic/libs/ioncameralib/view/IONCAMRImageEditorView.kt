@@ -374,8 +374,8 @@ class IONCAMRImageEditorView @JvmOverloads constructor(
     }
   }
 
-  companion object Companion {
-    private const val TAG = "ImageEditorView"
+  companion object {
+    private const val TAG = "IONCAMRImageEditorView"
     private const val IMAGE_OUTPUT_URI_EXTRAS = "IMAGE_EDITOR_OUT_URI_EXTRAS"
     private const val REQUIRED_WIDTH = 1080
     private const val REQUIRED_HEIGHT = 1920

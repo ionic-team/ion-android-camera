@@ -45,10 +45,10 @@ class IONCAMRCameraManager(
         imageHelper = imageHelper
     )
 
-    companion object Companion {
+    companion object {
         private const val JPEG = 0
         private const val TIME_FORMAT = "yyyyMMdd_HHmmss"
-        private const val LOG_TAG = "CameraManager"
+        private const val LOG_TAG = "IONCAMRCameraManager"
         private const val PICTURE_NAMES_PREFIX = "PIC_"
         private const val VIDEO_NAMES_PREFIX = "VID_"
         private const val VIDEO_FORMAT = ".mp4"

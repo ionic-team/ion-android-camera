@@ -47,7 +47,7 @@ class IONCAMRImageEditorActivity : ComponentActivity() {
         return application.resources.getIdentifier(typeAndName, null, application.packageName)
     }
 
-    companion object Companion {
+    companion object {
         const val IMAGE_INPUT_URI_EXTRAS = "IMAGE_EDITOR_IN_URI_EXTRAS"
         const val IMAGE_OUTPUT_URI_EXTRAS = "IMAGE_EDITOR_OUT_URI_EXTRAS"
     }
