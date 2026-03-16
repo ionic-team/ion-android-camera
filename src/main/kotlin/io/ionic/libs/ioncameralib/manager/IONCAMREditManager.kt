@@ -61,7 +61,6 @@ class IONCAMREditManager(
         image: String,
         launcher: ActivityResultLauncher<Intent>
     ) {
-        // put the following code inside the OSCAMRImageHelper which deals with Bitmap related stuff
         val imageByteArray: ByteArray = Base64.decode(image, Base64.NO_WRAP)
         val imageBitmap = imageHelper.base64toBitmap(imageByteArray)
 
