@@ -7,5 +7,5 @@ data class IONCAMRMediaResult(
     @SerializedName("uri") val uri: String,
     @SerializedName("thumbnail") val thumbnail: String?,
     @SerializedName("metadata") val metadata: IONCAMRMediaMetadata?,
-    @SerializedName("saved") val saved: Boolean? = null,
+    @SerializedName("saved") val saved: Boolean,
 )
