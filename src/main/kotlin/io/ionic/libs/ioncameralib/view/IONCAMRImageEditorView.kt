@@ -25,10 +25,10 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.lifecycle.lifecycleScope
-import io.ionic.libs.ioncameralib.helper.IONFileHelper
-import io.ionic.libs.ioncameralib.imageeditor.IONImageEditorControllerInterface
-import io.ionic.libs.ioncameralib.imageeditor.IONImageEditorController
-import io.ionic.libs.ioncameralib.helper.IONFileHelperInterface
+import io.ionic.libs.ioncameralib.helper.IONCAMRFileHelper
+import io.ionic.libs.ioncameralib.imageeditor.IONCAMRImageEditorControllerInterface
+import io.ionic.libs.ioncameralib.imageeditor.IONCAMRImageEditorController
+import io.ionic.libs.ioncameralib.helper.IONCAMRFileHelperInterface
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.Default
@@ -38,12 +38,12 @@ import java.io.InputStream
 import kotlin.math.floor
 
 
-class IONImageEditorView @JvmOverloads constructor(
+class IONCAMRImageEditorView @JvmOverloads constructor(
   context: Context,
   attrs: AttributeSet? = null
 ) : FrameLayout(context, attrs) {
 
-  private val cropView by lazy { findViewById<IONImageCropperView>(getResourceId("id/cropperView")) }
+  private val cropView by lazy { findViewById<IONCAMRImageCropperView>(getResourceId("id/cropperView")) }
   private val imageView by lazy { findViewById<ImageView>(getResourceId("id/imageView")) }
 
   private val cancelButton by lazy { findViewById<Button>(getResourceId("id/cancelButton")) }
@@ -56,8 +56,8 @@ class IONImageEditorView @JvmOverloads constructor(
   private var scaleGestureListener: ScaleListener
   private var scaleFactor = 1.0f
 
-  private var imageEditorController : IONImageEditorControllerInterface = IONImageEditorController()
-  private var imageFileHelper : IONFileHelperInterface = IONFileHelper()
+  private var imageEditorController : IONCAMRImageEditorControllerInterface = IONCAMRImageEditorController()
+  private var imageFileHelper : IONCAMRFileHelperInterface = IONCAMRFileHelper()
 
   private var resultUri: Uri? = null
 
@@ -374,8 +374,8 @@ class IONImageEditorView @JvmOverloads constructor(
     }
   }
 
-  companion object Companion {
-    private const val TAG = "ImageEditorView"
+  companion object {
+    private const val TAG = "IONCAMRImageEditorView"
     private const val IMAGE_OUTPUT_URI_EXTRAS = "IMAGE_EDITOR_OUT_URI_EXTRAS"
     private const val REQUIRED_WIDTH = 1080
     private const val REQUIRED_HEIGHT = 1920

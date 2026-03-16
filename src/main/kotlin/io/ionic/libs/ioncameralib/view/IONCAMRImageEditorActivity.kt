@@ -9,9 +9,9 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 
-class IONImageEditorActivity : ComponentActivity() {
+class IONCAMRImageEditorActivity : ComponentActivity() {
 
-    private val editorView by lazy { findViewById<IONImageEditorView>(getResourceId("id/imageEditorView")) }
+    private val editorView by lazy { findViewById<IONCAMRImageEditorView>(getResourceId("id/imageEditorView")) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,7 +47,7 @@ class IONImageEditorActivity : ComponentActivity() {
         return application.resources.getIdentifier(typeAndName, null, application.packageName)
     }
 
-    companion object Companion {
+    companion object {
         const val IMAGE_INPUT_URI_EXTRAS = "IMAGE_EDITOR_IN_URI_EXTRAS"
         const val IMAGE_OUTPUT_URI_EXTRAS = "IMAGE_EDITOR_OUT_URI_EXTRAS"
     }

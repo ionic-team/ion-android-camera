@@ -23,7 +23,7 @@ import android.media.ExifInterface
 import android.net.Uri
 import java.io.IOException
 
-class IONExifHelper : IONExifHelperInterface {
+class IONCAMRExifHelper : IONCAMRExifHelperInterface {
 
     private var aperture: String? = null
     private var datetime: String? = null

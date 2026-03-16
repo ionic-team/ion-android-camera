@@ -16,11 +16,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 
-class IONMediaHelper : IONMediaHelperInterface {
+class IONCAMRMediaHelper : IONCAMRMediaHelperInterface {
 
-    companion object Companion {
+    companion object {
         private const val CAMERA = 1
-        private const val LOG_TAG = "OSCAMRMediaHelper"
+        private const val LOG_TAG = "IONCAMRMediaHelper"
         const val REQUEST_VIDEO_CAPTURE = 1
         const val REQUEST_VIDEO_CAPTURE_SAVE_TO_GALLERY = 2
     }
@@ -155,7 +155,10 @@ class IONMediaHelper : IONMediaHelperInterface {
     }
 
     override fun getVideoDuration(activity: Activity, uri: Uri): Int {
-        return MediaPlayer.create(activity, uri).duration
+        val mediaPlayer = MediaPlayer.create(activity, uri)
+        val duration = mediaPlayer?.duration ?: 0
+        mediaPlayer?.release()
+        return duration
     }
 
 

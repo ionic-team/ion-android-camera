@@ -8,29 +8,29 @@ import android.media.MediaScannerConnection.MediaScannerConnectionClient
 import android.net.Uri
 import android.provider.MediaStore
 import android.util.Log
-import io.ionic.libs.ioncameralib.helper.IONExifHelperInterface
-import io.ionic.libs.ioncameralib.helper.IONFileHelperInterface
-import io.ionic.libs.ioncameralib.helper.IONImageHelperInterface
-import io.ionic.libs.ioncameralib.helper.IONMediaHelperInterface
-import io.ionic.libs.ioncameralib.model.IONError
-import io.ionic.libs.ioncameralib.model.IONMediaResult
-import io.ionic.libs.ioncameralib.model.IONMediaType
-import io.ionic.libs.ioncameralib.model.IONCameraParameters
-import io.ionic.libs.ioncameralib.view.IONImageEditorActivity
-import io.ionic.libs.ioncameralib.processor.IONMediaProcessor
+import io.ionic.libs.ioncameralib.helper.IONCAMRExifHelperInterface
+import io.ionic.libs.ioncameralib.helper.IONCAMRFileHelperInterface
+import io.ionic.libs.ioncameralib.helper.IONCAMRImageHelperInterface
+import io.ionic.libs.ioncameralib.helper.IONCAMRMediaHelperInterface
+import io.ionic.libs.ioncameralib.model.IONCAMRError
+import io.ionic.libs.ioncameralib.model.IONCAMRMediaResult
+import io.ionic.libs.ioncameralib.model.IONCAMRMediaType
+import io.ionic.libs.ioncameralib.model.IONCAMRCameraParameters
+import io.ionic.libs.ioncameralib.view.IONCAMRImageEditorActivity
+import io.ionic.libs.ioncameralib.processor.IONCAMRMediaProcessor
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Date
 
 
-class CameraManager(
+class IONCAMRCameraManager(
     private var applicationId: String,
     private var authority: String,
-    private var exif: IONExifHelperInterface,
-    private var fileHelper: IONFileHelperInterface,
-    private var mediaHelper: IONMediaHelperInterface,
-    private var imageHelper: IONImageHelperInterface
+    private var exif: IONCAMRExifHelperInterface,
+    private var fileHelper: IONCAMRFileHelperInterface,
+    private var mediaHelper: IONCAMRMediaHelperInterface,
+    private var imageHelper: IONCAMRImageHelperInterface
 ) : MediaScannerConnectionClient {
     private var imageFilePath: String? = null
     private var imageUri: Uri? = null
@@ -38,7 +38,7 @@ class CameraManager(
     private var croppedFilePath: String? = null
     private var conn: MediaScannerConnection? = null
     private var scanMe: Uri? = null
-    private val mediaProcessor = IONMediaProcessor(
+    private val mediaProcessor = IONCAMRMediaProcessor(
         exif = exif,
         fileHelper = fileHelper,
         mediaHelper = mediaHelper,
@@ -48,7 +48,7 @@ class CameraManager(
     companion object {
         private const val JPEG = 0
         private const val TIME_FORMAT = "yyyyMMdd_HHmmss"
-        private const val LOG_TAG = "CameraManager"
+        private const val LOG_TAG = "IONCAMRCameraManager"
         private const val PICTURE_NAMES_PREFIX = "PIC_"
         private const val VIDEO_NAMES_PREFIX = "VID_"
         private const val VIDEO_FORMAT = ".mp4"
@@ -111,7 +111,7 @@ class CameraManager(
         activity: Activity,
         saveVideoToGallery: Boolean = false,
         launcher: ActivityResultLauncher<Intent>,
-        onError: (IONError) -> Unit
+        onError: (IONCAMRError) -> Unit
     ) {
         val videoFileUri = fileHelper.getUriForFile(
             activity,
@@ -139,7 +139,7 @@ class CameraManager(
             }
         } else {
             Log.d(LOG_TAG, "Error: You don't have a default camera for recording video.")
-            onError(IONError.NO_CAMERA_AVAILABLE_ERROR)
+            onError(IONCAMRError.NO_CAMERA_AVAILABLE_ERROR)
         }
     }
 
@@ -183,13 +183,13 @@ class CameraManager(
     fun processResultFromCamera(
         activity: Activity,
         intent: Intent?,
-        camParameters: IONCameraParameters,
+        camParameters: IONCAMRCameraParameters,
         onImage: (String) -> Unit,
-        onMediaResult: (IONMediaResult) -> Unit,
-        onError: (IONError) -> Unit
+        onMediaResult: (IONCAMRMediaResult) -> Unit,
+        onError: (IONCAMRError) -> Unit
     ) {
         val intentEditedPath =
-            intent?.getStringExtra(IONImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS)
+            intent?.getStringExtra(IONCAMRImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS)
 
         // NOTE: croppedUri/croppedFilePath are kept only for the legacy flow
         // The new API returns the edited image
@@ -249,11 +249,11 @@ class CameraManager(
         uri: Uri?,
         fromGallery: Boolean = false,
         includeMetadata: Boolean = false,
-        onSuccess: (IONMediaResult) -> Unit,
-        onError: (IONError) -> Unit
+        onSuccess: (IONCAMRMediaResult) -> Unit,
+        onError: (IONCAMRError) -> Unit
     ) {
         if (uri == null || uri.path == null) {
-            onError(IONError.CAPTURE_VIDEO_ERROR)
+            onError(IONCAMRError.CAPTURE_VIDEO_ERROR)
             return
         }
 
@@ -270,12 +270,12 @@ class CameraManager(
                 val fileName = videoFilePath.split("/").last()
                 fileHelper.storeFileNameInPrefs(fileName, activity)
             } else {
-                onError(IONError.CAPTURE_VIDEO_ERROR)
+                onError(IONCAMRError.CAPTURE_VIDEO_ERROR)
             }
         }
 
         if (videoFilePath.isNullOrEmpty()) {
-            onError(IONError.MEDIA_PATH_ERROR)
+            onError(IONCAMRError.MEDIA_PATH_ERROR)
             return
         }
 
@@ -300,7 +300,7 @@ class CameraManager(
 
     override fun onMediaScannerConnected() {
         try {
-            conn?.scanFile(scanMe.toString(), IONMediaType.PICTURE.mimeType)
+            conn?.scanFile(scanMe.toString(), IONCAMRMediaType.PICTURE.mimeType)
         } catch (e: IllegalStateException) {
             Log.d(
                 LOG_TAG,
@@ -353,7 +353,7 @@ class CameraManager(
     }
 
     private fun createCropIntent(activity: Activity?, picUri: Uri?): Intent {
-        val cropIntent = Intent(activity, IONImageEditorActivity::class.java)
+        val cropIntent = Intent(activity, IONCAMRImageEditorActivity::class.java)
         croppedFilePath = createCaptureFile(
             activity,
             JPEG,
@@ -361,8 +361,8 @@ class CameraManager(
         ).absolutePath
         croppedUri = Uri.parse(croppedFilePath)
 
-        cropIntent.putExtra(IONImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS, croppedFilePath)
-        cropIntent.putExtra(IONImageEditorActivity.IMAGE_INPUT_URI_EXTRAS, picUri.toString())
+        cropIntent.putExtra(IONCAMRImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS, croppedFilePath)
+        cropIntent.putExtra(IONCAMRImageEditorActivity.IMAGE_INPUT_URI_EXTRAS, picUri.toString())
         return cropIntent
     }
 

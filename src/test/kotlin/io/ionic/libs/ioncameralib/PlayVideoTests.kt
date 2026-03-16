@@ -1,9 +1,9 @@
 package io.ionic.libs.ioncameralib
 
 import android.app.Activity
-import io.ionic.libs.ioncameralib.manager.VideoManager
-import io.ionic.libs.ioncameralib.mocks.IONFileHelperMock
-import io.ionic.libs.ioncameralib.model.IONError
+import io.ionic.libs.ioncameralib.manager.IONCAMRVideoManager
+import io.ionic.libs.ioncameralib.mocks.IONCAMRFileHelperMock
+import io.ionic.libs.ioncameralib.model.IONCAMRError
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
@@ -34,16 +34,16 @@ class PlayVideoTests {
     @Test
     fun givenFileExistsWhenPlayVideoThenSuccess() {
 
-        val fileHelperMock = IONFileHelperMock()
+        val fileHelperMock = IONCAMRFileHelperMock()
 
-        val videoManager = VideoManager(
+        val IONCAMRVideoManager = IONCAMRVideoManager(
             "authority",
             fileHelperMock,
         )
 
         fileHelperMock.fileExists = true
 
-        videoManager.playVideo(mockActivity, VIDEO_URI,
+        IONCAMRVideoManager.playVideo(mockActivity, VIDEO_URI,
             {
                 assertTrue(true)
             },
@@ -56,22 +56,22 @@ class PlayVideoTests {
     @Test
     fun givenFileDoesNotExistWhenPlayVideoThenError() {
 
-        val fileHelperMock = IONFileHelperMock()
+        val fileHelperMock = IONCAMRFileHelperMock()
 
-        val videoManager = VideoManager(
+        val IONCAMRVideoManager = IONCAMRVideoManager(
             "authority",
             fileHelperMock,
         )
 
         fileHelperMock.fileExists = false
 
-        videoManager.playVideo(mockActivity, VIDEO_URI,
+        IONCAMRVideoManager.playVideo(mockActivity, VIDEO_URI,
             {
                 fail()
             },
             {
-                assertEquals(it.code, IONError.FILE_DOES_NOT_EXIST_ERROR.code)
-                assertEquals(it.description, IONError.FILE_DOES_NOT_EXIST_ERROR.description)
+                assertEquals(it.code, IONCAMRError.FILE_DOES_NOT_EXIST_ERROR.code)
+                assertEquals(it.description, IONCAMRError.FILE_DOES_NOT_EXIST_ERROR.description)
             }
         )
     }
@@ -79,9 +79,9 @@ class PlayVideoTests {
     @Test
     fun givenNullMimeTypeWhenPlayVideoThenError() {
 
-        val fileHelperMock = IONFileHelperMock()
+        val fileHelperMock = IONCAMRFileHelperMock()
 
-        val videoManager = VideoManager(
+        val IONCAMRVideoManager = IONCAMRVideoManager(
             "authority",
             fileHelperMock,
         )
@@ -89,13 +89,13 @@ class PlayVideoTests {
         fileHelperMock.fileExists = true
         fileHelperMock.mimeType = null
 
-        videoManager.playVideo(mockActivity, VIDEO_URI,
+        IONCAMRVideoManager.playVideo(mockActivity, VIDEO_URI,
             {
                 fail()
             },
             {
-                assertEquals(it.code, IONError.MEDIA_PATH_ERROR.code)
-                assertEquals(it.description, IONError.MEDIA_PATH_ERROR.description)
+                assertEquals(it.code, IONCAMRError.MEDIA_PATH_ERROR.code)
+                assertEquals(it.description, IONCAMRError.MEDIA_PATH_ERROR.description)
             }
         )
     }
@@ -103,9 +103,9 @@ class PlayVideoTests {
     @Test
     fun givenEmptyMimeTypeWhenPlayVideoThenError() {
 
-        val fileHelperMock = IONFileHelperMock()
+        val fileHelperMock = IONCAMRFileHelperMock()
 
-        val videoManager = VideoManager(
+        val IONCAMRVideoManager = IONCAMRVideoManager(
             "authority",
             fileHelperMock,
         )
@@ -113,13 +113,13 @@ class PlayVideoTests {
         fileHelperMock.fileExists = true
         fileHelperMock.mimeType = ""
 
-        videoManager.playVideo(mockActivity, VIDEO_URI,
+        IONCAMRVideoManager.playVideo(mockActivity, VIDEO_URI,
             {
                 fail()
             },
             {
-                assertEquals(it.code, IONError.MEDIA_PATH_ERROR.code)
-                assertEquals(it.description, IONError.MEDIA_PATH_ERROR.description)
+                assertEquals(it.code, IONCAMRError.MEDIA_PATH_ERROR.code)
+                assertEquals(it.description, IONCAMRError.MEDIA_PATH_ERROR.description)
             }
         )
     }

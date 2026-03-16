@@ -1,6 +1,6 @@
 package io.ionic.libs.ioncameralib.model
 
-enum class IONError(val code: Int, val description: String) {
+enum class IONCAMRError(val code: Int, val description: String) {
     CAMERA_PERMISSION_DENIED_ERROR(3, "Couldn't access camera. Check your camera permissions and try again."),
     NO_IMAGE_SELECTED_ERROR(5, "No image selected."),
     GALLERY_PERMISSION_DENIED_ERROR(6, "Couldn't access your photo gallery because access wasn't provided."),
