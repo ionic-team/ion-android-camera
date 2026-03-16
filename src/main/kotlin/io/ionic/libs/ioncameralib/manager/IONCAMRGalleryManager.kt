@@ -8,30 +8,30 @@ import android.net.Uri
 import android.provider.MediaStore
 import android.util.Log
 import androidx.activity.result.ActivityResultLauncher
-import io.ionic.libs.ioncameralib.helper.IONExifHelperInterface
-import io.ionic.libs.ioncameralib.helper.IONFileHelperInterface
-import io.ionic.libs.ioncameralib.helper.IONImageHelperInterface
-import io.ionic.libs.ioncameralib.helper.IONMediaHelperInterface
-import io.ionic.libs.ioncameralib.model.IONCameraParameters
-import io.ionic.libs.ioncameralib.model.IONEditParameters
-import io.ionic.libs.ioncameralib.model.IONError
-import io.ionic.libs.ioncameralib.model.IONMediaResult
-import io.ionic.libs.ioncameralib.model.IONMediaType
-import io.ionic.libs.ioncameralib.processor.IONMediaProcessor
-import io.ionic.libs.ioncameralib.view.IONOpenPhotoPickerActivity
-import io.ionic.libs.ioncameralib.view.IONLoadingActivity
-import io.ionic.libs.ioncameralib.view.IONImageEditorActivity
+import io.ionic.libs.ioncameralib.helper.IONCAMRExifHelperInterface
+import io.ionic.libs.ioncameralib.helper.IONCAMRFileHelperInterface
+import io.ionic.libs.ioncameralib.helper.IONCAMRImageHelperInterface
+import io.ionic.libs.ioncameralib.helper.IONCAMRMediaHelperInterface
+import io.ionic.libs.ioncameralib.model.IONCAMRCameraParameters
+import io.ionic.libs.ioncameralib.model.IONCAMREditParameters
+import io.ionic.libs.ioncameralib.model.IONCAMRError
+import io.ionic.libs.ioncameralib.model.IONCAMRMediaResult
+import io.ionic.libs.ioncameralib.model.IONCAMRMediaType
+import io.ionic.libs.ioncameralib.processor.IONCAMRMediaProcessor
+import io.ionic.libs.ioncameralib.view.IONCAMROpenPhotoPickerActivity
+import io.ionic.libs.ioncameralib.view.IONCAMRLoadingActivity
+import io.ionic.libs.ioncameralib.view.IONCAMRImageEditorActivity
 import java.io.File
 
-class GalleryManager(
-    private var exif: IONExifHelperInterface,
-    private var fileHelper: IONFileHelperInterface,
-    private var mediaHelper: IONMediaHelperInterface,
-    private var imageHelper: IONImageHelperInterface
+class IONCAMRGalleryManager(
+    private var exif: IONCAMRExifHelperInterface,
+    private var fileHelper: IONCAMRFileHelperInterface,
+    private var mediaHelper: IONCAMRMediaHelperInterface,
+    private var imageHelper: IONCAMRImageHelperInterface
 ) {
     private var croppedUri: Uri? = null
     private var croppedFilePath: String? = null
-    private val mediaProcessor = IONMediaProcessor(
+    private val mediaProcessor = IONCAMRMediaProcessor(
         exif = exif,
         fileHelper = fileHelper,
         mediaHelper = mediaHelper,
@@ -41,7 +41,7 @@ class GalleryManager(
     companion object {
         private const val JPEG = 0
         private const val JPEG_TYPE = "jpg"
-        private const val LOG_TAG = "GalleryManager"
+        private const val LOG_TAG = "IONCAMRGalleryManager"
         private const val ALLOW_MULTIPLE = "allowMultiple"
         private const val MEDIA_TYPE = "mediaType"
         private const val MEDIA_LIMIT = "limit"
@@ -60,13 +60,13 @@ class GalleryManager(
      */
     fun chooseFromGallery(
         activity: Activity,
-        mediaType: IONMediaType,
+        mediaType: IONCAMRMediaType,
         allowMultiSelect: Boolean,
         limit: Int,
         launcher: ActivityResultLauncher<Intent>
     ) {
         try {
-            val intent = Intent(activity, IONOpenPhotoPickerActivity::class.java).apply {
+            val intent = Intent(activity, IONCAMROpenPhotoPickerActivity::class.java).apply {
                 putExtra(ALLOW_MULTIPLE, allowMultiSelect)
                 putExtra(MEDIA_TYPE, mediaType.mimeType)
                 putExtra(MEDIA_LIMIT, limit)
@@ -93,12 +93,12 @@ class GalleryManager(
         resultCode: Int,
         intent: Intent?,
         includeMetadata: Boolean = false,
-        onSuccess: (List<IONMediaResult>) -> Unit,
-        onError: (IONError) -> Unit
+        onSuccess: (List<IONCAMRMediaResult>) -> Unit,
+        onError: (IONCAMRError) -> Unit
     ) {
 
         if (intent == null) {
-            onError(IONError.CHOOSE_MULTIMEDIA_CANCELLED_ERROR)
+            onError(IONCAMRError.CHOOSE_MULTIMEDIA_CANCELLED_ERROR)
             return
         }
 
@@ -110,7 +110,7 @@ class GalleryManager(
 
                 showLoadingScreen(activity)
 
-                val results: MutableList<IONMediaResult> = mutableListOf()
+                val results: MutableList<IONCAMRMediaResult> = mutableListOf()
                 for (uri in uris) {
 
                     var fileLocation = fileHelper.getRealPath(uri, activity)
@@ -126,7 +126,7 @@ class GalleryManager(
                         createMediaResult(activity, fileLocation, uri, includeMetadata)
 
                     if (mediaResult == null) {
-                        onError(IONError.GENERIC_CHOOSE_MULTIMEDIA_ERROR)
+                        onError(IONCAMRError.GENERIC_CHOOSE_MULTIMEDIA_ERROR)
                         dismissLoadingScreen(activity)
                         return
                     }
@@ -138,11 +138,11 @@ class GalleryManager(
             }
 
             RESULT_CANCELED -> {
-                onError(IONError.CHOOSE_MULTIMEDIA_CANCELLED_ERROR)
+                onError(IONCAMRError.CHOOSE_MULTIMEDIA_CANCELLED_ERROR)
             }
 
             else -> {
-                onError(IONError.GENERIC_CHOOSE_MULTIMEDIA_ERROR)
+                onError(IONCAMRError.GENERIC_CHOOSE_MULTIMEDIA_ERROR)
             }
         }
     }
@@ -162,20 +162,20 @@ class GalleryManager(
         resultCode: Int,
         intent: Intent?,
         includeMetadata: Boolean = false,
-        onSuccess: (List<IONMediaResult>) -> Unit,
-        onError: (IONError) -> Unit
+        onSuccess: (List<IONCAMRMediaResult>) -> Unit,
+        onError: (IONCAMRError) -> Unit
     ) {
         when (resultCode) {
 
             RESULT_OK -> {
                 if (intent == null) {
-                    onError(IONError.EDIT_IMAGE_ERROR)
+                    onError(IONCAMRError.EDIT_IMAGE_ERROR)
                     return
                 }
 
                 // An empty string here will trigger EDIT_IMAGE_ERROR later
                 val fileLocation =
-                    intent.getStringExtra(IONImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS) ?: ""
+                    intent.getStringExtra(IONCAMRImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS) ?: ""
 
                 val mediaResult = createMediaResult(
                     activity,
@@ -184,18 +184,18 @@ class GalleryManager(
                     includeMetadata
                 )
                 if (mediaResult == null) {
-                    onError(IONError.EDIT_IMAGE_ERROR)
+                    onError(IONCAMRError.EDIT_IMAGE_ERROR)
                     return
                 }
                 onSuccess(listOf(mediaResult))
             }
 
             RESULT_CANCELED -> {
-                onError(IONError.EDIT_CANCELLED_ERROR)
+                onError(IONCAMRError.EDIT_CANCELLED_ERROR)
             }
 
             else -> {
-                onError(IONError.EDIT_IMAGE_ERROR)
+                onError(IONCAMRError.EDIT_IMAGE_ERROR)
             }
         }
     }
@@ -231,7 +231,7 @@ class GalleryManager(
         filePath: String,
         uri: Uri,
         includeMetadata: Boolean,
-    ): IONMediaResult? {
+    ): IONCAMRMediaResult? {
 
         val mimeType = fileHelper.getMimeType(filePath, activity)
         val isImage = mimeType != null && mimeType.startsWith("image")
@@ -249,11 +249,11 @@ class GalleryManager(
     }
 
     private fun showLoadingScreen(activity: Activity) {
-        activity.startActivity(Intent(activity, IONLoadingActivity::class.java))
+        activity.startActivity(Intent(activity, IONCAMRLoadingActivity::class.java))
     }
 
     private fun dismissLoadingScreen(activity: Activity) {
-        activity.sendBroadcast(Intent(IONLoadingActivity.DISMISS_INTENT_FILTER))
+        activity.sendBroadcast(Intent(IONCAMRLoadingActivity.DISMISS_INTENT_FILTER))
     }
 
 // ---------------------------------------------------------------------
@@ -270,12 +270,12 @@ class GalleryManager(
         activity: Activity?,
         srcType: Int,
         returnType: Int,
-        camParameters: IONCameraParameters
+        camParameters: IONCAMRCameraParameters
     ) {
         val intent = Intent()
         croppedUri = null
         croppedFilePath = null
-        intent.type = IONMediaType.PICTURE.mimeType
+        intent.type = IONCAMRMediaType.PICTURE.mimeType
         intent.action = Intent.ACTION_PICK
         if (camParameters.allowEdit) {
             intent.putExtra("crop", "true")
@@ -307,7 +307,7 @@ class GalleryManager(
     }
 
     private fun createCropIntent(activity: Activity?, picUri: Uri?): Intent {
-        val cropIntent = Intent(activity, IONImageEditorActivity::class.java)
+        val cropIntent = Intent(activity, IONCAMRImageEditorActivity::class.java)
         croppedFilePath = createCaptureFile(
             activity,
             JPEG,
@@ -315,8 +315,8 @@ class GalleryManager(
         ).absolutePath
         croppedUri = Uri.parse(croppedFilePath)
 
-        cropIntent.putExtra(IONImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS, croppedFilePath)
-        cropIntent.putExtra(IONImageEditorActivity.IMAGE_INPUT_URI_EXTRAS, picUri.toString())
+        cropIntent.putExtra(IONCAMRImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS, croppedFilePath)
+        cropIntent.putExtra(IONCAMRImageEditorActivity.IMAGE_INPUT_URI_EXTRAS, picUri.toString())
         return cropIntent
     }
 
@@ -328,9 +328,9 @@ class GalleryManager(
     fun processResultFromGallery(
         activity: Activity?,
         intent: Intent,
-        camParameters: IONCameraParameters,
+        camParameters: IONCAMRCameraParameters,
         onSuccess: (String) -> Unit,
-        onError: (IONError) -> Unit
+        onError: (IONCAMRError) -> Unit
     ) {
         mediaProcessor.processResultFromGallery(
             activity = activity,
@@ -353,16 +353,16 @@ class GalleryManager(
     fun processResultFromEdit(
         activity: Activity,
         intent: Intent?,
-        editParameters: IONEditParameters,
+        editParameters: IONCAMREditParameters,
         onImage: (String) -> Unit,
         authority: String,
-        onMediaResult: (IONMediaResult) -> Unit,
-        onError: (IONError) -> Unit
+        onMediaResult: (IONCAMRMediaResult) -> Unit,
+        onError: (IONCAMRError) -> Unit
     ) {
-        val resultImagePath = intent?.getStringExtra(IONImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS)
+        val resultImagePath = intent?.getStringExtra(IONCAMRImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS)
         if (resultImagePath.isNullOrEmpty()) {
             Log.d(LOG_TAG, "Image file path is null or empty")
-            onError(IONError.EDIT_IMAGE_ERROR)
+            onError(IONCAMRError.EDIT_IMAGE_ERROR)
             return
         }
         if (editParameters.fromUri) {
@@ -374,7 +374,7 @@ class GalleryManager(
             )
             if (resultImageUri == null) {
                 Log.d(LOG_TAG, "Image URI is null")
-                onError(IONError.EDIT_IMAGE_ERROR)
+                onError(IONCAMRError.EDIT_IMAGE_ERROR)
                 return
             }
 
@@ -388,7 +388,7 @@ class GalleryManager(
 
             if (mediaResult == null) {
                 Log.d(LOG_TAG, "MediaResult is null")
-                onError(IONError.EDIT_IMAGE_ERROR)
+                onError(IONCAMRError.EDIT_IMAGE_ERROR)
                 return
             }
             if (editParameters.saveToGallery) {

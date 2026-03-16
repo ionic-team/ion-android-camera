@@ -2,13 +2,13 @@ package io.ionic.libs.ioncameralib.manager
 
 import android.app.Activity
 import android.content.Intent
-import io.ionic.libs.ioncameralib.helper.IONFileHelperInterface
-import io.ionic.libs.ioncameralib.model.IONError
+import io.ionic.libs.ioncameralib.helper.IONCAMRFileHelperInterface
+import io.ionic.libs.ioncameralib.model.IONCAMRError
 import java.io.File
 
-class VideoManager(
+class IONCAMRVideoManager(
     private var authority: String,
-    private var fileHelper: IONFileHelperInterface,
+    private var fileHelper: IONCAMRFileHelperInterface,
 ) {
 
     /**
@@ -20,18 +20,18 @@ class VideoManager(
         activity: Activity,
         videoUri: String,
         onSuccess: () -> Unit,
-        onError: (IONError) -> Unit
+        onError: (IONCAMRError) -> Unit
     ) {
         val mimeType = fileHelper.getMimeType(videoUri)
         val file = File(videoUri)
 
         if (!fileHelper.fileExists(file)) {
-            onError(IONError.FILE_DOES_NOT_EXIST_ERROR)
+            onError(IONCAMRError.FILE_DOES_NOT_EXIST_ERROR)
             return
         }
 
         if (mimeType.isNullOrEmpty()) {
-            onError(IONError.MEDIA_PATH_ERROR)
+            onError(IONCAMRError.MEDIA_PATH_ERROR)
             return
         }
 

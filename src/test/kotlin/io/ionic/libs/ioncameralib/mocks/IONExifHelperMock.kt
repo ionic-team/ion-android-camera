@@ -2,9 +2,9 @@ package  io.ionic.libs.ioncameralib.mocks
 
 import android.media.ExifInterface
 import android.net.Uri
-import io.ionic.libs.ioncameralib.helper.IONExifHelperInterface
+import io.ionic.libs.ioncameralib.helper.IONCAMRExifHelperInterface
 
-class IONExifHelperMock: IONExifHelperInterface {
+class IONExifHelperMock: IONCAMRExifHelperInterface {
 
     var orientationNormal = false
     var testOrientation = ExifInterface.ORIENTATION_ROTATE_90

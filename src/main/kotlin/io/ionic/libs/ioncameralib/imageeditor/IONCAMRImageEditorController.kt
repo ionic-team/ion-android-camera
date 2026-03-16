@@ -4,7 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.graphics.Rect
 
-class IONImageEditorController : IONImageEditorControllerInterface {
+class IONCAMRImageEditorController : IONCAMRImageEditorControllerInterface {
 
     override suspend fun rotateLeft(image: Bitmap): Bitmap {
         val rotationMatrix = Matrix().apply {

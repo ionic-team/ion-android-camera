@@ -2,7 +2,7 @@ package io.ionic.libs.ioncameralib.model
 
 import com.google.gson.annotations.SerializedName
 
-data class IONCameraParameters(
+data class IONCAMRCameraParameters(
     @SerializedName("mQuality") val mQuality: Int,
     @SerializedName("targetWidth") var targetWidth: Int,
     @SerializedName("targetHeight") var targetHeight: Int,

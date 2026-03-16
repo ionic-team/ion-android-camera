@@ -4,12 +4,12 @@ import android.app.Activity
 import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
-import io.ionic.libs.ioncameralib.helper.IONFileHelperInterface
+import io.ionic.libs.ioncameralib.helper.IONCAMRFileHelperInterface
 import org.mockito.Mockito
 import java.io.File
 import java.io.InputStream
 
-class IONFileHelperMock: IONFileHelperInterface {
+class IONCAMRFileHelperMock: IONCAMRFileHelperInterface {
 
     var getUriResult = GET_URI_SUCCESS
     var fileLocationNotNull = false

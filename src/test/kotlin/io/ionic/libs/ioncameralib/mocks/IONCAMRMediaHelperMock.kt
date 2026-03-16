@@ -4,9 +4,9 @@ import android.app.Activity
 import android.content.Intent
 import android.database.Cursor
 import android.net.Uri
-import io.ionic.libs.ioncameralib.helper.IONMediaHelperInterface
+import io.ionic.libs.ioncameralib.helper.IONCAMRMediaHelperInterface
 
-class IONMediaHelperMock: IONMediaHelperInterface {
+class IONCAMRMediaHelperMock: IONCAMRMediaHelperInterface {
 
     var equalsDiff = true
     var existsActivity = true
