@@ -24,6 +24,7 @@ import android.content.Intent
 import android.database.Cursor
 import android.graphics.Bitmap
 import android.net.Uri
+import android.os.Build
 import android.os.Environment
 import android.provider.DocumentsContract
 import android.provider.MediaStore
@@ -400,8 +401,18 @@ class IONCAMRFileHelper: IONCAMRFileHelperInterface {
     }
 
     override fun getFileCreationDate(file: File): String {
-        val attr = Files.readAttributes(file.toPath(), BasicFileAttributes::class.java)
-        return attr.creationTime().toString()
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            try {
+                val attr = Files.readAttributes(file.toPath(), BasicFileAttributes::class.java)
+                attr.creationTime().toString()
+            } catch (e: Exception) {
+                Log.e(LOG_TAG, "Error getting file creation time", e)
+                Date(file.lastModified()).toString()
+            }
+        } else {
+            // Fallback API below API level 26
+            Date(file.lastModified()).toString()
+        }
     }
 
     override fun storeFileNameInPrefs(fileName: String, context: Context) {
