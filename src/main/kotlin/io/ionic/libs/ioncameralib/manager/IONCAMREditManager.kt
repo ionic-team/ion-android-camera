@@ -7,41 +7,41 @@ import android.net.Uri
 import android.util.Base64
 import android.util.Log
 import androidx.activity.result.ActivityResultLauncher
-import io.ionic.libs.ioncameralib.helper.IONFileHelperInterface
-import io.ionic.libs.ioncameralib.helper.IONImageHelperInterface
-import io.ionic.libs.ioncameralib.model.IONError
-import io.ionic.libs.ioncameralib.model.IONMediaResult
-import io.ionic.libs.ioncameralib.model.IONEditParameters
-import io.ionic.libs.ioncameralib.view.IONImageEditorActivity
+import io.ionic.libs.ioncameralib.helper.IONCAMRFileHelperInterface
+import io.ionic.libs.ioncameralib.helper.IONCAMRImageHelperInterface
+import io.ionic.libs.ioncameralib.model.IONCAMRError
+import io.ionic.libs.ioncameralib.model.IONCAMRMediaResult
+import io.ionic.libs.ioncameralib.model.IONCAMREditParameters
+import io.ionic.libs.ioncameralib.view.IONCAMRImageEditorActivity
 import java.io.File
 import androidx.core.net.toUri
-import io.ionic.libs.ioncameralib.helper.IONExifHelperInterface
-import io.ionic.libs.ioncameralib.helper.IONMediaHelperInterface
-import io.ionic.libs.ioncameralib.processor.IONMediaProcessor
+import io.ionic.libs.ioncameralib.helper.IONCAMRExifHelperInterface
+import io.ionic.libs.ioncameralib.helper.IONCAMRMediaHelperInterface
+import io.ionic.libs.ioncameralib.processor.IONCAMRMediaProcessor
 
 /**
  * Contains edit functions
  */
-class EditManager(
+class IONCAMREditManager(
     private var applicationId: String,
     private var authority: String,
-    private var exif: IONExifHelperInterface,
-    private var fileHelper: IONFileHelperInterface,
-    private var mediaHelper: IONMediaHelperInterface,
-    private var imageHelper: IONImageHelperInterface,
+    private var exif: IONCAMRExifHelperInterface,
+    private var fileHelper: IONCAMRFileHelperInterface,
+    private var mediaHelper: IONCAMRMediaHelperInterface,
+    private var imageHelper: IONCAMRImageHelperInterface,
 ) {
 
     private var croppedUri: Uri? = null
     private var croppedFilePath: String? = null
 
-    private val mediaProcessor = IONMediaProcessor(
+    private val mediaProcessor = IONCAMRMediaProcessor(
         exif = exif,
         fileHelper = fileHelper,
         mediaHelper = mediaHelper,
         imageHelper = imageHelper
     )
 
-    companion object {
+    companion object Companion {
         private const val JPEG = 0
         private const val PNG = 1
         private const val JPEG_TYPE = "jpg"
@@ -94,11 +94,11 @@ class EditManager(
         activity: Activity?,
         pictureFilePath: String,
         launcher: ActivityResultLauncher<Intent>,
-        onError: (IONError) -> Unit
+        onError: (IONCAMRError) -> Unit
     ) {
         val imageFile = File(pictureFilePath)
         if (!fileHelper.fileExists(imageFile)) {
-            onError(IONError.FILE_DOES_NOT_EXIST_ERROR)
+            onError(IONCAMRError.FILE_DOES_NOT_EXIST_ERROR)
             return
         }
         val drawable: Drawable? = try {
@@ -110,7 +110,7 @@ class EditManager(
         if (drawable == null) {
             // provided file path does not seem to belong to an actual picture
             //  .e.g could be video, for which edit is not supported
-            onError(IONError.FETCH_IMAGE_FROM_URI_ERROR)
+            onError(IONCAMRError.FETCH_IMAGE_FROM_URI_ERROR)
             return
         }
         val pictureUri = fileHelper.getUriForFile(
@@ -122,7 +122,7 @@ class EditManager(
             openCropActivity(activity, pictureUri, launcher)
         } catch (e: Exception) {
             e.printStackTrace()
-            onError(IONError.EDIT_IMAGE_ERROR)
+            onError(IONCAMRError.EDIT_IMAGE_ERROR)
         }
     }
 
@@ -137,7 +137,7 @@ class EditManager(
         picUri: Uri?,
         launcher: ActivityResultLauncher<Intent>
     ) {
-        val cropIntent = Intent(activity, IONImageEditorActivity::class.java)
+        val cropIntent = Intent(activity, IONCAMRImageEditorActivity::class.java)
 
         // creates output file
         croppedFilePath = createCaptureFile(
@@ -147,8 +147,8 @@ class EditManager(
         ).absolutePath
         croppedUri = croppedFilePath?.toUri()
 
-        cropIntent.putExtra(IONImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS, croppedFilePath)
-        cropIntent.putExtra(IONImageEditorActivity.IMAGE_INPUT_URI_EXTRAS, picUri.toString())
+        cropIntent.putExtra(IONCAMRImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS, croppedFilePath)
+        cropIntent.putExtra(IONCAMRImageEditorActivity.IMAGE_INPUT_URI_EXTRAS, picUri.toString())
 
         launcher.launch(cropIntent)
     }
@@ -166,15 +166,15 @@ class EditManager(
     fun processResultFromEdit(
         activity: Activity,
         intent: Intent?,
-        editParameters: IONEditParameters,
+        editParameters: IONCAMREditParameters,
         onImage: (String) -> Unit,
-        onMediaResult: (IONMediaResult) -> Unit,
-        onError: (IONError) -> Unit
+        onMediaResult: (IONCAMRMediaResult) -> Unit,
+        onError: (IONCAMRError) -> Unit
     ) {
-        val resultImagePath = intent?.getStringExtra(IONImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS)
+        val resultImagePath = intent?.getStringExtra(IONCAMRImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS)
         if (resultImagePath.isNullOrEmpty()) {
             Log.d(LOG_TAG, "Image file path is null or empty")
-            onError(IONError.EDIT_IMAGE_ERROR)
+            onError(IONCAMRError.EDIT_IMAGE_ERROR)
             return
         }
         if (editParameters.fromUri) {
@@ -186,7 +186,7 @@ class EditManager(
             )
             if (resultImageUri == null) {
                 Log.d(LOG_TAG, "Image URI is null")
-                onError(IONError.EDIT_IMAGE_ERROR)
+                onError(IONCAMRError.EDIT_IMAGE_ERROR)
                 return
             }
 

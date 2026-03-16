@@ -6,19 +6,19 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.net.Uri
-import io.ionic.libs.ioncameralib.model.IONError
+import io.ionic.libs.ioncameralib.model.IONCAMRError
 import java.io.File
 import java.io.InputStream
 
-interface IONImageHelperInterface {
+interface IONCAMRImageHelperInterface {
     fun getBitmapForInputStream(fileStream: InputStream?): Bitmap?
     fun downsizeBitmapIfNeeded(bitmap: Bitmap, resolution: Int): Bitmap
     fun compressBitmap(bitmap: Bitmap, quality: Int): Bitmap
-    fun compressImage(activity: Activity?, uri: Uri?, bitmap: Bitmap?, compressFormat: Bitmap.CompressFormat, mQuality: Int, onError : (IONError) -> Unit)
-    fun processPicture(bitmap: Bitmap?, encodingType: Int, mQuality: Int, onSuccess : (String) -> Unit, onError : (IONError) -> Unit)
+    fun compressImage(activity: Activity?, uri: Uri?, bitmap: Bitmap?, compressFormat: Bitmap.CompressFormat, mQuality: Int, onError : (IONCAMRError) -> Unit)
+    fun processPicture(bitmap: Bitmap?, encodingType: Int, mQuality: Int, onSuccess : (String) -> Unit, onError : (IONCAMRError) -> Unit)
     fun decodeStream(fileStream: InputStream?, options: BitmapFactory.Options): Bitmap?
     fun decodeFile(resultImagePath: String?): Bitmap?
-    fun bitmapToBase64(result: Bitmap?, resolution: Int, quality: Int, onSuccess : (String) -> Unit, onError : (IONError) -> Unit)
+    fun bitmapToBase64(result: Bitmap?, resolution: Int, quality: Int, onSuccess : (String) -> Unit, onError : (IONCAMRError) -> Unit)
     fun base64toBitmap(imageByteArray: ByteArray): Bitmap?
     fun writeBitmapToFile(imageBitmap: Bitmap?, inputFile: File?)
     fun getScaledBitmap(unscaledBitmap: Bitmap?, scaledWidth: Int, scaledHeight: Int): Bitmap?

@@ -5,7 +5,7 @@ import android.content.Intent
 import android.database.Cursor
 import android.net.Uri
 
-interface IONMediaHelperInterface {
+interface IONCAMRMediaHelperInterface {
     fun openDeviceCamera(activity: Activity?, imageUri: Uri?, returnType: Int)
     fun createCameraIntent(activity: Activity?, imageUri: Uri?): Intent?
     fun getCursor(activity: Activity?, contentStore: Uri): Cursor?

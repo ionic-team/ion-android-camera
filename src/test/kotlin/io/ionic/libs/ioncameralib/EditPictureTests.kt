@@ -8,16 +8,16 @@ import android.os.Environment
 import android.util.Base64
 import android.util.Log
 import androidx.activity.result.ActivityResultLauncher
-import io.ionic.libs.ioncameralib.manager.CameraManager
-import io.ionic.libs.ioncameralib.manager.EditManager
+import io.ionic.libs.ioncameralib.manager.IONCAMRCameraManager
+import io.ionic.libs.ioncameralib.manager.IONCAMREditManager
 import io.ionic.libs.ioncameralib.mocks.IONExifHelperMock
-import io.ionic.libs.ioncameralib.mocks.IONFileHelperMock
-import io.ionic.libs.ioncameralib.mocks.IONImageHelperMock
-import io.ionic.libs.ioncameralib.mocks.IONMediaHelperMock
-import io.ionic.libs.ioncameralib.model.IONCameraParameters
-import io.ionic.libs.ioncameralib.model.IONEditParameters
-import io.ionic.libs.ioncameralib.model.IONError
-import io.ionic.libs.ioncameralib.view.IONImageEditorActivity
+import io.ionic.libs.ioncameralib.mocks.IONCAMRFileHelperMock
+import io.ionic.libs.ioncameralib.mocks.IONCAMRImageHelperMock
+import io.ionic.libs.ioncameralib.mocks.IONCAMRMediaHelperMock
+import io.ionic.libs.ioncameralib.model.IONCAMRCameraParameters
+import io.ionic.libs.ioncameralib.model.IONCAMREditParameters
+import io.ionic.libs.ioncameralib.model.IONCAMRError
+import io.ionic.libs.ioncameralib.view.IONCAMRImageEditorActivity
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.fail
@@ -50,7 +50,7 @@ class EditPictureTests {
     private lateinit var mDrawable: MockedStatic<Drawable>
     private lateinit var mockActivity: Activity
 
-    private var editOptions = IONEditParameters(
+    private var editOptions = IONCAMREditParameters(
         "",
         fromUri = false,
         saveToGallery = false,
@@ -92,11 +92,11 @@ class EditPictureTests {
     fun givenEditPictureFromClientActionWhenEditPictureProcessResultThenSuccess() {
 
         val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONFileHelperMock()
-        val camHelperMock = IONMediaHelperMock()
-        val imgHelperMock = IONImageHelperMock()
+        val fileHelperMock = IONCAMRFileHelperMock()
+        val camHelperMock = IONCAMRMediaHelperMock()
+        val imgHelperMock = IONCAMRImageHelperMock()
 
-        val editManager = EditManager(
+        val IONCAMREditManager = IONCAMREditManager(
             "someAppId",
             "authority",
             exifHelperMock,
@@ -110,14 +110,14 @@ class EditPictureTests {
         val byteArray = ByteArray(1)
         Mockito.`when`(Base64.decode("imageInBinary", Base64.NO_WRAP)).thenReturn(byteArray)
 
-        Mockito.doReturn(FILE_LOCATION).`when`(mIntent).getStringExtra(IONImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS)
+        Mockito.doReturn(FILE_LOCATION).`when`(mIntent).getStringExtra(IONCAMRImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS)
 
         imgHelperMock.bitmapToBase64Success = true
 
-        editManager.editImage(null, "imageInBinary", mActivityLauncher)
-        editManager.processResultFromEdit(mockActivity, mIntent, editOptions,
+        IONCAMREditManager.editImage(null, "imageInBinary", mActivityLauncher)
+        IONCAMREditManager.processResultFromEdit(mockActivity, mIntent, editOptions,
             {
-                assertEquals(it, IONImageHelperMock.SAMPLE_BASE64_THUMBNAIL)
+                assertEquals(it, IONCAMRImageHelperMock.SAMPLE_BASE64_THUMBNAIL)
             },
             {
                 fail()
@@ -131,11 +131,11 @@ class EditPictureTests {
     fun givenEditPictureFromClientActionWhenEditPictureProcessErrorResultThenError() {
 
         val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONFileHelperMock()
-        val camHelperMock = IONMediaHelperMock()
-        val imgHelperMock = IONImageHelperMock()
+        val fileHelperMock = IONCAMRFileHelperMock()
+        val camHelperMock = IONCAMRMediaHelperMock()
+        val imgHelperMock = IONCAMRImageHelperMock()
 
-        val editManager = EditManager(
+        val IONCAMREditManager = IONCAMREditManager(
             "someAppId",
             "authority",
             exifHelperMock,
@@ -151,8 +151,8 @@ class EditPictureTests {
 
         imgHelperMock.bitmapToBase64Success = false
 
-        editManager.editImage(null, "imageInBinary", mActivityLauncher)
-        editManager.processResultFromEdit(mockActivity, mIntent, editOptions,
+        IONCAMREditManager.editImage(null, "imageInBinary", mActivityLauncher)
+        IONCAMREditManager.processResultFromEdit(mockActivity, mIntent, editOptions,
             {
                 fail()
             },
@@ -160,15 +160,15 @@ class EditPictureTests {
                 fail()
             },
             {
-                assertEquals(it.code, IONError.EDIT_IMAGE_ERROR.code)
-                assertEquals(it.description, IONError.EDIT_IMAGE_ERROR.description)
+                assertEquals(it.code, IONCAMRError.EDIT_IMAGE_ERROR.code)
+                assertEquals(it.description, IONCAMRError.EDIT_IMAGE_ERROR.description)
             })
     }
 
     @Test
     fun givenTakePictureAllowEditWhenEditProcessSuccessThenSuccess() {
 
-        val camParameters = IONCameraParameters(
+        val camParameters = IONCAMRCameraParameters(
             20,
             -1,
             -1,
@@ -182,11 +182,11 @@ class EditPictureTests {
         )
 
         val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONFileHelperMock()
-        val camHelperMock = IONMediaHelperMock()
-        val imgHelperMock = IONImageHelperMock()
+        val fileHelperMock = IONCAMRFileHelperMock()
+        val camHelperMock = IONCAMRMediaHelperMock()
+        val imgHelperMock = IONCAMRImageHelperMock()
 
-        val cameraManager = CameraManager(
+        val IONCAMRCameraManager = IONCAMRCameraManager(
             "someAppId",
             "authority",
             exifHelperMock,
@@ -194,7 +194,7 @@ class EditPictureTests {
             camHelperMock,
             imgHelperMock
         )
-        val editManager = EditManager(
+        val IONCAMREditManager = IONCAMREditManager(
             "someAppId",
             "authority",
             exifHelperMock,
@@ -208,9 +208,9 @@ class EditPictureTests {
         imgHelperMock.processPicSuccess = true
         imgHelperMock.areOptionsZero = false
 
-        cameraManager.takePicture(mockActivity, 0, 0)
-        editManager.openCropActivity(null, mUri, mActivityLauncher)
-        cameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
+        IONCAMRCameraManager.takePicture(mockActivity, 0, 0)
+        IONCAMREditManager.openCropActivity(null, mUri, mActivityLauncher)
+        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
             onImage = {
                 assertEquals(it, PROCESS_SUCCESS)
             },
@@ -225,7 +225,7 @@ class EditPictureTests {
     @Test
     fun givenTakePictureAllowEditWhenEditProcessErrorThenError() {
 
-        val camParameters = IONCameraParameters(
+        val camParameters = IONCAMRCameraParameters(
             20,
             -1,
             -1,
@@ -239,11 +239,11 @@ class EditPictureTests {
         )
 
         val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONFileHelperMock()
-        val camHelperMock = IONMediaHelperMock()
-        val imgHelperMock = IONImageHelperMock()
+        val fileHelperMock = IONCAMRFileHelperMock()
+        val camHelperMock = IONCAMRMediaHelperMock()
+        val imgHelperMock = IONCAMRImageHelperMock()
 
-        val cameraManager = CameraManager(
+        val IONCAMRCameraManager = IONCAMRCameraManager(
             "someAppId",
             "authority",
             exifHelperMock,
@@ -251,7 +251,7 @@ class EditPictureTests {
             camHelperMock,
             imgHelperMock
         )
-        val editManager = EditManager(
+        val IONCAMREditManager = IONCAMREditManager(
             "someAppId",
             "authority",
             exifHelperMock,
@@ -265,9 +265,9 @@ class EditPictureTests {
         imgHelperMock.processPicSuccess = false
         imgHelperMock.areOptionsZero = false
 
-        cameraManager.takePicture(mockActivity, 0, 0)
-        editManager.openCropActivity(null, mUri, mActivityLauncher)
-        cameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
+        IONCAMRCameraManager.takePicture(mockActivity, 0, 0)
+        IONCAMREditManager.openCropActivity(null, mUri, mActivityLauncher)
+        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
             onImage = {
                 fail()
             },
@@ -275,8 +275,8 @@ class EditPictureTests {
                 fail()
             },
             onError = {
-                assertEquals(it.code, IONError.PROCESS_IMAGE_ERROR.code)
-                assertEquals(it.description, IONError.PROCESS_IMAGE_ERROR.description)
+                assertEquals(it.code, IONCAMRError.PROCESS_IMAGE_ERROR.code)
+                assertEquals(it.description, IONCAMRError.PROCESS_IMAGE_ERROR.description)
             })
     }
 
@@ -284,10 +284,10 @@ class EditPictureTests {
     fun givenFileDoesNotExistWhenEditURIPictureThenError() {
 
         val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONFileHelperMock()
-        val camHelperMock = IONMediaHelperMock()
-        val imgHelperMock = IONImageHelperMock()
-        val editManager = EditManager(
+        val fileHelperMock = IONCAMRFileHelperMock()
+        val camHelperMock = IONCAMRMediaHelperMock()
+        val imgHelperMock = IONCAMRImageHelperMock()
+        val IONCAMREditManager = IONCAMREditManager(
             "someAppId",
             "authority",
             exifHelperMock,
@@ -297,9 +297,9 @@ class EditPictureTests {
         )
         fileHelperMock.fileExists = false
 
-        editManager.editURIPicture(mockActivity, FILE_LOCATION, mActivityLauncher) {
-            assertEquals(it.code, IONError.FILE_DOES_NOT_EXIST_ERROR.code)
-            assertEquals(it.description, IONError.FILE_DOES_NOT_EXIST_ERROR.description)
+        IONCAMREditManager.editURIPicture(mockActivity, FILE_LOCATION, mActivityLauncher) {
+            assertEquals(it.code, IONCAMRError.FILE_DOES_NOT_EXIST_ERROR.code)
+            assertEquals(it.description, IONCAMRError.FILE_DOES_NOT_EXIST_ERROR.description)
         }
     }
 
@@ -307,11 +307,11 @@ class EditPictureTests {
     fun givenResultImagePathNullWhenEditURIPictureThenError() {
 
         val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONFileHelperMock()
-        val camHelperMock = IONMediaHelperMock()
-        val imgHelperMock = IONImageHelperMock()
+        val fileHelperMock = IONCAMRFileHelperMock()
+        val camHelperMock = IONCAMRMediaHelperMock()
+        val imgHelperMock = IONCAMRImageHelperMock()
 
-        val editManager = EditManager(
+        val IONCAMREditManager = IONCAMREditManager(
             "someAppId",
             "authority",
             exifHelperMock,
@@ -325,12 +325,12 @@ class EditPictureTests {
         val byteArray = ByteArray(1)
         Mockito.`when`(Base64.decode("imageInBinary", Base64.NO_WRAP)).thenReturn(byteArray)
 
-        Mockito.doReturn(null).`when`(mIntent).getStringExtra(IONImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS)
+        Mockito.doReturn(null).`when`(mIntent).getStringExtra(IONCAMRImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS)
 
         imgHelperMock.bitmapToBase64Success = true
         fileHelperMock.fileExists = true
 
-        val options = IONEditParameters(
+        val options = IONCAMREditParameters(
             FILE_LOCATION,
             true,
             saveToGallery = true,
@@ -338,10 +338,10 @@ class EditPictureTests {
         )
 
         fileHelperMock.fileExists = true
-        editManager.editURIPicture(mockActivity, FILE_LOCATION, mActivityLauncher) {
+        IONCAMREditManager.editURIPicture(mockActivity, FILE_LOCATION, mActivityLauncher) {
             fail()
         }
-        editManager.processResultFromEdit(mockActivity, mIntent, options,
+        IONCAMREditManager.processResultFromEdit(mockActivity, mIntent, options,
             {
                 fail()
             },
@@ -349,8 +349,8 @@ class EditPictureTests {
                 fail()
             },
             {
-                assertEquals(it.code, IONError.EDIT_IMAGE_ERROR.code)
-                assertEquals(it.description, IONError.EDIT_IMAGE_ERROR.description)
+                assertEquals(it.code, IONCAMRError.EDIT_IMAGE_ERROR.code)
+                assertEquals(it.description, IONCAMRError.EDIT_IMAGE_ERROR.description)
             })
     }
 
@@ -358,11 +358,11 @@ class EditPictureTests {
     fun givenResultImagePathEmptyWhenEditURIPictureThenError() {
 
         val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONFileHelperMock()
-        val camHelperMock = IONMediaHelperMock()
-        val imgHelperMock = IONImageHelperMock()
+        val fileHelperMock = IONCAMRFileHelperMock()
+        val camHelperMock = IONCAMRMediaHelperMock()
+        val imgHelperMock = IONCAMRImageHelperMock()
 
-        val editManager = EditManager(
+        val IONCAMREditManager = IONCAMREditManager(
             "someAppId",
             "authority",
             exifHelperMock,
@@ -376,12 +376,12 @@ class EditPictureTests {
         val byteArray = ByteArray(1)
         Mockito.`when`(Base64.decode("imageInBinary", Base64.NO_WRAP)).thenReturn(byteArray)
 
-        Mockito.doReturn("").`when`(mIntent).getStringExtra(IONImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS)
+        Mockito.doReturn("").`when`(mIntent).getStringExtra(IONCAMRImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS)
 
         imgHelperMock.bitmapToBase64Success = true
         fileHelperMock.fileExists = true
 
-        val options = IONEditParameters(
+        val options = IONCAMREditParameters(
             FILE_LOCATION,
             true,
             saveToGallery = true,
@@ -389,10 +389,10 @@ class EditPictureTests {
         )
 
         fileHelperMock.fileExists = true
-        editManager.editURIPicture(mockActivity, FILE_LOCATION, mActivityLauncher) {
+        IONCAMREditManager.editURIPicture(mockActivity, FILE_LOCATION, mActivityLauncher) {
             fail()
         }
-        editManager.processResultFromEdit(mockActivity, mIntent, options,
+        IONCAMREditManager.processResultFromEdit(mockActivity, mIntent, options,
             {
                 fail()
             },
@@ -400,8 +400,8 @@ class EditPictureTests {
                 fail()
             },
             {
-                assertEquals(it.code, IONError.EDIT_IMAGE_ERROR.code)
-                assertEquals(it.description, IONError.EDIT_IMAGE_ERROR.description)
+                assertEquals(it.code, IONCAMRError.EDIT_IMAGE_ERROR.code)
+                assertEquals(it.description, IONCAMRError.EDIT_IMAGE_ERROR.description)
             })
     }
 
@@ -409,11 +409,11 @@ class EditPictureTests {
     fun givenImageURINullWhenEditURIPictureThenError() {
 
         val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONFileHelperMock()
-        val camHelperMock = IONMediaHelperMock()
-        val imgHelperMock = IONImageHelperMock()
+        val fileHelperMock = IONCAMRFileHelperMock()
+        val camHelperMock = IONCAMRMediaHelperMock()
+        val imgHelperMock = IONCAMRImageHelperMock()
 
-        val editManager = EditManager(
+        val IONCAMREditManager = IONCAMREditManager(
             "someAppId",
             "authority",
             exifHelperMock,
@@ -427,13 +427,13 @@ class EditPictureTests {
         val byteArray = ByteArray(1)
         Mockito.`when`(Base64.decode("imageInBinary", Base64.NO_WRAP)).thenReturn(byteArray)
 
-        Mockito.doReturn(FILE_LOCATION).`when`(mIntent).getStringExtra(IONImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS)
+        Mockito.doReturn(FILE_LOCATION).`when`(mIntent).getStringExtra(IONCAMRImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS)
 
         imgHelperMock.bitmapToBase64Success = true
         fileHelperMock.fileExists = true
         fileHelperMock.isUriNull = true
 
-        val options = IONEditParameters(
+        val options = IONCAMREditParameters(
             FILE_LOCATION,
             true,
             saveToGallery = true,
@@ -441,10 +441,10 @@ class EditPictureTests {
         )
 
         fileHelperMock.fileExists = true
-        editManager.editURIPicture(mockActivity, FILE_LOCATION, mActivityLauncher) {
+        IONCAMREditManager.editURIPicture(mockActivity, FILE_LOCATION, mActivityLauncher) {
             fail()
         }
-        editManager.processResultFromEdit(mockActivity, mIntent, options,
+        IONCAMREditManager.processResultFromEdit(mockActivity, mIntent, options,
             {
                 fail()
             },
@@ -452,19 +452,19 @@ class EditPictureTests {
                 fail()
             },
             {
-                assertEquals(it.code, IONError.EDIT_IMAGE_ERROR.code)
-                assertEquals(it.description, IONError.EDIT_IMAGE_ERROR.description)
+                assertEquals(it.code, IONCAMRError.EDIT_IMAGE_ERROR.code)
+                assertEquals(it.description, IONCAMRError.EDIT_IMAGE_ERROR.description)
             })
     }
 
     @Test
     fun givenImageURICreatesNullDrawableWhenEditURIPictureThenError() {
         val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONFileHelperMock()
-        val camHelperMock = IONMediaHelperMock()
-        val imgHelperMock = IONImageHelperMock()
+        val fileHelperMock = IONCAMRFileHelperMock()
+        val camHelperMock = IONCAMRMediaHelperMock()
+        val imgHelperMock = IONCAMRImageHelperMock()
 
-        val editManager = EditManager(
+        val IONCAMREditManager = IONCAMREditManager(
             "someAppId",
             "authority",
             exifHelperMock,
@@ -478,7 +478,7 @@ class EditPictureTests {
         val byteArray = ByteArray(1)
         Mockito.`when`(Base64.decode("imageInBinary", Base64.NO_WRAP)).thenReturn(byteArray)
 
-        Mockito.doReturn(FILE_LOCATION).`when`(mIntent).getStringExtra(IONImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS)
+        Mockito.doReturn(FILE_LOCATION).`when`(mIntent).getStringExtra(IONCAMRImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS)
 
         imgHelperMock.bitmapToBase64Success = true
         fileHelperMock.fileExists = true
@@ -487,9 +487,9 @@ class EditPictureTests {
         Mockito.`when`(Drawable.createFromPath(anyString())).thenReturn(null)
 
         fileHelperMock.fileExists = true
-        editManager.editURIPicture(mockActivity, FILE_LOCATION, mActivityLauncher) {
-            assertEquals(it.code, IONError.FETCH_IMAGE_FROM_URI_ERROR.code)
-            assertEquals(it.description, IONError.FETCH_IMAGE_FROM_URI_ERROR.description)
+        IONCAMREditManager.editURIPicture(mockActivity, FILE_LOCATION, mActivityLauncher) {
+            assertEquals(it.code, IONCAMRError.FETCH_IMAGE_FROM_URI_ERROR.code)
+            assertEquals(it.description, IONCAMRError.FETCH_IMAGE_FROM_URI_ERROR.description)
         }
     }
 
@@ -497,11 +497,11 @@ class EditPictureTests {
     fun givenImageBitmapNullWhenEditURIPictureThenError() {
 
         val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONFileHelperMock()
-        val camHelperMock = IONMediaHelperMock()
-        val imgHelperMock = IONImageHelperMock()
+        val fileHelperMock = IONCAMRFileHelperMock()
+        val camHelperMock = IONCAMRMediaHelperMock()
+        val imgHelperMock = IONCAMRImageHelperMock()
 
-        val editManager = EditManager(
+        val IONCAMREditManager = IONCAMREditManager(
             "someAppId",
             "authority",
             exifHelperMock,
@@ -515,24 +515,24 @@ class EditPictureTests {
         val byteArray = ByteArray(1)
         Mockito.`when`(Base64.decode("imageInBinary", Base64.NO_WRAP)).thenReturn(byteArray)
 
-        Mockito.doReturn(FILE_LOCATION).`when`(mIntent).getStringExtra(IONImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS)
+        Mockito.doReturn(FILE_LOCATION).`when`(mIntent).getStringExtra(IONCAMRImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS)
 
         imgHelperMock.bitmapToBase64Success = true
         fileHelperMock.fileExists = true
         fileHelperMock.isUriNull = false
         imgHelperMock.isBitmapNull = true
 
-        val options = IONEditParameters(
+        val options = IONCAMREditParameters(
             FILE_LOCATION,
             true,
             saveToGallery = true,
             includeMetadata = true
         )
 
-        editManager.editURIPicture(mockActivity, FILE_LOCATION, mActivityLauncher) {
+        IONCAMREditManager.editURIPicture(mockActivity, FILE_LOCATION, mActivityLauncher) {
             fail()
         }
-        editManager.processResultFromEdit(mockActivity, mIntent, options,
+        IONCAMREditManager.processResultFromEdit(mockActivity, mIntent, options,
             {
                 fail()
             },
@@ -540,8 +540,8 @@ class EditPictureTests {
                 fail()
             },
             {
-                assertEquals(it.code, IONError.EDIT_IMAGE_ERROR.code)
-                assertEquals(it.description, IONError.EDIT_IMAGE_ERROR.description)
+                assertEquals(it.code, IONCAMRError.EDIT_IMAGE_ERROR.code)
+                assertEquals(it.description, IONCAMRError.EDIT_IMAGE_ERROR.description)
             })
     }
 
@@ -549,11 +549,11 @@ class EditPictureTests {
     fun givenProcessEditSuccessWhenEditURIPictureWithSaveToGalleryAndMetadataThenSuccess() {
 
         val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONFileHelperMock()
-        val camHelperMock = IONMediaHelperMock()
-        val imgHelperMock = IONImageHelperMock()
+        val fileHelperMock = IONCAMRFileHelperMock()
+        val camHelperMock = IONCAMRMediaHelperMock()
+        val imgHelperMock = IONCAMRImageHelperMock()
 
-        val editManager = EditManager(
+        val IONCAMREditManager = IONCAMREditManager(
             "someAppId",
             "authority",
             exifHelperMock,
@@ -567,7 +567,7 @@ class EditPictureTests {
         val byteArray = ByteArray(1)
         Mockito.`when`(Base64.decode("imageInBinary", Base64.NO_WRAP)).thenReturn(byteArray)
 
-        Mockito.doReturn(FILE_LOCATION).`when`(mIntent).getStringExtra(IONImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS)
+        Mockito.doReturn(FILE_LOCATION).`when`(mIntent).getStringExtra(IONCAMRImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS)
 
         imgHelperMock.bitmapToBase64Success = true
         fileHelperMock.fileExists = true
@@ -577,17 +577,17 @@ class EditPictureTests {
         fileHelperMock.creationDateTime = METADATA_CREATION_DATE
         fileHelperMock.fileExtension = METADATA_FORMAT
 
-        val options = IONEditParameters(
+        val options = IONCAMREditParameters(
             FILE_LOCATION,
             true,
             saveToGallery = true,
             includeMetadata = true
         )
 
-        editManager.editURIPicture(mockActivity, FILE_LOCATION, mActivityLauncher) {
+        IONCAMREditManager.editURIPicture(mockActivity, FILE_LOCATION, mActivityLauncher) {
             fail()
         }
-        editManager.processResultFromEdit(mockActivity, mIntent, options,
+        IONCAMREditManager.processResultFromEdit(mockActivity, mIntent, options,
             {
                 fail()
             },
@@ -610,11 +610,11 @@ class EditPictureTests {
     fun givenProcessEditSuccessWhenEditURIPictureWithoutSaveToGalleryAndNoMetadataThenSuccess() {
 
         val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONFileHelperMock()
-        val camHelperMock = IONMediaHelperMock()
-        val imgHelperMock = IONImageHelperMock()
+        val fileHelperMock = IONCAMRFileHelperMock()
+        val camHelperMock = IONCAMRMediaHelperMock()
+        val imgHelperMock = IONCAMRImageHelperMock()
 
-        val editManager = EditManager(
+        val IONCAMREditManager = IONCAMREditManager(
             "someAppId",
             "authority",
             exifHelperMock,
@@ -628,24 +628,24 @@ class EditPictureTests {
         val byteArray = ByteArray(1)
         Mockito.`when`(Base64.decode("imageInBinary", Base64.NO_WRAP)).thenReturn(byteArray)
 
-        Mockito.doReturn(FILE_LOCATION).`when`(mIntent).getStringExtra(IONImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS)
+        Mockito.doReturn(FILE_LOCATION).`when`(mIntent).getStringExtra(IONCAMRImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS)
 
         imgHelperMock.bitmapToBase64Success = true
         fileHelperMock.fileExists = true
         fileHelperMock.isUriNull = false
         imgHelperMock.isBitmapNull = false
 
-        val options = IONEditParameters(
+        val options = IONCAMREditParameters(
             FILE_LOCATION,
             true,
             saveToGallery = false,
             includeMetadata = false
         )
 
-        editManager.editURIPicture(mockActivity, FILE_LOCATION, mActivityLauncher) {
+        IONCAMREditManager.editURIPicture(mockActivity, FILE_LOCATION, mActivityLauncher) {
             fail()
         }
-        editManager.processResultFromEdit(mockActivity, mIntent, options,
+        IONCAMREditManager.processResultFromEdit(mockActivity, mIntent, options,
             {
                 fail()
             },

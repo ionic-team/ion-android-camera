@@ -3,7 +3,7 @@ package io.ionic.libs.ioncameralib.helper
 import android.media.ExifInterface
 import android.net.Uri
 
-interface IONExifHelperInterface {
+interface IONCAMRExifHelperInterface {
 
     fun createInFile(filePath: String?)
     fun createOutFile(filePath: String?)

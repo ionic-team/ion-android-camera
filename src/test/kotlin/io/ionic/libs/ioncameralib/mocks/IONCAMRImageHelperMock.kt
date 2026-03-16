@@ -6,13 +6,13 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.net.Uri
-import io.ionic.libs.ioncameralib.helper.IONImageHelperInterface
-import io.ionic.libs.ioncameralib.model.IONError
+import io.ionic.libs.ioncameralib.helper.IONCAMRImageHelperInterface
+import io.ionic.libs.ioncameralib.model.IONCAMRError
 import org.mockito.Mockito
 import java.io.File
 import java.io.InputStream
 
-class IONImageHelperMock : IONImageHelperInterface {
+class IONCAMRImageHelperMock : IONCAMRImageHelperInterface {
 
     var processPicSuccess = false
     var compressImageSuccess = false
@@ -52,10 +52,10 @@ class IONImageHelperMock : IONImageHelperInterface {
         bitmap: Bitmap?,
         compressFormat: Bitmap.CompressFormat,
         mQuality: Int,
-        onError: (IONError) -> Unit
+        onError: (IONCAMRError) -> Unit
     ) {
         if(!compressImageSuccess){
-            onError(IONError.PROCESS_IMAGE_ERROR)
+            onError(IONCAMRError.PROCESS_IMAGE_ERROR)
         }
     }
 
@@ -64,13 +64,13 @@ class IONImageHelperMock : IONImageHelperInterface {
         encodingType: Int,
         mQuality: Int,
         onSuccess: (String) -> Unit,
-        onError: (IONError) -> Unit
+        onError: (IONCAMRError) -> Unit
     ) {
         if(processPicSuccess){
             onSuccess("myImage")
         }
         else{
-            onError(IONError.PROCESS_IMAGE_ERROR)
+            onError(IONCAMRError.PROCESS_IMAGE_ERROR)
         }
     }
 
@@ -91,9 +91,9 @@ class IONImageHelperMock : IONImageHelperInterface {
         resolution: Int,
         quality: Int,
         onSuccess: (String) -> Unit,
-        onError: (IONError) -> Unit
+        onError: (IONCAMRError) -> Unit
     ) {
-        if (bitmapToBase64Success) onSuccess(SAMPLE_BASE64_THUMBNAIL) else onError(IONError.EDIT_IMAGE_ERROR)
+        if (bitmapToBase64Success) onSuccess(SAMPLE_BASE64_THUMBNAIL) else onError(IONCAMRError.EDIT_IMAGE_ERROR)
     }
 
     override fun base64toBitmap(imageByteArray: ByteArray): Bitmap? {

@@ -10,12 +10,12 @@ import android.graphics.Matrix
 import android.net.Uri
 import android.util.Base64
 import androidx.core.graphics.scale
-import io.ionic.libs.ioncameralib.model.IONError
+import io.ionic.libs.ioncameralib.model.IONCAMRError
 import java.io.*
 
-class IONImageHelper: IONImageHelperInterface {
+class IONCAMRImageHelper: IONCAMRImageHelperInterface {
 
-    companion object {
+    companion object Companion {
         private const val JPEG = 0
     }
 
@@ -50,9 +50,9 @@ class IONImageHelper: IONImageHelperInterface {
         return BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
     }
 
-    override fun compressImage(activity: Activity?, uri: Uri?, bitmap: Bitmap?, compressFormat: CompressFormat, mQuality: Int, onError : (IONError) -> Unit){
+    override fun compressImage(activity: Activity?, uri: Uri?, bitmap: Bitmap?, compressFormat: CompressFormat, mQuality: Int, onError : (IONCAMRError) -> Unit){
         if(bitmap == null || uri == null || activity == null){
-            onError(IONError.PROCESS_IMAGE_ERROR)
+            onError(IONCAMRError.PROCESS_IMAGE_ERROR)
             return
         }
         val os: OutputStream? =
@@ -68,7 +68,7 @@ class IONImageHelper: IONImageHelperInterface {
      *
      * @param bitmap
      */
-    override fun processPicture(bitmap: Bitmap?, encodingType: Int, mQuality: Int, onSuccess : (String) -> Unit, onError : (IONError) -> Unit) {
+    override fun processPicture(bitmap: Bitmap?, encodingType: Int, mQuality: Int, onSuccess : (String) -> Unit, onError : (IONCAMRError) -> Unit) {
         val jpegData = ByteArrayOutputStream()
         val compressFormat: CompressFormat =
             if (encodingType == JPEG) CompressFormat.JPEG else CompressFormat.PNG
@@ -80,7 +80,7 @@ class IONImageHelper: IONImageHelperInterface {
                 onSuccess(jsOut)
             }
         } catch (e: Exception) {
-            onError(IONError.PROCESS_IMAGE_ERROR)
+            onError(IONCAMRError.PROCESS_IMAGE_ERROR)
         }
     }
 
@@ -92,7 +92,7 @@ class IONImageHelper: IONImageHelperInterface {
         return BitmapFactory.decodeFile(resultImagePath)
     }
 
-    override fun bitmapToBase64(result: Bitmap?, resolution: Int, quality: Int, onSuccess : (String) -> Unit, onError : (IONError) -> Unit) {
+    override fun bitmapToBase64(result: Bitmap?, resolution: Int, quality: Int, onSuccess : (String) -> Unit, onError : (IONCAMRError) -> Unit) {
         val byteArrayOutputStream = ByteArrayOutputStream()
         result?.let {
             val resizedImage = this.downsizeBitmapIfNeeded(it, resolution)
@@ -104,7 +104,7 @@ class IONImageHelper: IONImageHelperInterface {
             }
         }
 
-        onError(IONError.EDIT_IMAGE_ERROR)
+        onError(IONCAMRError.EDIT_IMAGE_ERROR)
         return
     }
 

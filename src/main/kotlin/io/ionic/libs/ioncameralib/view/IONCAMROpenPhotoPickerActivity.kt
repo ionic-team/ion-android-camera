@@ -10,12 +10,12 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import io.ionic.libs.ioncameralib.model.IONMediaType
+import io.ionic.libs.ioncameralib.model.IONCAMRMediaType
 
 
-class IONOpenPhotoPickerActivity : ComponentActivity() {
+class IONCAMROpenPhotoPickerActivity : ComponentActivity() {
 
-    companion object {
+    companion object Companion {
         private const val ALLOW_MULTIPLE = "allowMultiple"
         private const val MEDIA_TYPE = "mediaType"
         private const val MEDIA_LIMIT = "limit"
@@ -100,8 +100,8 @@ class IONOpenPhotoPickerActivity : ComponentActivity() {
         val limit = intent.getIntExtra(MEDIA_LIMIT, 0)
 
         val mediaType = when (mediaTypeFromIntent) {
-            IONMediaType.PICTURE.mimeType -> ActivityResultContracts.PickVisualMedia.ImageOnly
-            IONMediaType.VIDEO.mimeType -> ActivityResultContracts.PickVisualMedia.VideoOnly
+            IONCAMRMediaType.PICTURE.mimeType -> ActivityResultContracts.PickVisualMedia.ImageOnly
+            IONCAMRMediaType.VIDEO.mimeType -> ActivityResultContracts.PickVisualMedia.VideoOnly
             else -> ActivityResultContracts.PickVisualMedia.ImageAndVideo
         }
 

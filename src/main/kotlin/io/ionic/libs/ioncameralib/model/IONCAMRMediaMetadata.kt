@@ -2,7 +2,7 @@ package io.ionic.libs.ioncameralib.model
 
 import com.google.gson.annotations.SerializedName
 
-data class IONMediaMetadata(
+data class IONCAMRMediaMetadata(
     @SerializedName("size") val size: Long? = 0,
     @SerializedName("duration") val duration: Int? = 0,
     @SerializedName("format") val format: String? = "",

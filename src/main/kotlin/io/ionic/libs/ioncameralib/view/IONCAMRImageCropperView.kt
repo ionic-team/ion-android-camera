@@ -8,7 +8,7 @@ import android.view.MotionEvent
 import android.view.View
 import kotlin.math.sqrt
 
-class IONImageCropperView @JvmOverloads constructor(
+class IONCAMRImageCropperView @JvmOverloads constructor(
   context: Context,
   attrs: AttributeSet? = null
 ) : View(context, attrs)  {
@@ -43,7 +43,7 @@ class IONImageCropperView @JvmOverloads constructor(
   // Flag to check if the image is ready to be cropped, that is, if frame can be drawn around it
   private var isImageReady: Boolean = false
 
-  companion object {
+  companion object Companion {
     private const val TAG = "ImageCropperView"
 
     private const val BORDER_WIDTH = 2

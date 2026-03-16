@@ -13,16 +13,16 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
-import io.ionic.libs.ioncameralib.helper.IONExifHelperInterface
-import io.ionic.libs.ioncameralib.helper.IONFileHelperInterface
-import io.ionic.libs.ioncameralib.helper.IONGalleryHelper
-import io.ionic.libs.ioncameralib.helper.IONImageHelperInterface
-import io.ionic.libs.ioncameralib.helper.IONMediaHelperInterface
-import io.ionic.libs.ioncameralib.model.IONCameraParameters
-import io.ionic.libs.ioncameralib.model.IONError
-import io.ionic.libs.ioncameralib.model.IONMediaMetadata
-import io.ionic.libs.ioncameralib.model.IONMediaResult
-import io.ionic.libs.ioncameralib.model.IONMediaType
+import io.ionic.libs.ioncameralib.helper.IONCAMRExifHelperInterface
+import io.ionic.libs.ioncameralib.helper.IONCAMRFileHelperInterface
+import io.ionic.libs.ioncameralib.helper.IONCAMRGalleryHelper
+import io.ionic.libs.ioncameralib.helper.IONCAMRImageHelperInterface
+import io.ionic.libs.ioncameralib.helper.IONCAMRMediaHelperInterface
+import io.ionic.libs.ioncameralib.model.IONCAMRCameraParameters
+import io.ionic.libs.ioncameralib.model.IONCAMRError
+import io.ionic.libs.ioncameralib.model.IONCAMRMediaMetadata
+import io.ionic.libs.ioncameralib.model.IONCAMRMediaResult
+import io.ionic.libs.ioncameralib.model.IONCAMRMediaType
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -31,16 +31,16 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import kotlin.math.roundToInt
 
-class IONMediaProcessor(
-    private val exif: IONExifHelperInterface,
-    private val fileHelper: IONFileHelperInterface,
-    private val mediaHelper: IONMediaHelperInterface,
-    private val imageHelper: IONImageHelperInterface
+class IONCAMRMediaProcessor(
+    private val exif: IONCAMRExifHelperInterface,
+    private val fileHelper: IONCAMRFileHelperInterface,
+    private val mediaHelper: IONCAMRMediaHelperInterface,
+    private val imageHelper: IONCAMRImageHelperInterface
 ) {
     private var orientationCorrected = false
     private val TARGET_THUMBNAIL_DIMENSION: Int = 480
 
-    companion object {
+    companion object Companion {
         private const val JPEG = 0
         private const val PNG = 1
         private const val JPEG_TYPE = "jpg"
@@ -67,11 +67,11 @@ class IONMediaProcessor(
         imagePath: String,
         mediaUri: Uri,
         includeMetadata: Boolean,
-        camParameters: IONCameraParameters?,
+        camParameters: IONCAMRCameraParameters?,
         saved: Boolean = false
-    ): IONMediaResult? {
+    ): IONCAMRMediaResult? {
         var base64Image = ""
-        var error: IONError? = null
+        var error: IONCAMRError? = null
 
         val file = File(imagePath)
         if (!fileHelper.fileExists(file)) return null
@@ -117,10 +117,10 @@ class IONMediaProcessor(
             return null
         }
 
-        var metadata: IONMediaMetadata? = null
+        var metadata: IONCAMRMediaMetadata? = null
         if (includeMetadata) {
             val resolution = getMediaResolution(activity, true, imagePath, mediaUri)
-            metadata = IONMediaMetadata(
+            metadata = IONCAMRMediaMetadata(
                 fileHelper.getFileSizeFromUri(activity, mediaUri),
                 null,
                 fileHelper.getFileExtension(imagePath),
@@ -129,7 +129,7 @@ class IONMediaProcessor(
             )
         }
 
-        return IONMediaResult(IONMediaType.PICTURE.type, imagePath, base64Image, metadata, saved)
+        return IONCAMRMediaResult(IONCAMRMediaType.PICTURE.type, imagePath, base64Image, metadata, saved)
     }
 
     /**
@@ -144,9 +144,9 @@ class IONMediaProcessor(
         mediaUri: Uri,
         includeMetadata: Boolean,
         saved: Boolean = false
-    ): IONMediaResult? {
+    ): IONCAMRMediaResult? {
         var base64Image = ""
-        var error: IONError? = null
+        var error: IONCAMRError? = null
 
         val file = File(imagePath)
         if (!fileHelper.fileExists(file)) return null
@@ -173,9 +173,9 @@ class IONMediaProcessor(
             return null
         }
 
-        var metadata: IONMediaMetadata? = null
+        var metadata: IONCAMRMediaMetadata? = null
         if (includeMetadata) {
-            metadata = IONMediaMetadata(
+            metadata = IONCAMRMediaMetadata(
                 fileHelper.getFileSizeFromUri(activity, mediaUri),
                 null,
                 fileHelper.getFileExtension(imagePath),
@@ -184,7 +184,7 @@ class IONMediaProcessor(
             )
         }
 
-        return IONMediaResult(IONMediaType.PICTURE.type, imagePath, base64Image, metadata, saved)
+        return IONCAMRMediaResult(IONCAMRMediaType.PICTURE.type, imagePath, base64Image, metadata, saved)
     }
 
     fun processCameraImage(
@@ -192,11 +192,11 @@ class IONMediaProcessor(
         intent: Intent?,
         sourcePath: String?,
         authority: String,
-        camParameters: IONCameraParameters,
+        camParameters: IONCAMRCameraParameters,
         savedSuccessfully: Boolean,
         onImage: (String) -> Unit,
-        onMediaResult: (IONMediaResult) -> Unit,
-        onError: (IONError) -> Unit
+        onMediaResult: (IONCAMRMediaResult) -> Unit,
+        onError: (IONCAMRError) -> Unit
     ) {
         var bitmap: Bitmap?
         if (camParameters.latestVersion) {
@@ -209,7 +209,7 @@ class IONMediaProcessor(
                         File(sourcePath)
                     )
                     if (imageUri == null) {
-                        onError(IONError.TAKE_PHOTO_ERROR)
+                        onError(IONCAMRError.TAKE_PHOTO_ERROR)
                         return
                     }
                     createImageMediaResult(
@@ -223,7 +223,7 @@ class IONMediaProcessor(
                 }
 
             if (mediaResult == null) {
-                onError(IONError.TAKE_PHOTO_ERROR)
+                onError(IONCAMRError.TAKE_PHOTO_ERROR)
                 return
             }
             onMediaResult(mediaResult)
@@ -264,8 +264,8 @@ class IONMediaProcessor(
         uri: Uri,
         includeMetadata: Boolean,
         savedSuccessfully: Boolean,
-        onMediaResult: (IONMediaResult) -> Unit,
-        onError: (IONError) -> Unit
+        onMediaResult: (IONCAMRMediaResult) -> Unit,
+        onError: (IONCAMRError) -> Unit
     ) {
         val mediaResult = createEditedImageMediaResult(
             activity,
@@ -276,7 +276,7 @@ class IONMediaProcessor(
         )
 
         if (mediaResult == null) {
-            onError(IONError.EDIT_IMAGE_ERROR)
+            onError(IONCAMRError.EDIT_IMAGE_ERROR)
             return
         }
 
@@ -295,7 +295,7 @@ class IONMediaProcessor(
         videoPath: String,
         mediaUri: Uri,
         includeMetadata: Boolean,
-    ): IONMediaResult? {
+    ): IONCAMRMediaResult? {
 
         val file = File(videoPath)
         if (!fileHelper.fileExists(file)) return null
@@ -303,10 +303,10 @@ class IONMediaProcessor(
         val uri = fileHelper.getUriFromString(videoPath)
         val base64Thumbnail = getVideoThumbnailBase64(activity, uri) ?: return null
 
-        var metadata: IONMediaMetadata? = null
+        var metadata: IONCAMRMediaMetadata? = null
         if (includeMetadata) {
             val resolution = getMediaResolution(activity, false, videoPath, uri)
-            metadata = IONMediaMetadata(
+            metadata = IONCAMRMediaMetadata(
                 fileHelper.getFileSizeFromUri(activity, mediaUri),
                 (mediaHelper.getVideoDuration(activity, uri).toDouble() / 1000).roundToInt(),
                 fileHelper.getFileExtension(videoPath),
@@ -314,8 +314,8 @@ class IONMediaProcessor(
                 fileHelper.getFileCreationDate(file),
             )
         }
-        return IONMediaResult(
-            IONMediaType.VIDEO.type,
+        return IONCAMRMediaResult(
+            IONCAMRMediaType.VIDEO.type,
             videoPath,
             base64Thumbnail,
             metadata,
@@ -329,28 +329,28 @@ class IONMediaProcessor(
         uri: Uri,
         includeMetadata: Boolean,
         recordedInGallery: Boolean,
-        onSuccess: (IONMediaResult) -> Unit,
-        onError: (IONError) -> Unit
+        onSuccess: (IONCAMRMediaResult) -> Unit,
+        onError: (IONCAMRError) -> Unit
     ) {
 
         val file = File(videoPath)
 
         if (!fileHelper.fileExists(file)) {
-            onError(IONError.MEDIA_PATH_ERROR)
+            onError(IONCAMRError.MEDIA_PATH_ERROR)
             return
         }
 
         val thumbnail = getVideoThumbnailBase64(activity, uri)
 
         if (thumbnail == null) {
-            onError(IONError.CAPTURE_VIDEO_ERROR)
+            onError(IONCAMRError.CAPTURE_VIDEO_ERROR)
             return
         }
 
-        var metadata: IONMediaMetadata? = null
+        var metadata: IONCAMRMediaMetadata? = null
         if (includeMetadata) {
             val resolution = getMediaResolution(activity, false, videoPath, uri)
-            metadata = IONMediaMetadata(
+            metadata = IONCAMRMediaMetadata(
                 fileHelper.getFileSizeFromUri(activity, uri),
                 (mediaHelper.getVideoDuration(activity, uri).toDouble() / 1000).roundToInt(),
                 fileHelper.getFileExtension(videoPath),
@@ -358,8 +358,8 @@ class IONMediaProcessor(
                 fileHelper.getFileCreationDate(file),
             )
         }
-        val mediaResult = IONMediaResult(
-            IONMediaType.VIDEO.ordinal,
+        val mediaResult = IONCAMRMediaResult(
+            IONCAMRMediaType.VIDEO.ordinal,
             videoPath,
             thumbnail,
             metadata,
@@ -410,7 +410,7 @@ class IONMediaProcessor(
     private fun getScaledAndRotatedBitmap(
         activity: Activity?,
         imageUrl: String,
-        camParameters: IONCameraParameters
+        camParameters: IONCAMRCameraParameters
     ): Bitmap? {
         // If no new width or height were specified, and orientation is not needed return the original bitmap
         if (camParameters.targetWidth <= 0 && camParameters.targetHeight <= 0 && !camParameters.correctOrientation) {
@@ -685,7 +685,7 @@ class IONMediaProcessor(
 
     internal fun savePictureInGallery(activity: Activity, encodingType: Int, srcUri: Uri?): Boolean {
         return try {
-            val galleryPathVO: IONGalleryHelper = getPicturesPath(encodingType)
+            val galleryPathVO: IONCAMRGalleryHelper = getPicturesPath(encodingType)
             val fileFromGalleryPath = File(galleryPathVO.galleryPath)
             val galleryUri = Uri.fromFile(fileFromGalleryPath)
 
@@ -705,7 +705,7 @@ class IONMediaProcessor(
         }
     }
 
-    private fun getPicturesPath(encodingType: Int): IONGalleryHelper {
+    private fun getPicturesPath(encodingType: Int): IONCAMRGalleryHelper {
         val timeStamp =
             SimpleDateFormat(TIME_FORMAT).format(
                 Date()
@@ -716,7 +716,7 @@ class IONMediaProcessor(
             Environment.DIRECTORY_PICTURES
         )
         storageDir.mkdirs()
-        return IONGalleryHelper(storageDir.absolutePath, imageFileName)
+        return IONCAMRGalleryHelper(storageDir.absolutePath, imageFileName)
     }
 
     @Throws(IOException::class)
@@ -733,7 +733,7 @@ class IONMediaProcessor(
     private fun writeTakenPictureToGalleryStartingFromAndroidQ(
         activity: Activity?,
         srcUri: Uri?,
-        galleryPathVO: IONGalleryHelper,
+        galleryPathVO: IONCAMRGalleryHelper,
         encodingType: Int
     ) {
         // Starting from Android Q, working with the ACTION_MEDIA_SCANNER_SCAN_FILE intent is deprecated
@@ -794,9 +794,9 @@ class IONMediaProcessor(
     fun processResultFromGallery(
         activity: Activity?,
         intent: Intent,
-        camParameters: IONCameraParameters,
+        camParameters: IONCAMRCameraParameters,
         onSuccess: (String) -> Unit,
-        onError: (IONError) -> Unit
+        onError: (IONCAMRError) -> Unit
     ) {
         var uri = intent.data
         val fileLocation = fileHelper.getRealPath(uri, activity)

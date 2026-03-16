@@ -11,9 +11,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
 import io.ionic.libs.ioncameralib.R
 
-class IONLoadingActivity : ComponentActivity() {
+class IONCAMRLoadingActivity : ComponentActivity() {
 
-    companion object {
+    companion object Companion {
         const val DISMISS_INTENT_FILTER = "LoadingActivity_Dismiss"
     }
 
