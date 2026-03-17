@@ -95,13 +95,15 @@ class IONCAMREditManager(
         launcher: ActivityResultLauncher<Intent>,
         onError: (IONCAMRError) -> Unit
     ) {
-        val imageFile = File(pictureFilePath)
+        val correctedFilePath =
+            fileHelper.stripFileProtocol(pictureFilePath) ?: pictureFilePath
+        val imageFile = File(correctedFilePath)
         if (!fileHelper.fileExists(imageFile)) {
             onError(IONCAMRError.FILE_DOES_NOT_EXIST_ERROR)
             return
         }
         val drawable: Drawable? = try {
-            Drawable.createFromPath(pictureFilePath)
+            Drawable.createFromPath(correctedFilePath)
         } catch (ex: Exception) {
             ex.printStackTrace()
             null
