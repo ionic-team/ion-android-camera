@@ -80,7 +80,6 @@ class CaptureVideoTests {
 
         val IONCAMRCameraManager = IONCAMRCameraManager(
             applicationId = "someAppId",
-            authority = ".camera.provider",
             exif = exifHelperMock,
             fileHelper = fileHelperMock,
             mediaHelper = camHelperMock,
@@ -141,7 +140,6 @@ class CaptureVideoTests {
 
         val IONCAMRCameraManager = IONCAMRCameraManager(
             applicationId = "someAppId",
-            authority = ".camera.provider",
             exif = exifHelperMock,
             fileHelper = fileHelperMock,
             mediaHelper = camHelperMock,
@@ -207,7 +205,6 @@ class CaptureVideoTests {
 
         val IONCAMRCameraManager = IONCAMRCameraManager(
             applicationId = "someAppId",
-            authority = ".camera.provider",
             exif = exifHelperMock,
             fileHelper = fileHelperMock,
             mediaHelper = camHelperMock,
@@ -276,7 +273,6 @@ class CaptureVideoTests {
 
         val IONCAMRCameraManager = IONCAMRCameraManager(
             applicationId = "someAppId",
-            authority = ".camera.provider",
             exif = exifHelperMock,
             fileHelper = fileHelperMock,
             mediaHelper = camHelperMock,
@@ -305,7 +301,6 @@ class CaptureVideoTests {
 
         val IONCAMRCameraManager = IONCAMRCameraManager(
             applicationId = "someAppId",
-            authority = ".camera.provider",
             exif = exifHelperMock,
             fileHelper = fileHelperMock,
             mediaHelper = camHelperMock,
@@ -356,7 +351,6 @@ class CaptureVideoTests {
 
         val IONCAMRCameraManager = IONCAMRCameraManager(
             applicationId = "someAppId",
-            authority = ".camera.provider",
             exif = exifHelperMock,
             fileHelper = fileHelperMock,
             mediaHelper = camHelperMock,
@@ -408,7 +402,6 @@ class CaptureVideoTests {
 
         val IONCAMRCameraManager = IONCAMRCameraManager(
             applicationId = "someAppId",
-            authority = ".camera.provider",
             exif = exifHelperMock,
             fileHelper = fileHelperMock,
             mediaHelper = camHelperMock,
@@ -469,7 +462,6 @@ class CaptureVideoTests {
 
         val IONCAMRCameraManager = IONCAMRCameraManager(
             applicationId = "someAppId",
-            authority = ".camera.provider",
             exif = exifHelperMock,
             fileHelper = fileHelperMock,
             mediaHelper = camHelperMock,
@@ -565,7 +557,6 @@ class CaptureVideoTests {
 
         val IONCAMRCameraManager = IONCAMRCameraManager(
             applicationId = "someAppId",
-            authority = ".camera.provider",
             exif = exifHelperMock,
             fileHelper = fileHelperMock,
             mediaHelper = camHelperMock,
@@ -595,7 +586,6 @@ class CaptureVideoTests {
 
         val IONCAMRCameraManager = IONCAMRCameraManager(
             applicationId = "someAppId",
-            authority = ".camera.provider",
             exif = exifHelperMock,
             fileHelper = fileHelperMock,
             mediaHelper = camHelperMock,

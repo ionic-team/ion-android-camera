@@ -26,7 +26,6 @@ import java.util.Date
 
 class IONCAMRCameraManager(
     private var applicationId: String,
-    private var authority: String,
     private var exif: IONCAMRExifHelperInterface,
     private var fileHelper: IONCAMRFileHelperInterface,
     private var mediaHelper: IONCAMRMediaHelperInterface,
@@ -55,6 +54,7 @@ class IONCAMRCameraManager(
         private const val STORE = "CameraStore"
         private const val EDIT_FILE_NAME_KEY = "EditFileName"
         const val EDIT_REQUEST_CODE = 7
+        private const val AUTHORITY = ".camera.provider"
     }
 
     /**
@@ -88,7 +88,7 @@ class IONCAMRCameraManager(
             fileName
         )
         this.imageFilePath = photo.absolutePath
-        this.imageUri = fileHelper.getUriForFile(activity, "$applicationId$authority", photo)
+        this.imageUri = fileHelper.getUriForFile(activity, "$applicationId$AUTHORITY", photo)
 
         val intent = mediaHelper.createCameraIntent(activity, imageUri)
 
@@ -115,7 +115,7 @@ class IONCAMRCameraManager(
     ) {
         val videoFileUri = fileHelper.getUriForFile(
             activity,
-            "$applicationId$authority",
+            "$applicationId$AUTHORITY",
             createVideoFile(activity)
         )
         fileHelper.saveStringSharedPreferences(
@@ -218,7 +218,7 @@ class IONCAMRCameraManager(
             val srcUri: Uri? = sourcePath?.let {
                 fileHelper.getUriForFile(
                     activity,
-                    "$applicationId$authority",
+                    "$applicationId$AUTHORITY",
                     File(it)
                 )
             }
@@ -230,7 +230,7 @@ class IONCAMRCameraManager(
             activity = activity,
             intent = intent,
             sourcePath = sourcePath,
-            "$applicationId$authority",
+            "$applicationId$AUTHORITY",
             camParameters = camParameters,
             savedSuccessfully = savedSuccessfully,
             onImage = onImage,
@@ -359,7 +359,7 @@ class IONCAMRCameraManager(
             fileName
         )
         this.imageFilePath = photo.absolutePath
-        this.imageUri = fileHelper.getUriForFile(activity, "$applicationId$authority", photo)
+        this.imageUri = fileHelper.getUriForFile(activity, "$applicationId$AUTHORITY", photo)
 
         mediaHelper.openDeviceCamera(activity, imageUri, returnType)
     }

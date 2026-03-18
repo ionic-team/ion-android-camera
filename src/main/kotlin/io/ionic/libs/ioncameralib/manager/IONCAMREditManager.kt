@@ -24,7 +24,6 @@ import io.ionic.libs.ioncameralib.processor.IONCAMRMediaProcessor
  */
 class IONCAMREditManager(
     private var applicationId: String,
-    private var authority: String,
     private var exif: IONCAMRExifHelperInterface,
     private var fileHelper: IONCAMRFileHelperInterface,
     private var mediaHelper: IONCAMRMediaHelperInterface,
@@ -48,6 +47,7 @@ class IONCAMREditManager(
         private const val IMAGE_MAX_RESOLUTION = 1080
         private const val IMAGE_MAX_QUALITY = 100
         private const val LOG_TAG = "IONCAMREditManager"
+        private const val AUTHORITY = ".camera.provider"
     }
 
     /**
@@ -116,7 +116,7 @@ class IONCAMREditManager(
         }
         val pictureUri = fileHelper.getUriForFile(
             activity,
-            "$applicationId$authority",
+            "$applicationId$AUTHORITY",
             imageFile
         )
         try {
@@ -182,7 +182,7 @@ class IONCAMREditManager(
             val imageFile = File(resultImagePath)
             val resultImageUri = fileHelper.getUriForFile(
                 activity,
-                "$applicationId$authority",
+                "$applicationId$AUTHORITY",
                 imageFile
             )
             if (resultImageUri == null) {

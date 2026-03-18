@@ -98,7 +98,6 @@ class EditPictureTests {
 
         val IONCAMREditManager = IONCAMREditManager(
             "someAppId",
-            "authority",
             exifHelperMock,
             fileHelperMock,
             camHelperMock,
@@ -137,7 +136,6 @@ class EditPictureTests {
 
         val IONCAMREditManager = IONCAMREditManager(
             "someAppId",
-            "authority",
             exifHelperMock,
             fileHelperMock,
             camHelperMock,
@@ -188,7 +186,6 @@ class EditPictureTests {
 
         val IONCAMRCameraManager = IONCAMRCameraManager(
             "someAppId",
-            "authority",
             exifHelperMock,
             fileHelperMock,
             camHelperMock,
@@ -196,7 +193,6 @@ class EditPictureTests {
         )
         val IONCAMREditManager = IONCAMREditManager(
             "someAppId",
-            "authority",
             exifHelperMock,
             fileHelperMock,
             camHelperMock,
@@ -245,7 +241,6 @@ class EditPictureTests {
 
         val IONCAMRCameraManager = IONCAMRCameraManager(
             "someAppId",
-            "authority",
             exifHelperMock,
             fileHelperMock,
             camHelperMock,
@@ -253,7 +248,6 @@ class EditPictureTests {
         )
         val IONCAMREditManager = IONCAMREditManager(
             "someAppId",
-            "authority",
             exifHelperMock,
             fileHelperMock,
             camHelperMock,
@@ -289,7 +283,6 @@ class EditPictureTests {
         val imgHelperMock = IONCAMRImageHelperMock()
         val IONCAMREditManager = IONCAMREditManager(
             "someAppId",
-            "authority",
             exifHelperMock,
             fileHelperMock,
             camHelperMock,
@@ -313,7 +306,6 @@ class EditPictureTests {
 
         val IONCAMREditManager = IONCAMREditManager(
             "someAppId",
-            "authority",
             exifHelperMock,
             fileHelperMock,
             camHelperMock,
@@ -364,7 +356,6 @@ class EditPictureTests {
 
         val IONCAMREditManager = IONCAMREditManager(
             "someAppId",
-            "authority",
             exifHelperMock,
             fileHelperMock,
             camHelperMock,
@@ -415,7 +406,6 @@ class EditPictureTests {
 
         val IONCAMREditManager = IONCAMREditManager(
             "someAppId",
-            "authority",
             exifHelperMock,
             fileHelperMock,
             camHelperMock,
@@ -466,7 +456,6 @@ class EditPictureTests {
 
         val IONCAMREditManager = IONCAMREditManager(
             "someAppId",
-            "authority",
             exifHelperMock,
             fileHelperMock,
             camHelperMock,
@@ -503,7 +492,6 @@ class EditPictureTests {
 
         val IONCAMREditManager = IONCAMREditManager(
             "someAppId",
-            "authority",
             exifHelperMock,
             fileHelperMock,
             camHelperMock,
@@ -555,7 +543,6 @@ class EditPictureTests {
 
         val IONCAMREditManager = IONCAMREditManager(
             "someAppId",
-            "authority",
             exifHelperMock,
             fileHelperMock,
             camHelperMock,
@@ -616,7 +603,6 @@ class EditPictureTests {
 
         val IONCAMREditManager = IONCAMREditManager(
             "someAppId",
-            "authority",
             exifHelperMock,
             fileHelperMock,
             camHelperMock,
