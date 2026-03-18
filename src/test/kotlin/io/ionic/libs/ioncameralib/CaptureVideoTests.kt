@@ -86,6 +86,7 @@ class CaptureVideoTests {
             mediaHelper = camHelperMock,
             imageHelper = imgHelperMock
         )
+        fileHelperMock.inputStreamUriFilePath = VIDEO_URI_GALLERY
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES))
             .thenReturn(mFile)
@@ -98,28 +99,91 @@ class CaptureVideoTests {
             IONCAMRCameraManager.processResultFromVideo(mockActivity,
                 mUri,
                 fromGallery = false,
+                isPersistent = false,
                 includeMetadata = false,
-                {
+                onSuccess = {
                     assertEquals(it.type, 1)
                     assertEquals(it.uri, VIDEO_URI)
                     assertEquals(it.thumbnail, BASE_64)
                     assertEquals(it.metadata, null)
                 },
-                {
+                onError = {
                     fail()
                 }
             )
             IONCAMRCameraManager.processResultFromVideo(mockActivity,
                 mUri,
                 fromGallery = true,
+                isPersistent = false,
                 includeMetadata = false,
-                {
+                onSuccess = {
                     assertEquals(it.type, 1)
                     assertEquals(it.uri, VIDEO_URI_GALLERY)
                     assertEquals(it.thumbnail, BASE_64)
                     assertEquals(it.metadata, null)
                 },
-                {
+                onError = {
+                    fail()
+                }
+            )
+        }
+    }
+
+    @Test
+    fun givenCaptureVideoOkAndVideoPersistentWhenProcessResultThenSuccess() {
+
+        val exifHelperMock = IONExifHelperMock()
+        val fileHelperMock = IONCAMRFileHelperMock()
+        val camHelperMock = IONCAMRMediaHelperMock()
+        val imgHelperMock = IONCAMRImageHelperMock()
+
+        fileHelperMock.fileExists = true
+
+        val IONCAMRCameraManager = IONCAMRCameraManager(
+            applicationId = "someAppId",
+            authority = ".camera.provider",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
+        fileHelperMock.inputStreamUriFilePath = VIDEO_URI_GALLERY
+
+        Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES))
+            .thenReturn(mFile)
+
+        IONCAMRCameraManager.recordVideo(mockActivity, saveVideoToGallery = false, mActivityLauncher) {
+            // do nothing
+        }
+
+        runBlocking {
+            IONCAMRCameraManager.processResultFromVideo(mockActivity,
+                mUri,
+                fromGallery = false,
+                isPersistent = true,
+                includeMetadata = false,
+                onSuccess = {
+                    assertEquals(it.type, 1)
+                    assertEquals(it.uri.split("/").last(), VIDEO_URI)
+                    assertEquals(it.thumbnail, BASE_64)
+                    assertEquals(it.metadata, null)
+                },
+                onError = {
+                    fail()
+                }
+            )
+            IONCAMRCameraManager.processResultFromVideo(mockActivity,
+                mUri,
+                fromGallery = true,
+                isPersistent = false,
+                includeMetadata = false,
+                onSuccess = {
+                    assertEquals(it.type, 1)
+                    assertEquals(it.uri, VIDEO_URI_GALLERY)
+                    assertEquals(it.thumbnail, BASE_64)
+                    assertEquals(it.metadata, null)
+                },
+                onError = {
                     fail()
                 }
             )
@@ -149,6 +213,7 @@ class CaptureVideoTests {
             mediaHelper = camHelperMock,
             imageHelper = imgHelperMock
         )
+        fileHelperMock.inputStreamUriFilePath = VIDEO_URI_GALLERY
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES))
             .thenReturn(mFile)
@@ -161,8 +226,9 @@ class CaptureVideoTests {
             IONCAMRCameraManager.processResultFromVideo(mockActivity,
                 mUri,
                 fromGallery = false,
+                isPersistent = false,
                 includeMetadata = true,
-                {
+                onSuccess = {
                     assertEquals(it.type, 1)
                     assertEquals(it.uri, VIDEO_URI)
                     assertEquals(it.thumbnail, BASE_64)
@@ -173,15 +239,16 @@ class CaptureVideoTests {
                     assertEquals(it.metadata?.format, METADATA_FORMAT)
                     assertEquals(it.metadata?.creationDate, METADATA_CREATION_DATE)
                 },
-                {
+                onError = {
                     fail()
                 }
             )
             IONCAMRCameraManager.processResultFromVideo(mockActivity,
                 mUri,
                 fromGallery = true,
+                isPersistent = false,
                 includeMetadata = true,
-                {
+                onSuccess = {
                     assertEquals(it.type, 1)
                     assertEquals(it.uri, VIDEO_URI_GALLERY)
                     assertEquals(it.thumbnail, BASE_64)
@@ -192,7 +259,7 @@ class CaptureVideoTests {
                     assertEquals(it.metadata?.format, METADATA_FORMAT)
                     assertEquals(it.metadata?.creationDate, METADATA_CREATION_DATE)
                 },
-                {
+                onError = {
                     fail()
                 }
             )
@@ -254,22 +321,24 @@ class CaptureVideoTests {
         runBlocking {
             IONCAMRCameraManager.processResultFromVideo(mockActivity, mUri,
                 fromGallery = false,
+                isPersistent = false,
                 includeMetadata = false,
-                {
+                onSuccess = {
                     fail()
                 },
-                {
+                onError = {
                     assertEquals(it.code, IONCAMRError.MEDIA_PATH_ERROR.code)
                     assertEquals(it.description, IONCAMRError.MEDIA_PATH_ERROR.description)
                 }
             )
             IONCAMRCameraManager.processResultFromVideo(mockActivity, mUri,
                 fromGallery = true,
+                isPersistent = false,
                 includeMetadata = false,
-                {
+                onSuccess = {
                     fail()
                 },
-                {
+                onError = {
                     assertEquals(it.code, IONCAMRError.MEDIA_PATH_ERROR.code)
                     assertEquals(it.description, IONCAMRError.MEDIA_PATH_ERROR.description)
                 }
@@ -303,22 +372,24 @@ class CaptureVideoTests {
         runBlocking {
             IONCAMRCameraManager.processResultFromVideo(mockActivity, mUri,
                 fromGallery = false,
+                isPersistent = false,
                 includeMetadata = false,
-                {
+                onSuccess = {
                     fail()
                 },
-                {
+                onError = {
                     assertEquals(it.code, IONCAMRError.MEDIA_PATH_ERROR.code)
                     assertEquals(it.description, IONCAMRError.MEDIA_PATH_ERROR.description)
                 }
             )
             IONCAMRCameraManager.processResultFromVideo(mockActivity, mUri,
                 fromGallery = true,
+                isPersistent = false,
                 includeMetadata = false,
-                {
+                onSuccess = {
                     fail()
                 },
-                {
+                onError = {
                     assertEquals(it.code, IONCAMRError.MEDIA_PATH_ERROR.code)
                     assertEquals(it.description, IONCAMRError.MEDIA_PATH_ERROR.description)
                 }
@@ -343,6 +414,7 @@ class CaptureVideoTests {
             mediaHelper = camHelperMock,
             imageHelper = imgHelperMock
         )
+        fileHelperMock.inputStreamUriFilePath = VIDEO_URI_GALLERY
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES))
             .thenReturn(mFile)
@@ -354,27 +426,29 @@ class CaptureVideoTests {
         runBlocking {
             IONCAMRCameraManager.processResultFromVideo(mockActivity, mUri,
                 fromGallery = false,
+                isPersistent = false,
                 includeMetadata = false,
-                {
+                onSuccess = {
                     assertEquals(it.type, 1)
                     assertEquals(it.uri, VIDEO_URI)
                     assertEquals(it.thumbnail, BASE_64)
                     assertEquals(it.metadata, null)
                 },
-                {
+                onError = {
                     fail()
                 }
             )
             IONCAMRCameraManager.processResultFromVideo(mockActivity, mUri,
                 fromGallery = true,
+                isPersistent = false,
                 includeMetadata = false,
-                {
+                onSuccess = {
                     assertEquals(it.type, 1)
                     assertEquals(it.uri, VIDEO_URI_GALLERY)
                     assertEquals(it.thumbnail, BASE_64)
                     assertEquals(it.metadata, null)
                 },
-                {
+                onError = {
                     fail()
                 }
             )
@@ -401,6 +475,7 @@ class CaptureVideoTests {
             mediaHelper = camHelperMock,
             imageHelper = imgHelperMock
         )
+        fileHelperMock.inputStreamUriFilePath = VIDEO_URI_GALLERY
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES))
             .thenReturn(mFile)
@@ -411,27 +486,29 @@ class CaptureVideoTests {
         runBlocking {
             IONCAMRCameraManager.processResultFromVideo(mockActivity, mUri,
                 fromGallery = false,
+                isPersistent = false,
                 includeMetadata = false,
-                {
+                onSuccess = {
                     assertEquals(it.type, 1)
                     assertEquals(it.uri, VIDEO_URI)
                     assertEquals(it.thumbnail, BASE_64)
                     assertEquals(it.metadata, null)
                 },
-                {
+                onError = {
                     fail()
                 }
             )
             IONCAMRCameraManager.processResultFromVideo(mockActivity, mUri,
                 fromGallery = true,
+                isPersistent = false,
                 includeMetadata = false,
-                {
+                onSuccess = {
                     assertEquals(it.type, 1)
                     assertEquals(it.uri, VIDEO_URI_GALLERY)
                     assertEquals(it.thumbnail, BASE_64)
                     assertEquals(it.metadata, null)
                 },
-                {
+                onError = {
                     fail()
                 }
             )
@@ -444,14 +521,15 @@ class CaptureVideoTests {
         runBlocking {
             IONCAMRCameraManager.processResultFromVideo(mockActivity, mUri,
                 fromGallery = false,
+                isPersistent = false,
                 includeMetadata = false,
-                {
+                onSuccess = {
                     assertEquals(it.type, 1)
                     assertEquals(it.uri, VIDEO_URI)
                     assertEquals(it.thumbnail, BASE_64)
                     assertEquals(it.metadata, null)
                 },
-                {
+                onError = {
                     fail()
                 }
             )
@@ -536,11 +614,12 @@ class CaptureVideoTests {
         runBlocking {
             IONCAMRCameraManager.processResultFromVideo(mockActivity, mUri,
                 fromGallery = false,
+                isPersistent = false,
                 includeMetadata = false,
-                {
+                onSuccess = {
                     fail()
                 },
-                {
+                onError = {
                     assertEquals(it.code, IONCAMRError.CAPTURE_VIDEO_ERROR.code)
                     assertEquals(it.description, IONCAMRError.CAPTURE_VIDEO_ERROR.description)
                 }
