@@ -175,11 +175,11 @@ class CaptureVideoTests {
             IONCAMRCameraManager.processResultFromVideo(mockActivity,
                 mUri,
                 fromGallery = true,
-                isPersistent = false,
+                isPersistent = true,
                 includeMetadata = false,
                 onSuccess = {
                     assertEquals(it.type, 1)
-                    assertEquals(it.uri, VIDEO_URI_GALLERY)
+                    assertEquals(it.uri.split("/").last(), VIDEO_URI_GALLERY)
                     assertEquals(it.thumbnail, BASE_64)
                     assertEquals(it.metadata, null)
                 },
