@@ -248,6 +248,7 @@ class IONCAMRCameraManager(
         activity: Activity,
         uri: Uri?,
         fromGallery: Boolean = false,
+        isPersistent: Boolean = false,
         includeMetadata: Boolean = false,
         onSuccess: (IONCAMRMediaResult) -> Unit,
         onError: (IONCAMRError) -> Unit
@@ -260,28 +261,51 @@ class IONCAMRCameraManager(
         var videoFilePath: String?
         var recordedInGallery = false
         if (fromGallery) {
-            videoFilePath = mediaHelper.getVideoPathFromUri(activity, uri)
+            videoFilePath = fileHelper.getImagePathFromInputStreamUri(activity, uri)
+            if (videoFilePath == null) {
+                videoFilePath = mediaHelper.getVideoPathFromUri(activity, uri)
+            }
             recordedInGallery = true
         } else {
             val fileName = uri.path?.split("/")?.last() ?: ""
             videoFilePath = fileHelper.getAbsoluteCachedFilePath(activity, fileName)
             recordedInGallery = false
-            if (videoFilePath.isNotEmpty()) {
-                val fileName = videoFilePath.split("/").last()
-                fileHelper.storeFileNameInPrefs(fileName, activity)
-            } else {
+            if (videoFilePath.isEmpty()) {
                 onError(IONCAMRError.CAPTURE_VIDEO_ERROR)
+                return
             }
         }
 
-        if (videoFilePath.isNullOrEmpty()) {
+        val resolvedPath = videoFilePath
+        if (resolvedPath.isNullOrEmpty()) {
             onError(IONCAMRError.MEDIA_PATH_ERROR)
             return
         }
 
+        val sourceFile = File(resolvedPath)
+        if (!fileHelper.fileExists(sourceFile)) {
+            onError(IONCAMRError.MEDIA_PATH_ERROR)
+            return
+        }
+
+        val finalPath: String
+        if (isPersistent) {
+            val persistentFile = fileHelper.copyFileToPersistentStorage(activity, sourceFile)
+            if (persistentFile != null) {
+                finalPath = persistentFile.absolutePath
+            } else {
+                onError(IONCAMRError.CAPTURE_VIDEO_ERROR)
+                return
+            }
+        } else {
+            finalPath = resolvedPath
+            val fileName = finalPath.split("/").last()
+            fileHelper.storeFileNameInPrefs(fileName, activity)
+        }
+
         mediaProcessor.processVideo(
             activity = activity,
-            videoPath = videoFilePath,
+            videoPath = finalPath,
             uri = uri,
             includeMetadata = includeMetadata,
             recordedInGallery = recordedInGallery,

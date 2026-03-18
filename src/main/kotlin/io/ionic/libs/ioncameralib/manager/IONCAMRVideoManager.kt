@@ -22,8 +22,14 @@ class IONCAMRVideoManager(
         onSuccess: () -> Unit,
         onError: (IONCAMRError) -> Unit
     ) {
-        val mimeType = fileHelper.getMimeType(videoUri)
-        val file = File(videoUri)
+        val resolvedPath = fileHelper.resolveVideoFilePath(activity, videoUri)
+        if (resolvedPath == null) {
+            onError(IONCAMRError.FILE_DOES_NOT_EXIST_ERROR)
+            return
+        }
+
+        val mimeType = fileHelper.getMimeType(resolvedPath)
+        val file = File(resolvedPath)
 
         if (!fileHelper.fileExists(file)) {
             onError(IONCAMRError.FILE_DOES_NOT_EXIST_ERROR)
