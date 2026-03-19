@@ -46,6 +46,7 @@ class IONCAMRFileHelper: IONCAMRFileHelperInterface {
         private const val PROVIDERS_MEDIA = "com.android.providers.media.documents"
         private const val STORE = "CameraStore"
         private const val CACHED_VIDEOS_STORE = "CachedVideosStore"
+        private const val PERSISTENT_VIDEOS_DIR = "ion_android_camera_videos"
     }
 
     /**
@@ -453,6 +454,48 @@ class IONCAMRFileHelper: IONCAMRFileHelperInterface {
             }
         }
         return filePath
+    }
+
+    override fun getPersistentVideosDirectoryPath(activity: Activity): String {
+        val filesDir = activity.filesDir
+        val videosDir = File(filesDir, PERSISTENT_VIDEOS_DIR)
+        if (!videosDir.exists()) {
+            videosDir.mkdirs()
+        }
+        return videosDir.absolutePath
+    }
+
+    override fun createPersistentVideoFile(activity: Activity, fileName: String): File {
+        return File(getPersistentVideosDirectoryPath(activity), fileName)
+    }
+
+    override fun copyFileToPersistentStorage(activity: Activity, sourceFile: File): File? {
+        return try {
+            val persistentFile = createPersistentVideoFile(activity, sourceFile.name)
+            sourceFile.inputStream().use { input ->
+                persistentFile.outputStream().use { output ->
+                    input.copyTo(output)
+                }
+            }
+            persistentFile
+        } catch (e: Exception) {
+            Log.e(LOG_TAG, "Failed to copy file to persistent storage: ${e.message}")
+            null
+        }
+    }
+
+    override fun resolveVideoFilePath(activity: Activity, videoPath: String): String? {
+        val file = File(videoPath)
+        if (file.exists()) return videoPath
+
+        val fileName = file.name
+        val persistentFile = createPersistentVideoFile(activity, fileName)
+        if (persistentFile.exists()) return persistentFile.absolutePath
+
+        val cacheFile = File(getTempDirectoryPath(activity), fileName)
+        if (cacheFile.exists()) return cacheFile.absolutePath
+
+        return null
     }
 
     /**

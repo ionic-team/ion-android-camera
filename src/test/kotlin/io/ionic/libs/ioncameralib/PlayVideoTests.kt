@@ -37,7 +37,6 @@ class PlayVideoTests {
         val fileHelperMock = IONCAMRFileHelperMock()
 
         val IONCAMRVideoManager = IONCAMRVideoManager(
-            "authority",
             fileHelperMock,
         )
 
@@ -59,7 +58,6 @@ class PlayVideoTests {
         val fileHelperMock = IONCAMRFileHelperMock()
 
         val IONCAMRVideoManager = IONCAMRVideoManager(
-            "authority",
             fileHelperMock,
         )
 
@@ -82,7 +80,6 @@ class PlayVideoTests {
         val fileHelperMock = IONCAMRFileHelperMock()
 
         val IONCAMRVideoManager = IONCAMRVideoManager(
-            "authority",
             fileHelperMock,
         )
 
@@ -106,7 +103,6 @@ class PlayVideoTests {
         val fileHelperMock = IONCAMRFileHelperMock()
 
         val IONCAMRVideoManager = IONCAMRVideoManager(
-            "authority",
             fileHelperMock,
         )
 

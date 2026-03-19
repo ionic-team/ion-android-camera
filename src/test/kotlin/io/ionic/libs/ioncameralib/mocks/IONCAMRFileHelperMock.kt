@@ -23,6 +23,7 @@ class IONCAMRFileHelperMock: IONCAMRFileHelperInterface {
     var creationDateTime = "2023-03-30T09:01:26Z"
     var isUriNull = false
     var isFileStreamNull = false
+    var inputStreamUriFilePath: String? = FILE_LOCATION
 
     companion object {
         const val GET_URI_SUCCESS = 0
@@ -141,10 +142,26 @@ class IONCAMRFileHelperMock: IONCAMRFileHelperInterface {
     }
 
     override fun getImagePathFromInputStreamUri(activity: Activity, uri: Uri): String? {
-        return FILE_LOCATION
+        return inputStreamUriFilePath
     }
 
     override fun getMimeType(url: String): String? {
         return mimeType
+    }
+
+    override fun getPersistentVideosDirectoryPath(activity: Activity): String {
+        return "persistentVideosPath"
+    }
+
+    override fun createPersistentVideoFile(activity: Activity, fileName: String): File {
+        return File("persistentVideosPath", fileName)
+    }
+
+    override fun copyFileToPersistentStorage(activity: Activity, sourceFile: File): File? {
+        return if (fileExists) File("persistentVideosPath", sourceFile.name) else null
+    }
+
+    override fun resolveVideoFilePath(activity: Activity, videoPath: String): String? {
+        return if (fileExists) videoPath else null
     }
 }

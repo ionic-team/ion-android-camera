@@ -7,9 +7,12 @@ import io.ionic.libs.ioncameralib.model.IONCAMRError
 import java.io.File
 
 class IONCAMRVideoManager(
-    private var authority: String,
     private var fileHelper: IONCAMRFileHelperInterface,
 ) {
+
+    companion object {
+        private const val AUTHORITY = ".camera.provider"
+    }
 
     /**
      * Calls the intent to open the device's camera to record a video.
@@ -22,8 +25,14 @@ class IONCAMRVideoManager(
         onSuccess: () -> Unit,
         onError: (IONCAMRError) -> Unit
     ) {
-        val mimeType = fileHelper.getMimeType(videoUri)
-        val file = File(videoUri)
+        val resolvedPath = fileHelper.resolveVideoFilePath(activity, videoUri)
+        if (resolvedPath == null) {
+            onError(IONCAMRError.FILE_DOES_NOT_EXIST_ERROR)
+            return
+        }
+
+        val mimeType = fileHelper.getMimeType(resolvedPath)
+        val file = File(resolvedPath)
 
         if (!fileHelper.fileExists(file)) {
             onError(IONCAMRError.FILE_DOES_NOT_EXIST_ERROR)
@@ -35,7 +44,7 @@ class IONCAMRVideoManager(
             return
         }
 
-        val contentUri = fileHelper.getUriForFile(activity, activity.packageName + authority, file)
+        val contentUri = fileHelper.getUriForFile(activity, activity.packageName + AUTHORITY, file)
         val intent = Intent(Intent.ACTION_VIEW)
         intent.setDataAndType(contentUri, mimeType)
         intent.flags = Intent.FLAG_ACTIVITY_NO_HISTORY

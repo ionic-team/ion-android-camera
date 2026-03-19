@@ -34,4 +34,8 @@ interface IONCAMRFileHelperInterface {
     fun getCachedFileNames(context: Context) : Map<String, *>?
     fun removeFileNameFromPrefs(fileName: String, context: Context)
     fun getImagePathFromInputStreamUri(activity: Activity, uri: Uri): String?
+    fun getPersistentVideosDirectoryPath(activity: Activity): String
+    fun createPersistentVideoFile(activity: Activity, fileName: String): File
+    fun copyFileToPersistentStorage(activity: Activity, sourceFile: File): File?
+    fun resolveVideoFilePath(activity: Activity, videoPath: String): String?
 }
