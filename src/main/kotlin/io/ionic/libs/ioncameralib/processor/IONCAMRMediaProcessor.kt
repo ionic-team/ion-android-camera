@@ -287,7 +287,7 @@ class IONCAMRMediaProcessor(
             videoPath,
             base64Thumbnail,
             metadata,
-            false //For Gallery keep this false
+            false //TODO For Gallery keep this false
         )
     }
 
