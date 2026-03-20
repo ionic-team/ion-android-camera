@@ -198,32 +198,64 @@ class IONCAMRMediaProcessor(
         onMediaResult: (IONCAMRMediaResult) -> Unit,
         onError: (IONCAMRError) -> Unit
     ) {
-        val mediaResult =
-            sourcePath?.let {
-                val imageUri = fileHelper.getUriForFile(
-                    activity,
-                    authority,
-                    File(sourcePath)
-                )
-                if (imageUri == null) {
-                    onError(IONCAMRError.TAKE_PHOTO_ERROR)
-                    return
+        var bitmap: Bitmap?
+        if (camParameters.latestVersion) {
+
+            val mediaResult =
+                sourcePath?.let {
+                    val imageUri = fileHelper.getUriForFile(
+                        activity,
+                        authority,
+                        File(sourcePath)
+                    )
+                    if (imageUri == null) {
+                        onError(IONCAMRError.TAKE_PHOTO_ERROR)
+                        return
+                    }
+                    createImageMediaResult(
+                        activity,
+                        it,
+                        imageUri,
+                        camParameters.includeMetadata,
+                        camParameters,
+                        savedSuccessfully
+                    )
                 }
-                createImageMediaResult(
-                    activity,
-                    it,
-                    imageUri,
-                    camParameters.includeMetadata,
-                    camParameters,
-                    savedSuccessfully
-                )
+
+            if (mediaResult == null) {
+                onError(IONCAMRError.TAKE_PHOTO_ERROR)
+                return
+            }
+            onMediaResult(mediaResult)
+        } else {
+            //get bitmap
+            bitmap = sourcePath?.let { getScaledAndRotatedBitmap(activity, it, camParameters) }
+            if (bitmap == null) {
+                // Try to get the bitmap from intent.
+                if (intent != null) {
+                    try {
+                        // getExtras can throw different exceptions
+                        val extras = intent.extras
+                        if (extras != null) {
+                            bitmap = extras["data"] as Bitmap?
+                        }
+                    } catch (e: Exception) {
+                        // Don't let the exception bubble up, bitmap will be null (check below)
+                    }
+                }
             }
 
-        if (mediaResult == null) {
-            onError(IONCAMRError.TAKE_PHOTO_ERROR)
-            return
+            //get base64 representation of bitmap
+            imageHelper.processPicture(
+                bitmap, camParameters.encodingType, camParameters.mQuality,
+                {
+                    onImage(it)
+                },
+                {
+                    onError(it)
+                }
+            )
         }
-        onMediaResult(mediaResult)
     }
 
     fun processEditedImage(
