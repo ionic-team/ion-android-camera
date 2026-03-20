@@ -207,19 +207,18 @@ class IONCAMRExifHelper : IONCAMRExifHelperInterface {
     }
 
     override fun setCurrentDateTime() {
-        if (outFile == null) {
-            return
-        }
         // Format datetime as EXIF expects: "yyyy:MM:dd HH:mm:ss"
         val currentDateTime = SimpleDateFormat(
             "yyyy:MM:dd HH:mm:ss",
             Locale.getDefault()
         ).format(Date())
 
-        outFile!!.setAttribute(ExifInterface.TAG_DATETIME, currentDateTime)
-        outFile!!.setAttribute(ExifInterface.TAG_DATETIME_ORIGINAL, currentDateTime)
-        outFile!!.setAttribute(ExifInterface.TAG_DATETIME_DIGITIZED, currentDateTime)
-        outFile!!.saveAttributes()
+        outFile?.let {
+            it.setAttribute(ExifInterface.TAG_DATETIME, currentDateTime)
+            it.setAttribute(ExifInterface.TAG_DATETIME_ORIGINAL, currentDateTime)
+            it.setAttribute(ExifInterface.TAG_DATETIME_DIGITIZED, currentDateTime)
+            it.saveAttributes()
+        }
     }
 
 }
