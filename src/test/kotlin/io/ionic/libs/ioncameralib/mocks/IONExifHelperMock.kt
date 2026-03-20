@@ -43,4 +43,8 @@ class IONExifHelperMock: IONCAMRExifHelperInterface {
     override fun getOrientationFromExif(exif: ExifInterface): Int {
         return testOrientation
     }
+
+    override fun setCurrentDateTime() {
+        // do nothing
+    }
 }
