@@ -205,6 +205,13 @@ class IONCAMRCameraManager(
             try {
                 exif.createInFile(sourcePath)
                 exif.readExifData()
+
+                // When editing externally, the external app may write EXIF datetime in UTC.
+                // Fix it by writing the current local datetime back to the file.
+                if (camParameters.allowEdit && !intentEditedPath.isNullOrEmpty()) {
+                    exif.createOutFile(sourcePath)
+                    exif.setCurrentDateTime()
+                }
             } catch (e: IOException) {
                 e.printStackTrace()
             }

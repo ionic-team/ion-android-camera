@@ -22,6 +22,9 @@ package io.ionic.libs.ioncameralib.helper
 import android.media.ExifInterface
 import android.net.Uri
 import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class IONCAMRExifHelper : IONCAMRExifHelperInterface {
 
@@ -201,6 +204,22 @@ class IONCAMRExifHelper : IONCAMRExifHelperInterface {
             ExifInterface.TAG_ORIENTATION,
             ExifInterface.ORIENTATION_UNDEFINED
         )
+    }
+
+    override fun setCurrentDateTime() {
+        if (outFile == null) {
+            return
+        }
+        // Format datetime as EXIF expects: "yyyy:MM:dd HH:mm:ss"
+        val currentDateTime = SimpleDateFormat(
+            "yyyy:MM:dd HH:mm:ss",
+            Locale.getDefault()
+        ).format(Date())
+
+        outFile!!.setAttribute(ExifInterface.TAG_DATETIME, currentDateTime)
+        outFile!!.setAttribute(ExifInterface.TAG_DATETIME_ORIGINAL, currentDateTime)
+        outFile!!.setAttribute(ExifInterface.TAG_DATETIME_DIGITIZED, currentDateTime)
+        outFile!!.saveAttributes()
     }
 
 }

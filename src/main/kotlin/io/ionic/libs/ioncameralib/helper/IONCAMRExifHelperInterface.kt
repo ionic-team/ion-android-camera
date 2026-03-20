@@ -13,4 +13,5 @@ interface IONCAMRExifHelperInterface {
     fun getOrientation(): Int
     fun resetOrientation()
     fun getOrientationFromExif(exif: ExifInterface): Int
+    fun setCurrentDateTime()
 }
