@@ -52,9 +52,10 @@
                 android:layout_weight="1"/>
 
         <ImageButton
-            android:layout_width="25dp"
-            android:layout_height="25dp"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
             android:scaleType="fitCenter"
+            android:padding="12dp"
             android:src="@mipmap/flip"
             android:background="@android:color/transparent"
             android:id="@+id/flipButton"/>
@@ -65,8 +66,9 @@
                 android:layout_weight=".5"/>
 
         <ImageButton
-                android:layout_width="25dp"
-                android:layout_height="25dp"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:padding="12dp"
                 android:scaleType="fitCenter"
                 android:src="@mipmap/rotate_left"
                 android:background="@android:color/transparent"
@@ -97,6 +99,8 @@
                 android:layout_height="wrap_content"
                 android:textColor="@android:color/white"
                 android:background="@android:color/transparent"
+                android:paddingVertical="25dp"
+                android:paddingHorizontal="50dp"
                 android:id="@+id/cancelButton"/>
 
         <Space
@@ -109,6 +113,8 @@
                 android:layout_height="wrap_content"
                 android:textColor="@android:color/white"
                 android:background="@android:color/transparent"
+                android:paddingVertical="25dp"
+                android:paddingHorizontal="50dp"
                 android:id="@+id/OKButton"/>
 
     </LinearLayout>
