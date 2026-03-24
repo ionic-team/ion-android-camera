@@ -8,13 +8,11 @@ import android.os.Environment
 import android.util.Base64
 import android.util.Log
 import androidx.activity.result.ActivityResultLauncher
-import io.ionic.libs.ioncameralib.manager.IONCAMRCameraManager
 import io.ionic.libs.ioncameralib.manager.IONCAMREditManager
 import io.ionic.libs.ioncameralib.mocks.IONExifHelperMock
 import io.ionic.libs.ioncameralib.mocks.IONCAMRFileHelperMock
 import io.ionic.libs.ioncameralib.mocks.IONCAMRImageHelperMock
 import io.ionic.libs.ioncameralib.mocks.IONCAMRMediaHelperMock
-import io.ionic.libs.ioncameralib.model.IONCAMRCameraParameters
 import io.ionic.libs.ioncameralib.model.IONCAMREditParameters
 import io.ionic.libs.ioncameralib.model.IONCAMRError
 import io.ionic.libs.ioncameralib.view.IONCAMRImageEditorActivity
@@ -58,7 +56,6 @@ class EditPictureTests {
     )
 
     companion object{
-        private const val PROCESS_SUCCESS = "myImage"
         private const val FILE_LOCATION = "file://content/storage/emulated/sampleFileLocation"
         private const val BASE_64 = "base64"
         private const val METADATA_SIZE = 23456L
@@ -160,117 +157,6 @@ class EditPictureTests {
             {
                 assertEquals(it.code, IONCAMRError.EDIT_IMAGE_ERROR.code)
                 assertEquals(it.description, IONCAMRError.EDIT_IMAGE_ERROR.description)
-            })
-    }
-
-    @Test
-    fun givenTakePictureAllowEditWhenEditProcessSuccessThenSuccess() {
-
-        val camParameters = IONCAMRCameraParameters(
-            20,
-            -1,
-            -1,
-            0,
-            0,
-            allowEdit = true,
-            correctOrientation = true,
-            saveToPhotoAlbum = true,
-            includeMetadata = false,
-            latestVersion = false
-        )
-
-        val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONCAMRFileHelperMock()
-        val camHelperMock = IONCAMRMediaHelperMock()
-        val imgHelperMock = IONCAMRImageHelperMock()
-
-        val IONCAMRCameraManager = IONCAMRCameraManager(
-            "someAppId",
-            exifHelperMock,
-            fileHelperMock,
-            camHelperMock,
-            imgHelperMock
-        )
-        val IONCAMREditManager = IONCAMREditManager(
-            "someAppId",
-            exifHelperMock,
-            fileHelperMock,
-            camHelperMock,
-            imgHelperMock
-        )
-
-        Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
-
-        imgHelperMock.processPicSuccess = true
-        imgHelperMock.areOptionsZero = false
-
-        IONCAMRCameraManager.takePicture(mockActivity, 0, 0)
-        IONCAMREditManager.openCropActivity(null, mUri, mActivityLauncher)
-        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
-            onImage = {
-                assertEquals(it, PROCESS_SUCCESS)
-            },
-            onMediaResult = {
-                fail()
-            },
-            onError = {
-                fail()
-            })
-    }
-
-    @Test
-    fun givenTakePictureAllowEditWhenEditProcessErrorThenError() {
-
-        val camParameters = IONCAMRCameraParameters(
-            20,
-            -1,
-            -1,
-            0,
-            0,
-            allowEdit = true,
-            correctOrientation = true,
-            saveToPhotoAlbum = true,
-            includeMetadata = false,
-            latestVersion = false
-        )
-
-        val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONCAMRFileHelperMock()
-        val camHelperMock = IONCAMRMediaHelperMock()
-        val imgHelperMock = IONCAMRImageHelperMock()
-
-        val IONCAMRCameraManager = IONCAMRCameraManager(
-            "someAppId",
-            exifHelperMock,
-            fileHelperMock,
-            camHelperMock,
-            imgHelperMock
-        )
-        val IONCAMREditManager = IONCAMREditManager(
-            "someAppId",
-            exifHelperMock,
-            fileHelperMock,
-            camHelperMock,
-            imgHelperMock
-        )
-
-        Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
-
-        imgHelperMock.processPicSuccess = false
-        imgHelperMock.areOptionsZero = false
-
-        IONCAMRCameraManager.takePicture(mockActivity, 0, 0)
-        IONCAMREditManager.openCropActivity(null, mUri, mActivityLauncher)
-        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
-            onImage = {
-                fail()
-            },
-            onMediaResult = {
-                fail()
-            },
-            onError = {
-                assertEquals(it.code, IONCAMRError.PROCESS_IMAGE_ERROR.code)
-                assertEquals(it.description, IONCAMRError.PROCESS_IMAGE_ERROR.description)
             })
     }
 

@@ -11,6 +11,5 @@ data class IONCAMRCameraParameters(
     @SerializedName("allowEdit") val allowEdit: Boolean,
     @SerializedName("correctOrientation") val correctOrientation: Boolean,
     @SerializedName("saveToPhotoAlbum") val saveToPhotoAlbum: Boolean,
-    @SerializedName("includeMetadata") val includeMetadata: Boolean,
-    @SerializedName("latestVersion") val latestVersion: Boolean
+    @SerializedName("includeMetadata") val includeMetadata: Boolean
 )

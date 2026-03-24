@@ -79,8 +79,7 @@ class ChoosePictureTests {
             allowEdit = false,
             correctOrientation = true,
             saveToPhotoAlbum = false,
-            includeMetadata = false,
-            latestVersion = false
+            includeMetadata = false
         )
 
         val exifHelperMock = IONExifHelperMock()
@@ -125,8 +124,7 @@ class ChoosePictureTests {
             allowEdit = false,
             correctOrientation = true,
             saveToPhotoAlbum = false,
-            includeMetadata = false,
-            latestVersion = false
+            includeMetadata = false
         )
 
         val exifHelperMock = IONExifHelperMock()
@@ -171,8 +169,7 @@ class ChoosePictureTests {
             allowEdit = false,
             correctOrientation = true,
             saveToPhotoAlbum = false,
-            includeMetadata = false,
-            latestVersion = false
+            includeMetadata = false
         )
 
         val exifHelperMock = IONExifHelperMock()
@@ -217,8 +214,7 @@ class ChoosePictureTests {
             allowEdit = false,
             correctOrientation = false,
             saveToPhotoAlbum = false,
-            includeMetadata = false,
-            latestVersion = false
+            includeMetadata = false
         )
 
         val exifHelperMock = IONExifHelperMock()
@@ -264,8 +260,7 @@ class ChoosePictureTests {
             allowEdit = false,
             correctOrientation = true,
             saveToPhotoAlbum = false,
-            includeMetadata = false,
-            latestVersion = false
+            includeMetadata = false
         )
 
         val exifHelperMock = IONExifHelperMock()
@@ -312,8 +307,7 @@ class ChoosePictureTests {
             allowEdit = false,
             correctOrientation = true,
             saveToPhotoAlbum = false,
-            includeMetadata = false,
-            latestVersion = false
+            includeMetadata = false
         )
 
         val exifHelperMock = IONExifHelperMock()
@@ -361,8 +355,7 @@ class ChoosePictureTests {
             allowEdit = false,
             correctOrientation = true,
             saveToPhotoAlbum = false,
-            includeMetadata = false,
-            latestVersion = false
+            includeMetadata = false
         )
 
         val exifHelperMock = IONExifHelperMock()
@@ -409,8 +402,7 @@ class ChoosePictureTests {
             allowEdit = false,
             correctOrientation = true,
             saveToPhotoAlbum = false,
-            includeMetadata = false,
-            latestVersion = false
+            includeMetadata = false
         )
 
         val exifHelperMock = IONExifHelperMock()
@@ -457,8 +449,7 @@ class ChoosePictureTests {
             allowEdit = true,
             correctOrientation = true,
             saveToPhotoAlbum = false,
-            includeMetadata = false,
-            latestVersion = false
+            includeMetadata = false
         )
 
         val exifHelperMock = IONExifHelperMock()
@@ -512,8 +503,7 @@ class ChoosePictureTests {
             allowEdit = true,
             correctOrientation = true,
             saveToPhotoAlbum = false,
-            includeMetadata = false,
-            latestVersion = false
+            includeMetadata = false
         )
 
         val exifHelperMock = IONExifHelperMock()
