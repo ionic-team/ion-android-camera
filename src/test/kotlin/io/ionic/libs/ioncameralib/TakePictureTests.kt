@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Environment
 import android.util.Log
 import io.ionic.libs.ioncameralib.manager.IONCAMRCameraManager
+import io.ionic.libs.ioncameralib.view.IONCAMRImageEditorActivity
 import io.ionic.libs.ioncameralib.mocks.IONCAMRMediaHelperMock
 import io.ionic.libs.ioncameralib.mocks.IONExifHelperMock
 import io.ionic.libs.ioncameralib.mocks.IONCAMRFileHelperMock
@@ -43,6 +44,7 @@ class TakePictureTests {
         private const val METADATA_FORMAT = "jpg"
         private const val METADATA_RESOLUTION = "1080x1080"
         private const val METADATA_CREATION_DATE = "2023-03-30T09:01:26Z"
+        private const val FILE_LOCATION = "file://content/storage/emulated/sampleFileLocation"
     }
 
     @Before
@@ -251,6 +253,326 @@ class TakePictureTests {
             },
             onError = {
                 fail()
+            })
+    }
+
+    @Test
+    fun givenTakePictureNotCalledWhenProcessResultFromCameraThenError() {
+        val camParameters = IONCAMRCameraParameters(
+            20,
+            -1,
+            -1,
+            0,
+            0,
+            allowEdit = false,
+            correctOrientation = false,
+            saveToPhotoAlbum = false,
+            includeMetadata = false
+        )
+
+        val exifHelperMock = IONExifHelperMock()
+        val fileHelperMock = IONCAMRFileHelperMock()
+        val camHelperMock = IONCAMRMediaHelperMock()
+        val imgHelperMock = IONCAMRImageHelperMock()
+
+        val IONCAMRCameraManager = IONCAMRCameraManager(
+            applicationId = "someAppId",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
+
+        Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
+
+        // takePicture is NOT called — imageFilePath is null, so sourcePath is null
+        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
+            onMediaResult = {
+                fail()
+            },
+            onError = {
+                assertEquals(it.code, IONCAMRError.TAKE_PHOTO_ERROR.code)
+                assertEquals(it.description, IONCAMRError.TAKE_PHOTO_ERROR.description)
+            })
+    }
+
+    @Test
+    fun givenAPI30TakePictureCalledJPEGNoMetadataWhenProcessResultFromCameraThenSuccess() {
+        val camParameters = IONCAMRCameraParameters(
+            20,
+            -1,
+            -1,
+            0,
+            0,
+            allowEdit = false,
+            correctOrientation = false,
+            saveToPhotoAlbum = false,
+            includeMetadata = false
+        )
+
+        val exifHelperMock = IONExifHelperMock()
+        val fileHelperMock = IONCAMRFileHelperMock()
+        val camHelperMock = IONCAMRMediaHelperMock()
+        val imgHelperMock = IONCAMRImageHelperMock()
+
+        val IONCAMRCameraManager = IONCAMRCameraManager(
+            applicationId = "someAppId",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
+
+        Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
+
+        fileHelperMock.fileExists = true
+        fileHelperMock.isUriNull = false
+        fileHelperMock.isFileStreamNull = false
+        imgHelperMock.isBitmapNull = false
+        imgHelperMock.bitmapToBase64Success = true
+
+        IONCAMRCameraManager.takePicture(mockActivity, 0, 0)
+        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
+            onMediaResult = {
+                assertEquals(it.type, 0)
+                assertTrue(it.uri.contains("myFile"))
+                assertEquals(it.thumbnail, BASE_64)
+                assertEquals(it.metadata, null)
+            },
+            onError = {
+                fail()
+            })
+    }
+
+    @Test
+    fun givenAPI30TakePictureCalledJPEGDoNotSaveToAlbumWhenProcessResultFromCameraThenSuccess() {
+        val camParameters = IONCAMRCameraParameters(
+            20,
+            -1,
+            -1,
+            0,
+            0,
+            allowEdit = false,
+            correctOrientation = false,
+            saveToPhotoAlbum = false,
+            includeMetadata = true
+        )
+
+        val exifHelperMock = IONExifHelperMock()
+        val fileHelperMock = IONCAMRFileHelperMock()
+        val camHelperMock = IONCAMRMediaHelperMock()
+        val imgHelperMock = IONCAMRImageHelperMock()
+
+        val IONCAMRCameraManager = IONCAMRCameraManager(
+            applicationId = "someAppId",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
+
+        Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
+
+        fileHelperMock.fileExists = true
+        fileHelperMock.isUriNull = false
+        fileHelperMock.isFileStreamNull = false
+        imgHelperMock.isBitmapNull = false
+        imgHelperMock.bitmapToBase64Success = true
+        fileHelperMock.fileExtension = "jpg"
+
+        IONCAMRCameraManager.takePicture(mockActivity, 0, 0)
+        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
+            onMediaResult = {
+                assertEquals(it.type, 0)
+                assertTrue(it.uri.contains("myFile"))
+                assertEquals(it.thumbnail, BASE_64)
+                assertFalse(it.saved)
+                assertNotEquals(it.metadata, null)
+            },
+            onError = {
+                fail()
+            })
+    }
+
+    @Test
+    fun givenAPI30TakePictureAllowEditWithExternalEditWhenProcessResultFromCameraThenSuccess() {
+        val camParameters = IONCAMRCameraParameters(
+            20,
+            -1,
+            -1,
+            0,
+            0,
+            allowEdit = true,
+            correctOrientation = false,
+            saveToPhotoAlbum = false,
+            includeMetadata = true
+        )
+
+        val exifHelperMock = IONExifHelperMock()
+        val fileHelperMock = IONCAMRFileHelperMock()
+        val camHelperMock = IONCAMRMediaHelperMock()
+        val imgHelperMock = IONCAMRImageHelperMock()
+
+        val IONCAMRCameraManager = IONCAMRCameraManager(
+            applicationId = "someAppId",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
+
+        Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
+        Mockito.doReturn(FILE_LOCATION).`when`(mIntent).getStringExtra(IONCAMRImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS)
+
+        fileHelperMock.fileExists = true
+        fileHelperMock.isUriNull = false
+        fileHelperMock.isFileStreamNull = false
+        imgHelperMock.isBitmapNull = false
+        imgHelperMock.bitmapToBase64Success = true
+        fileHelperMock.fileExtension = "jpg"
+
+        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
+            onMediaResult = {
+                assertEquals(it.type, 0)
+                assertEquals(it.thumbnail, BASE_64)
+                assertNotEquals(it.metadata, null)
+            },
+            onError = {
+                fail()
+            })
+    }
+
+    @Test
+    fun givenAPI30TakePictureAllowEditWithExternalEditAndUriNullWhenProcessResultFromCameraThenError() {
+        val camParameters = IONCAMRCameraParameters(
+            20,
+            -1,
+            -1,
+            0,
+            0,
+            allowEdit = true,
+            correctOrientation = false,
+            saveToPhotoAlbum = false,
+            includeMetadata = false
+        )
+
+        val exifHelperMock = IONExifHelperMock()
+        val fileHelperMock = IONCAMRFileHelperMock()
+        val camHelperMock = IONCAMRMediaHelperMock()
+        val imgHelperMock = IONCAMRImageHelperMock()
+
+        val IONCAMRCameraManager = IONCAMRCameraManager(
+            applicationId = "someAppId",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
+
+        Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
+        Mockito.doReturn(FILE_LOCATION).`when`(mIntent).getStringExtra(IONCAMRImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS)
+
+        fileHelperMock.isUriNull = true
+
+        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
+            onMediaResult = {
+                fail()
+            },
+            onError = {
+                assertEquals(it.code, IONCAMRError.TAKE_PHOTO_ERROR.code)
+                assertEquals(it.description, IONCAMRError.TAKE_PHOTO_ERROR.description)
+            })
+    }
+
+    @Test
+    fun givenAPI30TakePictureCalledPNGAndUriNotNullBitmapNotNullWhenProcessResultFromCameraThenSuccess() {
+        val camParameters = IONCAMRCameraParameters(
+            20,
+            -1,
+            -1,
+            1,
+            0,
+            allowEdit = false,
+            correctOrientation = false,
+            saveToPhotoAlbum = true,
+            includeMetadata = true
+        )
+
+        val exifHelperMock = IONExifHelperMock()
+        val fileHelperMock = IONCAMRFileHelperMock()
+        val camHelperMock = IONCAMRMediaHelperMock()
+        val imgHelperMock = IONCAMRImageHelperMock()
+
+        val IONCAMRCameraManager = IONCAMRCameraManager(
+            applicationId = "someAppId",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
+
+        Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
+
+        fileHelperMock.fileExists = true
+        fileHelperMock.isUriNull = false
+        fileHelperMock.isFileStreamNull = false
+        imgHelperMock.isBitmapNull = false
+        imgHelperMock.bitmapToBase64Success = true
+        fileHelperMock.fileExtension = "png"
+
+        IONCAMRCameraManager.takePicture(mockActivity, 0, 1)
+        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
+            onMediaResult = {
+                assertEquals(it.type, 0)
+                assertTrue(it.uri.contains("myFile"))
+                assertEquals(it.thumbnail, BASE_64)
+                assertNotEquals(it.metadata, null)
+                assertEquals(it.metadata?.format, "png")
+            },
+            onError = {
+                fail()
+            })
+    }
+
+    @Test
+    fun givenAPI30TakePictureCalledPNGAndUriNullWhenProcessResultFromCameraThenError() {
+        val camParameters = IONCAMRCameraParameters(
+            20,
+            -1,
+            -1,
+            1,
+            0,
+            allowEdit = false,
+            correctOrientation = false,
+            saveToPhotoAlbum = true,
+            includeMetadata = false
+        )
+
+        val exifHelperMock = IONExifHelperMock()
+        val fileHelperMock = IONCAMRFileHelperMock()
+        val camHelperMock = IONCAMRMediaHelperMock()
+        val imgHelperMock = IONCAMRImageHelperMock()
+
+        val IONCAMRCameraManager = IONCAMRCameraManager(
+            applicationId = "someAppId",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
+
+        Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
+
+        fileHelperMock.isUriNull = true
+
+        IONCAMRCameraManager.takePicture(mockActivity, 0, 1)
+        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
+            onMediaResult = {
+                fail()
+            },
+            onError = {
+                assertEquals(it.code, IONCAMRError.TAKE_PHOTO_ERROR.code)
+                assertEquals(it.description, IONCAMRError.TAKE_PHOTO_ERROR.description)
             })
     }
 
