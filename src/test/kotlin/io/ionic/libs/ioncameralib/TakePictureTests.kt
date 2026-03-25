@@ -2,11 +2,11 @@ package io.ionic.libs.ioncameralib
 
 import android.app.Activity
 import android.content.Intent
-import android.media.ExifInterface
 import android.net.Uri
 import android.os.Environment
 import android.util.Log
 import io.ionic.libs.ioncameralib.manager.IONCAMRCameraManager
+import io.ionic.libs.ioncameralib.view.IONCAMRImageEditorActivity
 import io.ionic.libs.ioncameralib.mocks.IONCAMRMediaHelperMock
 import io.ionic.libs.ioncameralib.mocks.IONExifHelperMock
 import io.ionic.libs.ioncameralib.mocks.IONCAMRFileHelperMock
@@ -39,12 +39,12 @@ class TakePictureTests {
     private lateinit var mockActivity: Activity
 
     companion object{
-        private const val PROCESS_SUCCESS = "myImage"
         private const val BASE_64 = "base64"
         private const val METADATA_SIZE = 23456L
         private const val METADATA_FORMAT = "jpg"
         private const val METADATA_RESOLUTION = "1080x1080"
         private const val METADATA_CREATION_DATE = "2023-03-30T09:01:26Z"
+        private const val FILE_LOCATION = "file://content/storage/emulated/sampleFileLocation"
     }
 
     @Before
@@ -68,96 +68,7 @@ class TakePictureTests {
     }
 
     @Test
-    fun givenTakePictureNotCalledJPEGWhenProcessResultFromCameraThenTakePhotoError() {
-
-        val camParameters = IONCAMRCameraParameters(
-            20,
-            -1,
-            -1,
-            0,
-            0,
-            allowEdit = false,
-            correctOrientation = true,
-            saveToPhotoAlbum = true,
-            includeMetadata = false,
-            latestVersion = false
-        )
-
-        val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONCAMRFileHelperMock()
-        val camHelperMock = IONCAMRMediaHelperMock()
-        val imgHelperMock = IONCAMRImageHelperMock()
-
-        val IONCAMRCameraManager = IONCAMRCameraManager(
-            applicationId = "someAppId",
-            exif = exifHelperMock,
-            fileHelper = fileHelperMock,
-            mediaHelper = camHelperMock,
-            imageHelper = imgHelperMock
-        )
-
-        Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
-
-        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
-            onImage = {
-                fail()
-            },
-            onMediaResult = {
-                fail()
-            },
-            onError = {
-                assertEquals(it.code, IONCAMRError.PROCESS_IMAGE_ERROR.code)
-                assertEquals(it.description, IONCAMRError.PROCESS_IMAGE_ERROR.description)
-            })
-    }
-
-    @Test
-    fun givenTakePictureNotCalledPNGWhenProcessResultFromCameraThenTakePhotoError() {
-
-        val camParameters = IONCAMRCameraParameters(
-            20,
-            -1,
-            -1,
-            1,
-            0,
-            allowEdit = false,
-            correctOrientation = true,
-            saveToPhotoAlbum = true,
-            includeMetadata = false,
-            latestVersion = false
-        )
-
-        val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONCAMRFileHelperMock()
-        val camHelperMock = IONCAMRMediaHelperMock()
-        val imgHelperMock = IONCAMRImageHelperMock()
-
-        val IONCAMRCameraManager = IONCAMRCameraManager(
-            applicationId = "someAppId",
-            exif = exifHelperMock,
-            fileHelper = fileHelperMock,
-            mediaHelper = camHelperMock,
-            imageHelper = imgHelperMock
-        )
-
-        Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
-
-        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
-            onImage = {
-                fail()
-            },
-            onMediaResult = {
-                fail()
-            },
-            onError = {
-                assertEquals(it.code, IONCAMRError.PROCESS_IMAGE_ERROR.code)
-                assertEquals(it.description, IONCAMRError.PROCESS_IMAGE_ERROR.description)
-            })
-    }
-
-    @Test
-    fun givenAPI28TakePictureCalledBitmapNullWhenProcessResultFromCameraThenError() {
-
+    fun givenTakePictureCalledJPEGAndUriNullWhenProcessResultFromCameraThenError() {
         val camParameters = IONCAMRCameraParameters(
             20,
             -1,
@@ -167,97 +78,7 @@ class TakePictureTests {
             allowEdit = false,
             correctOrientation = false,
             saveToPhotoAlbum = true,
-            includeMetadata = false,
-            latestVersion = false
-        )
-
-        val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONCAMRFileHelperMock()
-        val camHelperMock = IONCAMRMediaHelperMock()
-        val imgHelperMock = IONCAMRImageHelperMock()
-
-        val IONCAMRCameraManager = IONCAMRCameraManager(
-            applicationId = "someAppId",
-            exif = exifHelperMock,
-            fileHelper = fileHelperMock,
-            mediaHelper = camHelperMock,
-            imageHelper = imgHelperMock
-        )
-
-        Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
-
-        IONCAMRCameraManager.takePicture(mockActivity, 0, 0)
-        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
-            onImage = {
-                fail()
-            },
-            onMediaResult = {
-                fail()
-            },
-            onError = {
-                assertEquals(it.code, IONCAMRError.PROCESS_IMAGE_ERROR.code)
-                assertEquals(it.description, IONCAMRError.PROCESS_IMAGE_ERROR.description)
-            })
-    }
-
-    @Test
-    fun givenAPI28TakePictureCalledJPEGAndDataUriAndProcessOKWhenProcessResultFromCameraThenSuccess() {
-        val camParameters = IONCAMRCameraParameters(
-            20,
-            -1,
-            -1,
-            0,
-            0,
-            allowEdit = false,
-            correctOrientation = false,
-            saveToPhotoAlbum = true,
-            includeMetadata = false,
-            latestVersion = false
-        )
-
-        val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONCAMRFileHelperMock()
-        val camHelperMock = IONCAMRMediaHelperMock()
-        val imgHelperMock = IONCAMRImageHelperMock()
-
-        val IONCAMRCameraManager = IONCAMRCameraManager(
-            applicationId = "someAppId",
-            exif = exifHelperMock,
-            fileHelper = fileHelperMock,
-            mediaHelper = camHelperMock,
-            imageHelper = imgHelperMock
-        )
-
-        Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
-
-        imgHelperMock.processPicSuccess = true
-
-        IONCAMRCameraManager.takePicture(mockActivity, 0, 0)
-        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
-            onImage = {
-                assertEquals(PROCESS_SUCCESS, it)
-            },
-            onMediaResult = {
-                fail()
-            },
-            onError = {
-                fail()
-            })
-    }
-
-    @Test
-    fun givenAPI30TakePictureCalledJPEGAndDataUriAndUriNullWhenProcessResultFromCameraThenError() {
-        val camParameters = IONCAMRCameraParameters(
-            20,
-            -1,
-            -1,
-            0,
-            0,
-            allowEdit = false,
-            correctOrientation = false,
-            saveToPhotoAlbum = true,
-            includeMetadata = true,
-            latestVersion = true
+            includeMetadata = true
         )
 
         val exifHelperMock = IONExifHelperMock()
@@ -280,9 +101,6 @@ class TakePictureTests {
 
         IONCAMRCameraManager.takePicture(mockActivity, 0, 0)
         IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
-            onImage = {
-                fail()
-            },
             onMediaResult = {
                 fail()
             },
@@ -293,7 +111,7 @@ class TakePictureTests {
     }
 
     @Test
-    fun givenAPI30TakePictureCalledJPEGAndDataUriAndUriNotNullFileStreamNullWhenProcessResultFromCameraThenError() {
+    fun givenTakePictureCalledJPEGAndFileStreamNullWhenProcessResultFromCameraThenError() {
         val camParameters = IONCAMRCameraParameters(
             20,
             -1,
@@ -303,8 +121,7 @@ class TakePictureTests {
             allowEdit = false,
             correctOrientation = false,
             saveToPhotoAlbum = true,
-            includeMetadata = true,
-            latestVersion = true
+            includeMetadata = true
         )
 
         val exifHelperMock = IONExifHelperMock()
@@ -329,9 +146,6 @@ class TakePictureTests {
 
         IONCAMRCameraManager.takePicture(mockActivity, 0, 0)
         IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
-            onImage = {
-                fail()
-            },
             onMediaResult = {
                 fail()
             },
@@ -342,7 +156,7 @@ class TakePictureTests {
     }
 
     @Test
-    fun givenAPI30TakePictureCalledJPEGAndDataUriAndUriNotNullBitmapNullWhenProcessResultFromCameraThenError() {
+    fun givenTakePictureCalledJPEGAndBitmapNullWhenProcessResultFromCameraThenError() {
         val camParameters = IONCAMRCameraParameters(
             20,
             -1,
@@ -352,8 +166,7 @@ class TakePictureTests {
             allowEdit = false,
             correctOrientation = false,
             saveToPhotoAlbum = true,
-            includeMetadata = true,
-            latestVersion = true
+            includeMetadata = true
         )
 
         val exifHelperMock = IONExifHelperMock()
@@ -379,9 +192,6 @@ class TakePictureTests {
 
         IONCAMRCameraManager.takePicture(mockActivity, 0, 0)
         IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
-            onImage = {
-                fail()
-            },
             onMediaResult = {
                 fail()
             },
@@ -392,7 +202,7 @@ class TakePictureTests {
     }
 
     @Test
-    fun givenAPI30TakePictureCalledJPEGAndDataUriAndUriNotNullBitmapNotNullWhenProcessResultFromCameraThenSuccess() {
+    fun givenTakePictureCalledJPEGWithMetadataWhenProcessResultFromCameraThenSuccess() {
         val camParameters = IONCAMRCameraParameters(
             20,
             -1,
@@ -402,8 +212,7 @@ class TakePictureTests {
             allowEdit = false,
             correctOrientation = false,
             saveToPhotoAlbum = true,
-            includeMetadata = true,
-            latestVersion = true
+            includeMetadata = true
         )
 
         val exifHelperMock = IONExifHelperMock()
@@ -431,9 +240,6 @@ class TakePictureTests {
 
         IONCAMRCameraManager.takePicture(mockActivity, 0, 0)
         IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
-            onImage = {
-                fail()
-            },
             onMediaResult = {
                 assertEquals(it.type, 0)
                 assertTrue(it.uri.contains("myFile"))
@@ -451,237 +257,7 @@ class TakePictureTests {
     }
 
     @Test
-    fun givenAPI28TakePictureCalledPNGAndDataUriAndProcessOKWhenProcessResultFromCameraThenSuccess() {
-        val camParameters = IONCAMRCameraParameters(
-            20,
-            -1,
-            -1,
-            1,
-            0,
-            allowEdit = false,
-            correctOrientation = false,
-            saveToPhotoAlbum = true,
-            includeMetadata = false,
-            latestVersion = false
-        )
-
-        val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONCAMRFileHelperMock()
-        val camHelperMock = IONCAMRMediaHelperMock()
-        val imgHelperMock = IONCAMRImageHelperMock()
-
-        val IONCAMRCameraManager = IONCAMRCameraManager(
-            applicationId = "someAppId",
-            exif = exifHelperMock,
-            fileHelper = fileHelperMock,
-            mediaHelper = camHelperMock,
-            imageHelper = imgHelperMock
-        )
-
-        Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
-
-        imgHelperMock.processPicSuccess = true
-
-        IONCAMRCameraManager.takePicture(mockActivity, 0, 1)
-        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
-            onImage = {
-                assertEquals(PROCESS_SUCCESS, it)
-            },
-            onMediaResult = {
-                fail()
-            },
-            onError = {
-                fail()
-            })
-    }
-
-    @Test
-    fun givenAPI28TakePictureCalledJPEGAndProcessErrorWhenProcessResultFromCameraThenError() {
-        val camParameters = IONCAMRCameraParameters(
-            20,
-            -1,
-            -1,
-            0,
-            0,
-            allowEdit = false,
-            correctOrientation = false,
-            saveToPhotoAlbum = true,
-            includeMetadata = false,
-            latestVersion = false
-        )
-
-        val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONCAMRFileHelperMock()
-        val camHelperMock = IONCAMRMediaHelperMock()
-        val imgHelperMock = IONCAMRImageHelperMock()
-
-        val IONCAMRCameraManager = IONCAMRCameraManager(
-            applicationId = "someAppId",
-            exif = exifHelperMock,
-            fileHelper = fileHelperMock,
-            mediaHelper = camHelperMock,
-            imageHelper = imgHelperMock
-        )
-
-        Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
-
-        imgHelperMock.processPicSuccess = false
-
-        IONCAMRCameraManager.takePicture(mockActivity, 0, 0)
-        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
-            onImage = {
-                fail()
-            },
-            onMediaResult = {
-                fail()
-            },
-            onError = {
-                assertEquals(it.code, IONCAMRError.PROCESS_IMAGE_ERROR.code)
-                assertEquals(it.description, IONCAMRError.PROCESS_IMAGE_ERROR.description)
-            })
-    }
-
-
-    @Test
-    fun givenAPI28TakePictureCalledPNGAndProcessErrorWhenProcessResultFromCameraThenError() {
-        val camParameters = IONCAMRCameraParameters(
-            20,
-            -1,
-            -1,
-            1,
-            0,
-            allowEdit = false,
-            correctOrientation = false,
-            saveToPhotoAlbum = true,
-            includeMetadata = false,
-            latestVersion = false
-        )
-
-        val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONCAMRFileHelperMock()
-        val camHelperMock = IONCAMRMediaHelperMock()
-        val imgHelperMock = IONCAMRImageHelperMock()
-
-        val IONCAMRCameraManager = IONCAMRCameraManager(
-            applicationId = "someAppId",
-            exif = exifHelperMock,
-            fileHelper = fileHelperMock,
-            mediaHelper = camHelperMock,
-            imageHelper = imgHelperMock
-        )
-
-        Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
-
-        imgHelperMock.processPicSuccess = false
-
-        IONCAMRCameraManager.takePicture(mockActivity, 0, 1)
-        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
-            onImage = {
-                fail()
-            },
-            onMediaResult = {
-                fail()
-            },
-            onError = {
-                assertEquals(it.code, IONCAMRError.PROCESS_IMAGE_ERROR.code)
-                assertEquals(it.description, IONCAMRError.PROCESS_IMAGE_ERROR.description)
-            })
-    }
-
-    @Test
-    fun givenTakePictureCalledJPEGAndCompressOKWhenProcessResultFromCameraThenSuccess() {
-        val camParameters = IONCAMRCameraParameters(
-            20,
-            -1,
-            -1,
-            0,
-            0,
-            allowEdit = false,
-            correctOrientation = false,
-            saveToPhotoAlbum = true,
-            includeMetadata = false,
-            latestVersion = false
-        )
-
-        val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONCAMRFileHelperMock()
-        val camHelperMock = IONCAMRMediaHelperMock()
-        val imgHelperMock = IONCAMRImageHelperMock()
-
-        val IONCAMRCameraManager = IONCAMRCameraManager(
-            applicationId = "someAppId",
-            exif = exifHelperMock,
-            fileHelper = fileHelperMock,
-            mediaHelper = camHelperMock,
-            imageHelper = imgHelperMock
-        )
-
-        Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
-
-        imgHelperMock.processPicSuccess = true
-        fileHelperMock.getUriResult = IONCAMRFileHelperMock.GET_URI_SUCCESS
-
-        IONCAMRCameraManager.takePicture(mockActivity, 0, 0)
-        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
-            onImage = {
-                assertEquals(PROCESS_SUCCESS, it)
-            },
-            onMediaResult = {
-                fail()
-            },
-            onError = {
-                fail()
-            })
-    }
-
-    @Test
-    fun givenTakePictureCalledPNGAndCompressOKWhenProcessResultFromCameraThenSuccess() {
-        val camParameters = IONCAMRCameraParameters(
-            20,
-            -1,
-            -1,
-            1,
-            0,
-            allowEdit = false,
-            correctOrientation = false,
-            saveToPhotoAlbum = true,
-            includeMetadata = false,
-            latestVersion = false
-        )
-
-        val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONCAMRFileHelperMock()
-        val camHelperMock = IONCAMRMediaHelperMock()
-        val imgHelperMock = IONCAMRImageHelperMock()
-
-        val IONCAMRCameraManager = IONCAMRCameraManager(
-            applicationId = "someAppId",
-            exif = exifHelperMock,
-            fileHelper = fileHelperMock,
-            mediaHelper = camHelperMock,
-            imageHelper = imgHelperMock
-        )
-
-        Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
-
-        imgHelperMock.processPicSuccess = true
-        fileHelperMock.getUriResult = IONCAMRFileHelperMock.GET_URI_SUCCESS
-
-        IONCAMRCameraManager.takePicture(mockActivity, 0, 1)
-        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
-            onImage = {
-                assertEquals(PROCESS_SUCCESS, it)
-            },
-            onMediaResult = {
-                fail()
-            },
-            onError = {
-                fail()
-            })
-    }
-
-    @Test
-    fun givenTakePictureCalledJPEGAndDoNotSaveAndCompressOKWhenProcessResultFromCameraThenSuccess() {
+    fun givenTakePictureNotCalledWhenProcessResultFromCameraThenError() {
         val camParameters = IONCAMRCameraParameters(
             20,
             -1,
@@ -691,8 +267,7 @@ class TakePictureTests {
             allowEdit = false,
             correctOrientation = false,
             saveToPhotoAlbum = false,
-            includeMetadata = false,
-            latestVersion = false
+            includeMetadata = false
         )
 
         val exifHelperMock = IONExifHelperMock()
@@ -710,35 +285,29 @@ class TakePictureTests {
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
-        imgHelperMock.processPicSuccess = true
-        fileHelperMock.getUriResult = IONCAMRFileHelperMock.GET_URI_SUCCESS
-
-        IONCAMRCameraManager.takePicture(mockActivity, 0, 0)
+        // takePicture is NOT called — imageFilePath is null, so sourcePath is null
         IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
-            onImage = {
-                assertEquals(PROCESS_SUCCESS, it)
-            },
             onMediaResult = {
                 fail()
             },
             onError = {
-                fail()
+                assertEquals(it.code, IONCAMRError.TAKE_PHOTO_ERROR.code)
+                assertEquals(it.description, IONCAMRError.TAKE_PHOTO_ERROR.description)
             })
     }
 
     @Test
-    fun givenTakePictureCalledPNGAndDoNotSaveAndCompressOKWhenProcessResultFromCameraThenSuccess() {
+    fun givenTakePictureCalledJPEGNoMetadataWhenProcessResultFromCameraThenSuccess() {
         val camParameters = IONCAMRCameraParameters(
             20,
             -1,
             -1,
-            1,
+            0,
             0,
             allowEdit = false,
             correctOrientation = false,
             saveToPhotoAlbum = false,
-            includeMetadata = false,
-            latestVersion = false
+            includeMetadata = false
         )
 
         val exifHelperMock = IONExifHelperMock()
@@ -756,62 +325,19 @@ class TakePictureTests {
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
-        imgHelperMock.processPicSuccess = true
-        fileHelperMock.getUriResult = IONCAMRFileHelperMock.GET_URI_SUCCESS
-
-        IONCAMRCameraManager.takePicture(mockActivity, 0, 1)
-        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
-            onImage = {
-                assertEquals(PROCESS_SUCCESS, it)
-            },
-            onMediaResult = {
-                fail()
-            },
-            onError = {
-                fail()
-            })
-    }
-
-    @Test
-    fun givenTakePictureAndCustomWidthHeightJPEGAndCorrectAndProcessOKWhenProcessResultFromCameraThenSuccess() {
-        val camParameters = IONCAMRCameraParameters(
-            20,
-            100,
-            100,
-            0,
-            0,
-            allowEdit = false,
-            correctOrientation = true,
-            saveToPhotoAlbum = true,
-            includeMetadata = false,
-            latestVersion = false
-        )
-
-        val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONCAMRFileHelperMock()
-        val camHelperMock = IONCAMRMediaHelperMock()
-        val imgHelperMock = IONCAMRImageHelperMock()
-
-        val IONCAMRCameraManager = IONCAMRCameraManager(
-            applicationId = "someAppId",
-            exif = exifHelperMock,
-            fileHelper = fileHelperMock,
-            mediaHelper = camHelperMock,
-            imageHelper = imgHelperMock
-        )
-
-        Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
-
-        imgHelperMock.processPicSuccess = true
-        imgHelperMock.areOptionsZero = false
+        fileHelperMock.fileExists = true
+        fileHelperMock.isUriNull = false
+        fileHelperMock.isFileStreamNull = false
+        imgHelperMock.isBitmapNull = false
+        imgHelperMock.bitmapToBase64Success = true
 
         IONCAMRCameraManager.takePicture(mockActivity, 0, 0)
         IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
-            onImage = {
-                assertEquals(PROCESS_SUCCESS, it)
-            },
             onMediaResult = {
-                fail()
+                assertEquals(it.type, 0)
+                assertTrue(it.uri.contains("myFile"))
+                assertEquals(it.thumbnail, BASE_64)
+                assertEquals(it.metadata, null)
             },
             onError = {
                 fail()
@@ -819,64 +345,17 @@ class TakePictureTests {
     }
 
     @Test
-    fun givenTakePictureAndCustomWidthHeightPNGAndCorrectAndProcessOKWhenProcessResultFromCameraThenSuccess() {
+    fun givenTakePictureCalledJPEGDoNotSaveToAlbumWhenProcessResultFromCameraThenSuccess() {
         val camParameters = IONCAMRCameraParameters(
             20,
-            100,
-            100,
-            1,
-            0,
-            allowEdit = false,
-            correctOrientation = true,
-            saveToPhotoAlbum = true,
-            includeMetadata = false,
-            latestVersion = false
-        )
-
-        val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONCAMRFileHelperMock()
-        val camHelperMock = IONCAMRMediaHelperMock()
-        val imgHelperMock = IONCAMRImageHelperMock()
-
-        val IONCAMRCameraManager = IONCAMRCameraManager(
-            applicationId = "someAppId",
-            exif = exifHelperMock,
-            fileHelper = fileHelperMock,
-            mediaHelper = camHelperMock,
-            imageHelper = imgHelperMock
-        )
-
-        Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
-
-        imgHelperMock.processPicSuccess = true
-        imgHelperMock.areOptionsZero = false
-
-        IONCAMRCameraManager.takePicture(mockActivity, 0, 1)
-        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
-            onImage = {
-                assertEquals(PROCESS_SUCCESS, it)
-            },
-            onMediaResult = {
-                fail()
-            },
-            onError = {
-                fail()
-            })
-    }
-
-    @Test
-    fun givenTakePictureAndCustomWidthHeightJPEGAndProcessErrorWhenProcessResultFromCameraThenError() {
-        val camParameters = IONCAMRCameraParameters(
-            20,
-            100,
-            100,
+            -1,
+            -1,
             0,
             0,
             allowEdit = false,
             correctOrientation = false,
-            saveToPhotoAlbum = true,
-            includeMetadata = false,
-            latestVersion = false
+            saveToPhotoAlbum = false,
+            includeMetadata = true
         )
 
         val exifHelperMock = IONExifHelperMock()
@@ -894,1125 +373,31 @@ class TakePictureTests {
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
-        imgHelperMock.processPicSuccess = false
-        imgHelperMock.areOptionsZero = false
+        fileHelperMock.fileExists = true
+        fileHelperMock.isUriNull = false
+        fileHelperMock.isFileStreamNull = false
+        imgHelperMock.isBitmapNull = false
+        imgHelperMock.bitmapToBase64Success = true
+        fileHelperMock.fileExtension = "jpg"
 
         IONCAMRCameraManager.takePicture(mockActivity, 0, 0)
         IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
-            onImage = {
-                fail()
-            },
             onMediaResult = {
-                fail()
+                assertEquals(it.type, 0)
+                assertTrue(it.uri.contains("myFile"))
+                assertEquals(it.thumbnail, BASE_64)
+                assertFalse(it.saved)
+                assertNotEquals(it.metadata, null)
             },
             onError = {
-                assertEquals(it.code, IONCAMRError.PROCESS_IMAGE_ERROR.code)
-                assertEquals(it.description, IONCAMRError.PROCESS_IMAGE_ERROR.description)
+                fail()
             })
     }
 
     @Test
-    fun givenTakePictureAndCustomWidthHeightPNGAndProcessErrorWhenProcessResultFromCameraThenError() {
+    fun givenTakePictureAllowEditWithExternalEditWhenProcessResultFromCameraThenSuccess() {
         val camParameters = IONCAMRCameraParameters(
             20,
-            100,
-            100,
-            1,
-            0,
-            allowEdit = false,
-            correctOrientation = false,
-            saveToPhotoAlbum = true,
-            includeMetadata = false,
-            latestVersion = false
-        )
-
-        val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONCAMRFileHelperMock()
-        val camHelperMock = IONCAMRMediaHelperMock()
-        val imgHelperMock = IONCAMRImageHelperMock()
-
-        val IONCAMRCameraManager = IONCAMRCameraManager(
-            applicationId = "someAppId",
-            exif = exifHelperMock,
-            fileHelper = fileHelperMock,
-            mediaHelper = camHelperMock,
-            imageHelper = imgHelperMock
-        )
-
-        Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
-
-        imgHelperMock.processPicSuccess = false
-        imgHelperMock.areOptionsZero = false
-
-        IONCAMRCameraManager.takePicture(mockActivity, 0, 1)
-        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
-            onImage = {
-                fail()
-            },
-            onMediaResult = {
-                fail()
-            },
-            onError = {
-                assertEquals(it.code, IONCAMRError.PROCESS_IMAGE_ERROR.code)
-                assertEquals(it.description, IONCAMRError.PROCESS_IMAGE_ERROR.description)
-            })
-    }
-
-    @Test
-    fun givenTakePictureAndCustomWidthHeightJPEGAndOptionsZeroWhenProcessResultFromCameraThenError() {
-        val camParameters = IONCAMRCameraParameters(
-            20,
-            100,
-            100,
-            0,
-            0,
-            allowEdit = false,
-            correctOrientation = false,
-            saveToPhotoAlbum = true,
-            includeMetadata = false,
-            latestVersion = false
-        )
-
-        val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONCAMRFileHelperMock()
-        val camHelperMock = IONCAMRMediaHelperMock()
-        val imgHelperMock = IONCAMRImageHelperMock()
-
-        val IONCAMRCameraManager = IONCAMRCameraManager(
-            applicationId = "someAppId",
-            exif = exifHelperMock,
-            fileHelper = fileHelperMock,
-            mediaHelper = camHelperMock,
-            imageHelper = imgHelperMock
-        )
-
-        Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
-
-        imgHelperMock.processPicSuccess = false
-        imgHelperMock.areOptionsZero = true
-
-        IONCAMRCameraManager.takePicture(mockActivity, 0, 0)
-        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
-            onImage = {
-                fail()
-            },
-            onMediaResult = {
-                fail()
-            },
-            onError = {
-                assertEquals(it.code, IONCAMRError.PROCESS_IMAGE_ERROR.code)
-                assertEquals(it.description, IONCAMRError.PROCESS_IMAGE_ERROR.description)
-            })
-    }
-
-    @Test
-    fun givenTakePictureAndCustomWidthHeightPNGAndOptionsZeroWhenProcessResultFromCameraThenError() {
-        val camParameters = IONCAMRCameraParameters(
-            20,
-            100,
-            100,
-            1,
-            0,
-            allowEdit = false,
-            correctOrientation = false,
-            saveToPhotoAlbum = true,
-            includeMetadata = false,
-            latestVersion = false
-        )
-
-        val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONCAMRFileHelperMock()
-        val camHelperMock = IONCAMRMediaHelperMock()
-        val imgHelperMock = IONCAMRImageHelperMock()
-
-        val IONCAMRCameraManager = IONCAMRCameraManager(
-            applicationId = "someAppId",
-            exif = exifHelperMock,
-            fileHelper = fileHelperMock,
-            mediaHelper = camHelperMock,
-            imageHelper = imgHelperMock
-        )
-
-        Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
-
-        imgHelperMock.processPicSuccess = false
-        imgHelperMock.areOptionsZero = true
-
-        IONCAMRCameraManager.takePicture(mockActivity, 0, 1)
-        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
-            onImage = {
-                fail()
-            },
-            onMediaResult = {
-                fail()
-            },
-            onError = {
-                assertEquals(it.code, IONCAMRError.PROCESS_IMAGE_ERROR.code)
-                assertEquals(it.description, IONCAMRError.PROCESS_IMAGE_ERROR.description)
-            })
-    }
-
-    @Test
-    fun givenTakePictureAndCustomWidthHeightJPEGCompressOKWhenProcessResultFromCameraThenSuccess() {
-        val camParameters = IONCAMRCameraParameters(
-            20,
-            100,
-            100,
-            0,
-            0,
-            allowEdit = false,
-            correctOrientation = false,
-            saveToPhotoAlbum = true,
-            includeMetadata = false,
-            latestVersion = false
-        )
-
-        val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONCAMRFileHelperMock()
-        val camHelperMock = IONCAMRMediaHelperMock()
-        val imgHelperMock = IONCAMRImageHelperMock()
-
-        val IONCAMRCameraManager = IONCAMRCameraManager(
-            applicationId = "someAppId",
-            exif = exifHelperMock,
-            fileHelper = fileHelperMock,
-            mediaHelper = camHelperMock,
-            imageHelper = imgHelperMock
-        )
-
-        Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
-
-        imgHelperMock.processPicSuccess = true
-
-        IONCAMRCameraManager.takePicture(mockActivity, 0, 0)
-        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
-            onImage = {
-                assertEquals(PROCESS_SUCCESS, it)
-            },
-            onMediaResult = {
-                fail()
-            },
-            onError = {
-                fail()
-            })
-    }
-
-    @Test
-    fun givenTakePictureAndCustomWidthHeightPNGCompressOKWhenProcessResultFromCameraThenSuccess() {
-        val camParameters = IONCAMRCameraParameters(
-            20,
-            100,
-            100,
-            1,
-            0,
-            allowEdit = false,
-            correctOrientation = false,
-            saveToPhotoAlbum = true,
-            includeMetadata = false,
-            latestVersion = false
-        )
-
-        val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONCAMRFileHelperMock()
-        val camHelperMock = IONCAMRMediaHelperMock()
-        val imgHelperMock = IONCAMRImageHelperMock()
-
-        val IONCAMRCameraManager = IONCAMRCameraManager(
-            applicationId = "someAppId",
-            exif = exifHelperMock,
-            fileHelper = fileHelperMock,
-            mediaHelper = camHelperMock,
-            imageHelper = imgHelperMock
-        )
-
-        Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
-
-        imgHelperMock.processPicSuccess = true
-
-        IONCAMRCameraManager.takePicture(mockActivity, 0, 1)
-        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
-            onImage = {
-                assertEquals(PROCESS_SUCCESS, it)
-            },
-            onMediaResult = {
-                fail()
-            },
-            onError = {
-                fail()
-            })
-    }
-
-    @Test
-    fun givenTakePictureAndCustomWidthHeightJPEGCompressErrorWhenProcessResultFromCameraThenError() {
-        val camParameters = IONCAMRCameraParameters(
-            20,
-            100,
-            100,
-            0,
-            0,
-            allowEdit = false,
-            correctOrientation = false,
-            saveToPhotoAlbum = true,
-            includeMetadata = false,
-            latestVersion = false
-        )
-
-        val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONCAMRFileHelperMock()
-        val camHelperMock = IONCAMRMediaHelperMock()
-        val imgHelperMock = IONCAMRImageHelperMock()
-
-        val IONCAMRCameraManager = IONCAMRCameraManager(
-            applicationId = "someAppId",
-            exif = exifHelperMock,
-            fileHelper = fileHelperMock,
-            mediaHelper = camHelperMock,
-            imageHelper = imgHelperMock
-        )
-
-        Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
-
-        imgHelperMock.compressImageSuccess = false
-
-        IONCAMRCameraManager.takePicture(mockActivity, 0, 0)
-        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
-            onImage = {
-                fail()
-            },
-            onMediaResult = {
-                fail()
-            },
-            onError = {
-                assertEquals(it.code, IONCAMRError.PROCESS_IMAGE_ERROR.code)
-                assertEquals(it.description, IONCAMRError.PROCESS_IMAGE_ERROR.description)
-            })
-    }
-
-    @Test
-    fun givenTakePictureAndCustomWidthHeightPNGCompressErrorWhenProcessResultFromCameraThenError() {
-        val camParameters = IONCAMRCameraParameters(
-            20,
-            100,
-            100,
-            1,
-            0,
-            allowEdit = false,
-            correctOrientation = false,
-            saveToPhotoAlbum = true,
-            includeMetadata = false,
-            latestVersion = false
-        )
-
-        val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONCAMRFileHelperMock()
-        val camHelperMock = IONCAMRMediaHelperMock()
-        val imgHelperMock = IONCAMRImageHelperMock()
-
-        val IONCAMRCameraManager = IONCAMRCameraManager(
-            applicationId = "someAppId",
-            exif = exifHelperMock,
-            fileHelper = fileHelperMock,
-            mediaHelper = camHelperMock,
-            imageHelper = imgHelperMock
-        )
-
-        Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
-
-        imgHelperMock.compressImageSuccess = false
-
-        IONCAMRCameraManager.takePicture(mockActivity, 0, 1)
-        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
-            onImage = {
-                fail()
-            },
-            onMediaResult = {
-                fail()
-            },
-            onError = {
-                assertEquals(it.code, IONCAMRError.PROCESS_IMAGE_ERROR.code)
-                assertEquals(it.description, IONCAMRError.PROCESS_IMAGE_ERROR.description)
-            })
-    }
-
-
-    @Test
-    fun givenTakePictureAndCorrectJPEGAndRotate90RatioSameWhenProcessResultFromCameraThenSuccess() {
-        val camParameters = IONCAMRCameraParameters(
-            20,
-            -1,
-            -1,
-            0,
-            0,
-            allowEdit = false,
-            correctOrientation = true,
-            saveToPhotoAlbum = true,
-            includeMetadata = false,
-            latestVersion = false
-        )
-
-        val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONCAMRFileHelperMock()
-        val camHelperMock = IONCAMRMediaHelperMock()
-        val imgHelperMock = IONCAMRImageHelperMock()
-
-        val IONCAMRCameraManager = IONCAMRCameraManager(
-            applicationId = "someAppId",
-            exif = exifHelperMock,
-            fileHelper = fileHelperMock,
-            mediaHelper = camHelperMock,
-            imageHelper = imgHelperMock
-        )
-
-        Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
-
-        imgHelperMock.processPicSuccess = true
-        imgHelperMock.areOptionsZero = false
-        imgHelperMock.outHeight = 10
-        imgHelperMock.outWidth = 10
-        exifHelperMock.testOrientation = ExifInterface.ORIENTATION_ROTATE_90
-
-        IONCAMRCameraManager.takePicture(mockActivity, 0, 0)
-        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
-            onImage = {
-                assertEquals(it, PROCESS_SUCCESS)
-            },
-            onMediaResult = {
-                fail()
-            },
-            onError = {
-                fail()
-            })
-    }
-
-    @Test
-    fun givenTakePictureAndCorrectPNGAndRotate90RatioSameWhenProcessResultFromCameraThenSuccess() {
-        val camParameters = IONCAMRCameraParameters(
-            20,
-            -1,
-            -1,
-            1,
-            0,
-            allowEdit = false,
-            correctOrientation = true,
-            saveToPhotoAlbum = true,
-            includeMetadata = false,
-            latestVersion = false
-        )
-
-        val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONCAMRFileHelperMock()
-        val camHelperMock = IONCAMRMediaHelperMock()
-        val imgHelperMock = IONCAMRImageHelperMock()
-
-        val IONCAMRCameraManager = IONCAMRCameraManager(
-            applicationId = "someAppId",
-            exif = exifHelperMock,
-            fileHelper = fileHelperMock,
-            mediaHelper = camHelperMock,
-            imageHelper = imgHelperMock
-        )
-
-        Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
-
-        imgHelperMock.processPicSuccess = true
-        imgHelperMock.areOptionsZero = false
-        imgHelperMock.outHeight = 10
-        imgHelperMock.outWidth = 10
-        exifHelperMock.testOrientation = ExifInterface.ORIENTATION_ROTATE_90
-
-        IONCAMRCameraManager.takePicture(mockActivity, 0, 1)
-        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
-            onImage = {
-                assertEquals(it, PROCESS_SUCCESS)
-            },
-            onMediaResult = {
-                fail()
-            },
-            onError = {
-                fail()
-            })
-    }
-
-    @Test
-    fun givenTakePictureAndCorrectJPEGAndRotate90RatioOrigHigherWhenProcessResultFromCameraThenSuccess() {
-        val camParameters = IONCAMRCameraParameters(
-            20,
-            -1,
-            -1,
-            0,
-            0,
-            allowEdit = false,
-            correctOrientation = true,
-            saveToPhotoAlbum = true,
-            includeMetadata = false,
-            latestVersion = false
-        )
-
-        val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONCAMRFileHelperMock()
-        val camHelperMock = IONCAMRMediaHelperMock()
-        val imgHelperMock = IONCAMRImageHelperMock()
-
-        val IONCAMRCameraManager = IONCAMRCameraManager(
-            applicationId = "someAppId",
-            exif = exifHelperMock,
-            fileHelper = fileHelperMock,
-            mediaHelper = camHelperMock,
-            imageHelper = imgHelperMock
-        )
-
-        Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
-
-        imgHelperMock.processPicSuccess = true
-        imgHelperMock.areOptionsZero = false
-        imgHelperMock.outHeight = 12
-        imgHelperMock.outWidth = 10
-        exifHelperMock.testOrientation = ExifInterface.ORIENTATION_ROTATE_90
-
-        IONCAMRCameraManager.takePicture(mockActivity, 0, 0)
-        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
-            onImage = {
-                assertEquals(it, PROCESS_SUCCESS)
-            },
-            onMediaResult = {
-                fail()
-            },
-            onError = {
-                fail()
-            })
-    }
-
-    @Test
-    fun givenTakePictureAndCorrectPNGAndRotate90RatioOrigHigherWhenProcessResultFromCameraThenSuccess() {
-        val camParameters = IONCAMRCameraParameters(
-            20,
-            -1,
-            -1,
-            1,
-            0,
-            allowEdit = false,
-            correctOrientation = true,
-            saveToPhotoAlbum = true,
-            includeMetadata = false,
-            latestVersion = false
-        )
-
-        val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONCAMRFileHelperMock()
-        val camHelperMock = IONCAMRMediaHelperMock()
-        val imgHelperMock = IONCAMRImageHelperMock()
-
-        val IONCAMRCameraManager = IONCAMRCameraManager(
-            applicationId = "someAppId",
-            exif = exifHelperMock,
-            fileHelper = fileHelperMock,
-            mediaHelper = camHelperMock,
-            imageHelper = imgHelperMock
-        )
-
-        Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
-
-        imgHelperMock.processPicSuccess = true
-        imgHelperMock.areOptionsZero = false
-        imgHelperMock.outHeight = 12
-        imgHelperMock.outWidth = 10
-        exifHelperMock.testOrientation = ExifInterface.ORIENTATION_ROTATE_90
-
-        IONCAMRCameraManager.takePicture(mockActivity, 0, 1)
-        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
-            onImage = {
-                assertEquals(it, PROCESS_SUCCESS)
-            },
-            onMediaResult = {
-                fail()
-            },
-            onError = {
-                fail()
-            })
-    }
-
-    @Test
-    fun givenTakePictureAndCorrectJPEGAndRotate90RatioOrigLowerWhenProcessResultFromCameraThenSuccess() {
-        val camParameters = IONCAMRCameraParameters(
-            20,
-            -1,
-            -1,
-            0,
-            0,
-            allowEdit = false,
-            correctOrientation = true,
-            saveToPhotoAlbum = true,
-            includeMetadata = false,
-            latestVersion = false
-        )
-
-        val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONCAMRFileHelperMock()
-        val camHelperMock = IONCAMRMediaHelperMock()
-        val imgHelperMock = IONCAMRImageHelperMock()
-
-        val IONCAMRCameraManager = IONCAMRCameraManager(
-            applicationId = "someAppId",
-            exif = exifHelperMock,
-            fileHelper = fileHelperMock,
-            mediaHelper = camHelperMock,
-            imageHelper = imgHelperMock
-        )
-
-        Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
-
-        imgHelperMock.processPicSuccess = true
-        imgHelperMock.areOptionsZero = false
-        imgHelperMock.outHeight = 10
-        imgHelperMock.outWidth = 12
-        exifHelperMock.testOrientation = ExifInterface.ORIENTATION_ROTATE_90
-
-        IONCAMRCameraManager.takePicture(mockActivity, 0, 0)
-        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
-            onImage = {
-                assertEquals(it, PROCESS_SUCCESS)
-            },
-            onMediaResult = {
-                fail()
-            },
-            onError = {
-                fail()
-            })
-    }
-
-    @Test
-    fun givenTakePictureAndCorrectPNGAndRotate90RatioOrigLowerWhenProcessResultFromCameraThenSuccess() {
-        val camParameters = IONCAMRCameraParameters(
-            20,
-            -1,
-            -1,
-            1,
-            0,
-            allowEdit = false,
-            correctOrientation = true,
-            saveToPhotoAlbum = true,
-            includeMetadata = false,
-            latestVersion = false
-        )
-
-        val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONCAMRFileHelperMock()
-        val camHelperMock = IONCAMRMediaHelperMock()
-        val imgHelperMock = IONCAMRImageHelperMock()
-
-        val IONCAMRCameraManager = IONCAMRCameraManager(
-            applicationId = "someAppId",
-            exif = exifHelperMock,
-            fileHelper = fileHelperMock,
-            mediaHelper = camHelperMock,
-            imageHelper = imgHelperMock
-        )
-
-        Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
-
-        imgHelperMock.processPicSuccess = true
-        imgHelperMock.areOptionsZero = false
-        imgHelperMock.outHeight = 10
-        imgHelperMock.outWidth = 12
-        exifHelperMock.testOrientation = ExifInterface.ORIENTATION_ROTATE_90
-
-        IONCAMRCameraManager.takePicture(mockActivity, 0, 1)
-        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
-            onImage = {
-                assertEquals(it, PROCESS_SUCCESS)
-            },
-            onMediaResult = {
-                fail()
-            },
-            onError = {
-                fail()
-            })
-    }
-
-    @Test
-    fun givenTakePictureAndCorrectJPEGAndRotate90BothBelow0WhenProcessResultFromCameraThenSuccess() {
-        val camParameters = IONCAMRCameraParameters(
-            20,
-            -1,
-            -1,
-            0,
-            0,
-            allowEdit = false,
-            correctOrientation = true,
-            saveToPhotoAlbum = true,
-            includeMetadata = false,
-            latestVersion = false
-        )
-
-        val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONCAMRFileHelperMock()
-        val camHelperMock = IONCAMRMediaHelperMock()
-        val imgHelperMock = IONCAMRImageHelperMock()
-
-        val IONCAMRCameraManager = IONCAMRCameraManager(
-            applicationId = "someAppId",
-            exif = exifHelperMock,
-            fileHelper = fileHelperMock,
-            mediaHelper = camHelperMock,
-            imageHelper = imgHelperMock
-        )
-
-        Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
-
-        imgHelperMock.processPicSuccess = true
-        imgHelperMock.areOptionsZero = false
-        imgHelperMock.outHeight = -1
-        imgHelperMock.outWidth = -1
-        exifHelperMock.testOrientation = ExifInterface.ORIENTATION_ROTATE_90
-
-        IONCAMRCameraManager.takePicture(mockActivity, 0, 0)
-        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
-            onImage = {
-                assertEquals(it, PROCESS_SUCCESS)
-            },
-            onMediaResult = {
-                fail()
-            },
-            onError = {
-                fail()
-            })
-    }
-
-    @Test
-    fun givenTakePictureAndCorrectPNGAndRotate90BothBelow0WhenProcessResultFromCameraThenSuccess() {
-        val camParameters = IONCAMRCameraParameters(
-            20,
-            -1,
-            -1,
-            1,
-            0,
-            allowEdit = false,
-            correctOrientation = true,
-            saveToPhotoAlbum = true,
-            includeMetadata = false,
-            latestVersion = false
-        )
-
-        val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONCAMRFileHelperMock()
-        val camHelperMock = IONCAMRMediaHelperMock()
-        val imgHelperMock = IONCAMRImageHelperMock()
-
-        val IONCAMRCameraManager = IONCAMRCameraManager(
-            applicationId = "someAppId",
-            exif = exifHelperMock,
-            fileHelper = fileHelperMock,
-            mediaHelper = camHelperMock,
-            imageHelper = imgHelperMock
-        )
-
-        Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
-
-        imgHelperMock.processPicSuccess = true
-        imgHelperMock.areOptionsZero = false
-        imgHelperMock.outHeight = -1
-        imgHelperMock.outWidth = -1
-        exifHelperMock.testOrientation = ExifInterface.ORIENTATION_ROTATE_90
-
-        IONCAMRCameraManager.takePicture(mockActivity, 0, 1)
-        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
-            onImage = {
-                assertEquals(it, PROCESS_SUCCESS)
-            },
-            onMediaResult = {
-                fail()
-            },
-            onError = {
-                fail()
-            })
-    }
-
-    @Test
-    fun givenTakePictureAndCorrectJPEGAndRotate90HeightBelow0WhenProcessResultFromCameraThenSuccess() {
-        val camParameters = IONCAMRCameraParameters(
-            20,
-            -1,
-            -1,
-            0,
-            0,
-            allowEdit = false,
-            correctOrientation = true,
-            saveToPhotoAlbum = true,
-            includeMetadata = false,
-            latestVersion = false
-        )
-
-        val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONCAMRFileHelperMock()
-        val camHelperMock = IONCAMRMediaHelperMock()
-        val imgHelperMock = IONCAMRImageHelperMock()
-
-        val IONCAMRCameraManager = IONCAMRCameraManager(
-            applicationId = "someAppId",
-            exif = exifHelperMock,
-            fileHelper = fileHelperMock,
-            mediaHelper = camHelperMock,
-            imageHelper = imgHelperMock
-        )
-
-        Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
-
-        imgHelperMock.processPicSuccess = true
-        imgHelperMock.areOptionsZero = false
-        imgHelperMock.outHeight = -1
-        imgHelperMock.outWidth = 1
-        exifHelperMock.testOrientation = ExifInterface.ORIENTATION_ROTATE_90
-
-        IONCAMRCameraManager.takePicture(mockActivity, 0, 0)
-        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
-            onImage = {
-                assertEquals(it, PROCESS_SUCCESS)
-            },
-            onMediaResult = {
-                fail()
-            },
-            onError = {
-                fail()
-            })
-    }
-
-    @Test
-    fun givenTakePictureAndCorrectPNGAndRotate90HeightBelow0WhenProcessResultFromCameraThenSuccess() {
-        val camParameters = IONCAMRCameraParameters(
-            20,
-            -1,
-            -1,
-            1,
-            0,
-            allowEdit = false,
-            correctOrientation = true,
-            saveToPhotoAlbum = true,
-            includeMetadata = false,
-            latestVersion = false
-        )
-
-        val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONCAMRFileHelperMock()
-        val camHelperMock = IONCAMRMediaHelperMock()
-        val imgHelperMock = IONCAMRImageHelperMock()
-
-        val IONCAMRCameraManager = IONCAMRCameraManager(
-            applicationId = "someAppId",
-            exif = exifHelperMock,
-            fileHelper = fileHelperMock,
-            mediaHelper = camHelperMock,
-            imageHelper = imgHelperMock
-        )
-
-        Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
-
-        imgHelperMock.processPicSuccess = true
-        imgHelperMock.areOptionsZero = false
-        imgHelperMock.outHeight = -1
-        imgHelperMock.outWidth = 1
-        exifHelperMock.testOrientation = ExifInterface.ORIENTATION_ROTATE_90
-
-        IONCAMRCameraManager.takePicture(mockActivity, 0, 1)
-        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
-            onImage = {
-                assertEquals(it, PROCESS_SUCCESS)
-            },
-            onMediaResult = {
-                fail()
-            },
-            onError = {
-                fail()
-            })
-    }
-
-    @Test
-    fun givenTakePictureAndCorrectJPEGAndRotate90WidthBelow0WhenProcessResultFromCameraThenSuccess() {
-        val camParameters = IONCAMRCameraParameters(
-            20,
-            -1,
-            -1,
-            0,
-            0,
-            allowEdit = false,
-            correctOrientation = true,
-            saveToPhotoAlbum = true,
-            includeMetadata = false,
-            latestVersion = false
-        )
-
-        val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONCAMRFileHelperMock()
-        val camHelperMock = IONCAMRMediaHelperMock()
-        val imgHelperMock = IONCAMRImageHelperMock()
-
-        val IONCAMRCameraManager = IONCAMRCameraManager(
-            applicationId = "someAppId",
-            exif = exifHelperMock,
-            fileHelper = fileHelperMock,
-            mediaHelper = camHelperMock,
-            imageHelper = imgHelperMock
-        )
-
-        Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
-
-        imgHelperMock.processPicSuccess = true
-        imgHelperMock.areOptionsZero = false
-        imgHelperMock.outHeight = 1
-        imgHelperMock.outWidth = -1
-        exifHelperMock.testOrientation = ExifInterface.ORIENTATION_ROTATE_90
-
-        IONCAMRCameraManager.takePicture(mockActivity, 0, 0)
-        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
-            onImage = {
-                assertEquals(it, PROCESS_SUCCESS)
-            },
-            onMediaResult = {
-                fail()
-            },
-            onError = {
-                fail()
-            })
-    }
-
-    @Test
-    fun givenTakePictureAndCorrectPNGAndRotate90WidthBelow0WhenProcessResultFromCameraThenSuccess() {
-        val camParameters = IONCAMRCameraParameters(
-            20,
-            -1,
-            -1,
-            1,
-            0,
-            allowEdit = false,
-            correctOrientation = true,
-            saveToPhotoAlbum = true,
-            includeMetadata = false,
-            latestVersion = false
-        )
-
-        val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONCAMRFileHelperMock()
-        val camHelperMock = IONCAMRMediaHelperMock()
-        val imgHelperMock = IONCAMRImageHelperMock()
-
-        val IONCAMRCameraManager = IONCAMRCameraManager(
-            applicationId = "someAppId",
-            exif = exifHelperMock,
-            fileHelper = fileHelperMock,
-            mediaHelper = camHelperMock,
-            imageHelper = imgHelperMock
-        )
-
-        Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
-
-        imgHelperMock.processPicSuccess = true
-        imgHelperMock.areOptionsZero = false
-        imgHelperMock.outHeight = 1
-        imgHelperMock.outWidth = -1
-        exifHelperMock.testOrientation = ExifInterface.ORIENTATION_ROTATE_90
-
-        IONCAMRCameraManager.takePicture(mockActivity, 0, 1)
-        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
-            onImage = {
-                assertEquals(it, PROCESS_SUCCESS)
-            },
-            onMediaResult = {
-                fail()
-            },
-            onError = {
-                fail()
-            })
-    }
-
-    @Test
-    fun givenTakePictureAndCorrectJPEGAndRotate180WhenProcessResultFromCameraThenSuccess() {
-        val camParameters = IONCAMRCameraParameters(
-            20,
-            -1,
-            -1,
-            0,
-            0,
-            allowEdit = false,
-            correctOrientation = true,
-            saveToPhotoAlbum = true,
-            includeMetadata = false,
-            latestVersion = false
-        )
-
-        val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONCAMRFileHelperMock()
-        val camHelperMock = IONCAMRMediaHelperMock()
-        val imgHelperMock = IONCAMRImageHelperMock()
-
-        val IONCAMRCameraManager = IONCAMRCameraManager(
-            applicationId = "someAppId",
-            exif = exifHelperMock,
-            fileHelper = fileHelperMock,
-            mediaHelper = camHelperMock,
-            imageHelper = imgHelperMock
-        )
-
-        Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
-
-        imgHelperMock.processPicSuccess = true
-        imgHelperMock.areOptionsZero = false
-        exifHelperMock.testOrientation = ExifInterface.ORIENTATION_ROTATE_180
-
-        IONCAMRCameraManager.takePicture(mockActivity, 0, 0)
-        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
-            onImage = {
-                assertEquals(it, PROCESS_SUCCESS)
-            },
-            onMediaResult = {
-                fail()
-            },
-            onError = {
-                fail()
-            })
-    }
-
-    @Test
-    fun givenTakePictureAndCorrectPNGAndRotate180WhenProcessResultFromCameraThenSuccess() {
-        val camParameters = IONCAMRCameraParameters(
-            20,
-            -1,
-            -1,
-            1,
-            0,
-            allowEdit = false,
-            correctOrientation = true,
-            saveToPhotoAlbum = true,
-            includeMetadata = false,
-            latestVersion = false
-        )
-
-        val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONCAMRFileHelperMock()
-        val camHelperMock = IONCAMRMediaHelperMock()
-        val imgHelperMock = IONCAMRImageHelperMock()
-
-        val IONCAMRCameraManager = IONCAMRCameraManager(
-            applicationId = "someAppId",
-            exif = exifHelperMock,
-            fileHelper = fileHelperMock,
-            mediaHelper = camHelperMock,
-            imageHelper = imgHelperMock
-        )
-
-        Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
-
-        imgHelperMock.processPicSuccess = true
-        imgHelperMock.areOptionsZero = false
-        exifHelperMock.testOrientation = ExifInterface.ORIENTATION_ROTATE_180
-
-        IONCAMRCameraManager.takePicture(mockActivity, 0, 1)
-        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
-            onImage = {
-                assertEquals(it, PROCESS_SUCCESS)
-            },
-            onMediaResult = {
-                fail()
-            },
-            onError = {
-                fail()
-            })
-    }
-
-    @Test
-    fun givenTakePictureAndAllowEditWhenProcessResultFromCameraThenSuccess() {
-        val camParameters = IONCAMRCameraParameters(
-            20,
-            -1,
-            -1,
-            0,
-            0,
-            allowEdit = true,
-            correctOrientation = true,
-            saveToPhotoAlbum = true,
-            includeMetadata = false,
-            latestVersion = false
-        )
-
-        val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONCAMRFileHelperMock()
-        val camHelperMock = IONCAMRMediaHelperMock()
-        val imgHelperMock = IONCAMRImageHelperMock()
-
-        val IONCAMRCameraManager = IONCAMRCameraManager(
-            applicationId = "someAppId",
-            exif = exifHelperMock,
-            fileHelper = fileHelperMock,
-            mediaHelper = camHelperMock,
-            imageHelper = imgHelperMock
-        )
-
-        Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
-
-        imgHelperMock.processPicSuccess = true
-        imgHelperMock.areOptionsZero = false
-
-        IONCAMRCameraManager.takePicture(mockActivity, 0, 0)
-        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
-            onImage = {
-                assertEquals(it, PROCESS_SUCCESS)
-            },
-            onMediaResult = {
-                fail()
-            },
-            onError = {
-                fail()
-            })
-    }
-
-    @Test
-    fun givenTakePictureAndAllowEditDoNotCorrectQuality100SaveWhenProcessResultFromCameraThenSuccess() {
-        val camParameters = IONCAMRCameraParameters(
-            100,
-            -1,
-            -1,
-            0,
-            0,
-            allowEdit = true,
-            correctOrientation = false,
-            saveToPhotoAlbum = true,
-            includeMetadata = false,
-            latestVersion = false
-        )
-
-        val exifHelperMock = IONExifHelperMock()
-        val fileHelperMock = IONCAMRFileHelperMock()
-        val camHelperMock = IONCAMRMediaHelperMock()
-        val imgHelperMock = IONCAMRImageHelperMock()
-
-        val IONCAMRCameraManager = IONCAMRCameraManager(
-            applicationId = "someAppId",
-            exif = exifHelperMock,
-            fileHelper = fileHelperMock,
-            mediaHelper = camHelperMock,
-            imageHelper = imgHelperMock
-        )
-
-        Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
-
-        imgHelperMock.processPicSuccess = true
-        imgHelperMock.areOptionsZero = false
-
-        IONCAMRCameraManager.takePicture(mockActivity, 0, 0)
-        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
-            onImage = {
-                assertEquals(it, PROCESS_SUCCESS)
-            },
-            onMediaResult = {
-                fail()
-            },
-            onError = {
-                fail()
-            })
-    }
-
-    @Test
-    fun givenTakePictureAndAllowEditDoNotCorrectQuality100DoNotSaveWhenProcessResultFromCameraThenSuccess() {
-        val camParameters = IONCAMRCameraParameters(
-            100,
             -1,
             -1,
             0,
@@ -2020,8 +405,97 @@ class TakePictureTests {
             allowEdit = true,
             correctOrientation = false,
             saveToPhotoAlbum = false,
-            includeMetadata = false,
-            latestVersion = false
+            includeMetadata = true
+        )
+
+        val exifHelperMock = IONExifHelperMock()
+        val fileHelperMock = IONCAMRFileHelperMock()
+        val camHelperMock = IONCAMRMediaHelperMock()
+        val imgHelperMock = IONCAMRImageHelperMock()
+
+        val IONCAMRCameraManager = IONCAMRCameraManager(
+            applicationId = "someAppId",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
+
+        Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
+        Mockito.doReturn(FILE_LOCATION).`when`(mIntent).getStringExtra(IONCAMRImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS)
+
+        fileHelperMock.fileExists = true
+        fileHelperMock.isUriNull = false
+        fileHelperMock.isFileStreamNull = false
+        imgHelperMock.isBitmapNull = false
+        imgHelperMock.bitmapToBase64Success = true
+        fileHelperMock.fileExtension = "jpg"
+
+        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
+            onMediaResult = {
+                assertEquals(it.type, 0)
+                assertEquals(it.thumbnail, BASE_64)
+                assertNotEquals(it.metadata, null)
+            },
+            onError = {
+                fail()
+            })
+    }
+
+    @Test
+    fun givenTakePictureAllowEditWithExternalEditAndUriNullWhenProcessResultFromCameraThenError() {
+        val camParameters = IONCAMRCameraParameters(
+            20,
+            -1,
+            -1,
+            0,
+            0,
+            allowEdit = true,
+            correctOrientation = false,
+            saveToPhotoAlbum = false,
+            includeMetadata = false
+        )
+
+        val exifHelperMock = IONExifHelperMock()
+        val fileHelperMock = IONCAMRFileHelperMock()
+        val camHelperMock = IONCAMRMediaHelperMock()
+        val imgHelperMock = IONCAMRImageHelperMock()
+
+        val IONCAMRCameraManager = IONCAMRCameraManager(
+            applicationId = "someAppId",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
+
+        Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
+        Mockito.doReturn(FILE_LOCATION).`when`(mIntent).getStringExtra(IONCAMRImageEditorActivity.IMAGE_OUTPUT_URI_EXTRAS)
+
+        fileHelperMock.isUriNull = true
+
+        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
+            onMediaResult = {
+                fail()
+            },
+            onError = {
+                assertEquals(it.code, IONCAMRError.TAKE_PHOTO_ERROR.code)
+                assertEquals(it.description, IONCAMRError.TAKE_PHOTO_ERROR.description)
+            })
+    }
+
+    @Test
+    fun givenTakePictureCalledPNGWithMetadataWhenProcessResultFromCameraThenSuccess() {
+        val camParameters = IONCAMRCameraParameters(
+            20,
+            -1,
+            -1,
+            1,
+            0,
+            allowEdit = false,
+            correctOrientation = false,
+            saveToPhotoAlbum = true,
+            includeMetadata = true
         )
 
         val exifHelperMock = IONExifHelperMock()
@@ -2039,19 +513,66 @@ class TakePictureTests {
 
         Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
 
-        imgHelperMock.processPicSuccess = true
-        imgHelperMock.areOptionsZero = false
+        fileHelperMock.fileExists = true
+        fileHelperMock.isUriNull = false
+        fileHelperMock.isFileStreamNull = false
+        imgHelperMock.isBitmapNull = false
+        imgHelperMock.bitmapToBase64Success = true
+        fileHelperMock.fileExtension = "png"
 
-        IONCAMRCameraManager.takePicture(mockActivity, 0, 0)
+        IONCAMRCameraManager.takePicture(mockActivity, 0, 1)
         IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
-            onImage = {
-                assertEquals(it, PROCESS_SUCCESS)
+            onMediaResult = {
+                assertEquals(it.type, 0)
+                assertTrue(it.uri.contains("myFile"))
+                assertEquals(it.thumbnail, BASE_64)
+                assertNotEquals(it.metadata, null)
+                assertEquals(it.metadata?.format, "png")
             },
+            onError = {
+                fail()
+            })
+    }
+
+    @Test
+    fun givenTakePictureCalledPNGAndUriNullWhenProcessResultFromCameraThenError() {
+        val camParameters = IONCAMRCameraParameters(
+            20,
+            -1,
+            -1,
+            1,
+            0,
+            allowEdit = false,
+            correctOrientation = false,
+            saveToPhotoAlbum = true,
+            includeMetadata = false
+        )
+
+        val exifHelperMock = IONExifHelperMock()
+        val fileHelperMock = IONCAMRFileHelperMock()
+        val camHelperMock = IONCAMRMediaHelperMock()
+        val imgHelperMock = IONCAMRImageHelperMock()
+
+        val IONCAMRCameraManager = IONCAMRCameraManager(
+            applicationId = "someAppId",
+            exif = exifHelperMock,
+            fileHelper = fileHelperMock,
+            mediaHelper = camHelperMock,
+            imageHelper = imgHelperMock
+        )
+
+        Mockito.`when`(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)).thenReturn(mFile)
+
+        fileHelperMock.isUriNull = true
+
+        IONCAMRCameraManager.takePicture(mockActivity, 0, 1)
+        IONCAMRCameraManager.processResultFromCamera(mockActivity, mIntent, camParameters,
             onMediaResult = {
                 fail()
             },
             onError = {
-                fail()
+                assertEquals(it.code, IONCAMRError.TAKE_PHOTO_ERROR.code)
+                assertEquals(it.description, IONCAMRError.TAKE_PHOTO_ERROR.description)
             })
     }
 

@@ -184,7 +184,6 @@ class IONCAMRCameraManager(
         activity: Activity,
         intent: Intent?,
         camParameters: IONCAMRCameraParameters,
-        onImage: (String) -> Unit,
         onMediaResult: (IONCAMRMediaResult) -> Unit,
         onError: (IONCAMRError) -> Unit
     ) {
@@ -235,12 +234,10 @@ class IONCAMRCameraManager(
 
         mediaProcessor.processCameraImage(
             activity = activity,
-            intent = intent,
             sourcePath = sourcePath,
             "$applicationId$AUTHORITY",
             camParameters = camParameters,
             savedSuccessfully = savedSuccessfully,
-            onImage = onImage,
             onMediaResult = onMediaResult,
             onError = onError
         )
