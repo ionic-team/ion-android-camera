@@ -68,7 +68,7 @@ class TakePictureTests {
     }
 
     @Test
-    fun givenAPI30TakePictureCalledJPEGAndDataUriAndUriNullWhenProcessResultFromCameraThenError() {
+    fun givenTakePictureCalledJPEGAndUriNullWhenProcessResultFromCameraThenError() {
         val camParameters = IONCAMRCameraParameters(
             20,
             -1,
@@ -111,7 +111,7 @@ class TakePictureTests {
     }
 
     @Test
-    fun givenAPI30TakePictureCalledJPEGAndDataUriAndUriNotNullFileStreamNullWhenProcessResultFromCameraThenError() {
+    fun givenTakePictureCalledJPEGAndFileStreamNullWhenProcessResultFromCameraThenError() {
         val camParameters = IONCAMRCameraParameters(
             20,
             -1,
@@ -156,7 +156,7 @@ class TakePictureTests {
     }
 
     @Test
-    fun givenAPI30TakePictureCalledJPEGAndDataUriAndUriNotNullBitmapNullWhenProcessResultFromCameraThenError() {
+    fun givenTakePictureCalledJPEGAndBitmapNullWhenProcessResultFromCameraThenError() {
         val camParameters = IONCAMRCameraParameters(
             20,
             -1,
@@ -202,7 +202,7 @@ class TakePictureTests {
     }
 
     @Test
-    fun givenAPI30TakePictureCalledJPEGAndDataUriAndUriNotNullBitmapNotNullWhenProcessResultFromCameraThenSuccess() {
+    fun givenTakePictureCalledJPEGWithMetadataWhenProcessResultFromCameraThenSuccess() {
         val camParameters = IONCAMRCameraParameters(
             20,
             -1,
@@ -297,7 +297,7 @@ class TakePictureTests {
     }
 
     @Test
-    fun givenAPI30TakePictureCalledJPEGNoMetadataWhenProcessResultFromCameraThenSuccess() {
+    fun givenTakePictureCalledJPEGNoMetadataWhenProcessResultFromCameraThenSuccess() {
         val camParameters = IONCAMRCameraParameters(
             20,
             -1,
@@ -345,7 +345,7 @@ class TakePictureTests {
     }
 
     @Test
-    fun givenAPI30TakePictureCalledJPEGDoNotSaveToAlbumWhenProcessResultFromCameraThenSuccess() {
+    fun givenTakePictureCalledJPEGDoNotSaveToAlbumWhenProcessResultFromCameraThenSuccess() {
         val camParameters = IONCAMRCameraParameters(
             20,
             -1,
@@ -395,7 +395,7 @@ class TakePictureTests {
     }
 
     @Test
-    fun givenAPI30TakePictureAllowEditWithExternalEditWhenProcessResultFromCameraThenSuccess() {
+    fun givenTakePictureAllowEditWithExternalEditWhenProcessResultFromCameraThenSuccess() {
         val camParameters = IONCAMRCameraParameters(
             20,
             -1,
@@ -443,7 +443,7 @@ class TakePictureTests {
     }
 
     @Test
-    fun givenAPI30TakePictureAllowEditWithExternalEditAndUriNullWhenProcessResultFromCameraThenError() {
+    fun givenTakePictureAllowEditWithExternalEditAndUriNullWhenProcessResultFromCameraThenError() {
         val camParameters = IONCAMRCameraParameters(
             20,
             -1,
@@ -485,7 +485,7 @@ class TakePictureTests {
     }
 
     @Test
-    fun givenAPI30TakePictureCalledPNGAndUriNotNullBitmapNotNullWhenProcessResultFromCameraThenSuccess() {
+    fun givenTakePictureCalledPNGWithMetadataWhenProcessResultFromCameraThenSuccess() {
         val camParameters = IONCAMRCameraParameters(
             20,
             -1,
@@ -535,7 +535,7 @@ class TakePictureTests {
     }
 
     @Test
-    fun givenAPI30TakePictureCalledPNGAndUriNullWhenProcessResultFromCameraThenError() {
+    fun givenTakePictureCalledPNGAndUriNullWhenProcessResultFromCameraThenError() {
         val camParameters = IONCAMRCameraParameters(
             20,
             -1,
