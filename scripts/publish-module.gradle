@@ -3,13 +3,6 @@ apply plugin: 'signing'
 
 def LIB_VERSION = System.getenv('THE_VERSION')
 
-task androidSourcesJar(type: Jar) {
-    archiveClassifier.set('sources')
-    from android.sourceSets.main.java.srcDirs
-    from android.sourceSets.main.kotlin.srcDirs
-}
-
-
 group = 'io.ionic.libs'
 version = LIB_VERSION
 
@@ -28,8 +21,6 @@ afterEvaluate {
                 } else {
                     artifact("$buildDir/libs/${project.getName()}-${version}.jar")
                 }
-
-                artifact androidSourcesJar
 
                 // POM Data
                 pom {
@@ -58,10 +49,6 @@ afterEvaluate {
                 }
             }
         }
-    }
-
-    tasks.named("generateMetadataFileForReleasePublication") {
-        dependsOn androidSourcesJar
     }
 
     signing {
