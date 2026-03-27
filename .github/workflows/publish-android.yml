@@ -1,6 +1,10 @@
 name: Publish Native Android Library
 
-on: workflow_dispatch
+#on: workflow_dispatch
+on:
+  push:
+    branches:
+      - feat/RMET-5076/update-errors
 
 jobs:
   publish-android:
