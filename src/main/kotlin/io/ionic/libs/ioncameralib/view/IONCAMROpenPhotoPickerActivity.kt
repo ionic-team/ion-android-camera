@@ -105,7 +105,7 @@ class IONCAMROpenPhotoPickerActivity : ComponentActivity() {
             else -> ActivityResultContracts.PickVisualMedia.ImageAndVideo
         }
 
-        if (allowMultiple) {
+        if (allowMultiple && limit != 1) {
             launchMultiplePicker(mediaType, limit)
         } else {
             launchSinglePicker(mediaType)
