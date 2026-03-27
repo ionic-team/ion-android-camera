@@ -4,7 +4,7 @@ name: Publish Native Android Library
 on:
   push:
     branches:
-      - feat/RMET-5076/update-errors
+      - ci/add-release-pipeline
 
 jobs:
   publish-android:
