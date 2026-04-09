@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.outsystems.plugins.camera.view.LoadingActivity"
+    tools:context="io.ionic.libs.ioncameralib.view.LoadingActivity"
     android:background="#E6000000">
 
     <ProgressBar

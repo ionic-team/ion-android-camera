@@ -4,24 +4,23 @@ buildscript {
     repositories {
         google()
         mavenCentral()
+        maven {
+            url = uri("https://plugins.gradle.org/m2/")
+        }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.11.1'
+        if (System.getenv("SHOULD_PUBLISH") == "true") {
+            classpath("io.github.gradle-nexus:publish-plugin:1.1.0")
+        }
+        classpath 'com.android.tools.build:gradle:8.7.3'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "org.jacoco:org.jacoco.core:$jacocoVersion"
     }
 }
 
-plugins {
-  id "org.sonarqube" version "3.5.0.2730"
-}
-
-sonarqube {
-  properties {
-    property "sonar.projectKey", "OutSystems_OSCameraLib-Android"
-    property "sonar.organization", "outsystemsrd"
-    property "sonar.host.url", "https://sonarcloud.io"
-  }
+if (System.getenv("SHOULD_PUBLISH") == "true") {
+    apply plugin: "io.github.gradle-nexus.publish-plugin"
+    apply from: file("./scripts/publish-root.gradle")
 }
 
 apply plugin: "com.android.library"
@@ -29,11 +28,11 @@ apply plugin: "kotlin-android"
 apply plugin: "jacoco"
 
 android {
-    namespace "com.outsystems.plugins.camera.oscameralib"
+    namespace "io.ionic.libs.ioncameralib"
     compileSdk 36
 
     defaultConfig {
-        minSdk 26
+        minSdk 24
         targetSdk 36
         versionCode 1
         versionName "1.0"
@@ -77,6 +76,12 @@ android {
     testOptions {
         unitTests.returnDefaultValues = true
     }
+
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+        }
+    }
 }
 
 repositories {
@@ -84,13 +89,8 @@ repositories {
     mavenCentral()
 }
 
-android {
-    testOptions {
-        unitTests.returnDefaultValues = true
-    }
-}
-
 dependencies {
+
     implementation 'androidx.core:core-ktx:1.15.0'
     implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation 'androidx.activity:activity-ktx:1.9.3'
@@ -109,7 +109,11 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
     testImplementation 'org.mockito:mockito-core:5.12.0'
     testImplementation 'org.mockito:mockito-inline:5.2.0'
-    testImplementation 'org.mockito.kotlin:mockito-kotlin:4.0.0'
+    testImplementation 'org.mockito.kotlin:mockito-kotlin:5.4.0'
     testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4"
     testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3"
+}
+
+if (System.getenv("SHOULD_PUBLISH") == "true") {
+    apply from: file("./scripts/publish-module.gradle")
 }
