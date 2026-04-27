@@ -566,7 +566,7 @@ class IONCAMRFileHelper: IONCAMRFileHelperInterface {
         var read: Int
         val buffer = ByteArray(8 * 1024)
         val extension = MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType) ?: "dat"
-        val targetFile = createCaptureFile(context, "file.${extension}")
+        val targetFile = createCaptureFile(context, "${UUID.randomUUID()}.${extension}")
         val outputStream: OutputStream = FileOutputStream(targetFile)
         while (inputStream.read(buffer).also { read = it } != -1) {
             outputStream.write(buffer, 0, read)
