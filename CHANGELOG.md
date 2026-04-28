@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 The changes documented here do not include those from the original repository.
 
+## [1.0.1]
+
+### 2026-04-27
+
+- Fix: gallery multiple selection returning duplicate `uri` and `webPath` on Android devices where the MediaStore `_data` column is unavailable. Each selected image now gets a unique cache filename via `UUID.randomUUID()`.
+
 ## [1.0.0]
 
 ### 2026-04-10
