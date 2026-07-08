@@ -8,6 +8,10 @@ The changes documented here do not include those from the original repository.
 
 ## [1.0.2]
 
+### 2026-07-08
+
+- Fix: combine `FLAG_ACTIVITY_NO_HISTORY` and `FLAG_GRANT_READ_URI_PERMISSION` with `or` in `playVideo` to prevent the no-history flag from being silently overwritten ([RMET-5241](https://outsystemsrd.atlassian.net/browse/RMET-5241)).
+
 ### 2026-07-07
 
 - Fix: explicitly grant `FLAG_GRANT_READ_URI_PERMISSION` (in addition to the existing write permission) when launching camera capture intents, required for Android 18's implicit URI grant restriction ([RMET-5241](https://outsystemsrd.atlassian.net/browse/RMET-5241)).

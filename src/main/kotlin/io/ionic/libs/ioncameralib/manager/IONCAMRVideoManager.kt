@@ -47,8 +47,7 @@ class IONCAMRVideoManager(
         val contentUri = fileHelper.getUriForFile(activity, activity.packageName + AUTHORITY, file)
         val intent = Intent(Intent.ACTION_VIEW)
         intent.setDataAndType(contentUri, mimeType)
-        intent.flags = Intent.FLAG_ACTIVITY_NO_HISTORY
-        intent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+        intent.flags = Intent.FLAG_ACTIVITY_NO_HISTORY or Intent.FLAG_GRANT_READ_URI_PERMISSION
         activity.startActivity(intent)
         onSuccess()
     }
