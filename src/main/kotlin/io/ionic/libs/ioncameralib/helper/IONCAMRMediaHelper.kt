@@ -29,7 +29,7 @@ class IONCAMRMediaHelper : IONCAMRMediaHelperInterface {
         if (activity != null && imageUri != null) {
             val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
             intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri)
-            intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+            intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION)
             val mPm: PackageManager = activity.packageManager
             if (intent.resolveActivity(mPm) != null) {
                 activity.startActivityForResult(
@@ -49,8 +49,8 @@ class IONCAMRMediaHelper : IONCAMRMediaHelperInterface {
         val safeActivity = activity ?: return null
         val safeUri = imageUri ?: return null
         val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri)
-        intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, safeUri)
+        intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION)
 
         return if (intent.resolveActivity(safeActivity.packageManager) != null) {
             intent
