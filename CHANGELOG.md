@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 The changes documented here do not include those from the original repository.
 
+## [1.0.2]
+
+### 2026-07-08
+
+- Fix: combine `FLAG_ACTIVITY_NO_HISTORY` and `FLAG_GRANT_READ_URI_PERMISSION` with `or` in `playVideo` to prevent the no-history flag from being silently overwritten ([RMET-5241](https://outsystemsrd.atlassian.net/browse/RMET-5241)).
+
 ## [1.0.1]
 
 ### 2026-04-27
