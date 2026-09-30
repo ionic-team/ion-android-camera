@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 The changes documented here do not include those from the original repository.
 
+## [Unreleased]
+
+### 2026-09-30
+
+- Fix: declare `junit` as `testImplementation` only. It was also an `implementation` dependency, so the published POM gave it `runtime` scope and every app using the library shipped JUnit and Hamcrest (395 classes, about 100 KB of APK) in its release build.
+
 ## [1.0.2]
 
 ### 2026-07-08
