@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 The changes documented here do not include those from the original repository.
 
+## [Unreleased]
+
+### 2026-10-14
+
+- Fix: catch the `SecurityException` thrown by `takePersistableUriPermission` in `IONCAMROpenPhotoPickerActivity` when the picker returns a URI without a persistable grant (seen on Android 11/12), so choosing from the gallery no longer crashes the app ([capacitor-camera#58](https://github.com/ionic-team/capacitor-camera/issues/58)).
+
 ## [1.0.2]
 
 ### 2026-07-08

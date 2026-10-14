@@ -114,7 +114,13 @@ class IONCAMROpenPhotoPickerActivity : ComponentActivity() {
 
     private fun makeUriPermissionPersistable(uri: Uri) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) { // only for Android >= 11
-            applicationContext.contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            try {
+                applicationContext.contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            } catch (e: SecurityException) {
+                // Some pickers (GMS-backported photo picker, OEM galleries on Android 11/12) hand back
+                // URIs with no persistable grant; the temporary read grant is enough to process the media.
+                Log.w("PhotoPicker", "Could not persist URI permission for $uri", e)
+            }
         }
     }
 
