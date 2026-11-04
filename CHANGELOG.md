@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 The changes documented here do not include those from the original repository.
 
+## [Unreleased]
+
+### 2026-10-30
+
+- Chore: Update dependencies and build tooling (AGP 8.13.0, androidx libraries, Material 1.13.0, gson, coroutines 1.9.0, test libraries).
+
 ## [1.0.2]
 
 ### 2026-07-08
