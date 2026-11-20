@@ -30,14 +30,14 @@ repositories {
 ### Basic Camera Operations
 
 ```kotlin
-import io.ionic.libs.ioncamera-android.manager.IONCAMRCameraManager
-import io.ionic.libs.ioncamera-android.manager.IONCAMRGalleryManager
-import io.ionic.libs.ioncamera-android.manager.IONCAMREditManager
-import io.ionic.libs.ioncamera-android.manager.IONCAMRVideoManager
-import io.ionic.libs.ioncamera-android.model.IONCAMRCameraParameters
-import io.ionic.libs.ioncamera-android.model.IONCAMREditParameters
-import io.ionic.libs.ioncamera-android.model.IONCAMRVideoParameters
-import io.ionic.libs.ioncamera-android.model.IONCAMRMediaType
+import io.ionic.libs.ioncameralib.manager.IONCAMRCameraManager
+import io.ionic.libs.ioncameralib.manager.IONCAMRGalleryManager
+import io.ionic.libs.ioncameralib.manager.IONCAMREditManager
+import io.ionic.libs.ioncameralib.manager.IONCAMRVideoManager
+import io.ionic.libs.ioncameralib.model.IONCAMRCameraParameters
+import io.ionic.libs.ioncameralib.model.IONCAMREditParameters
+import io.ionic.libs.ioncameralib.model.IONCAMRVideoParameters
+import io.ionic.libs.ioncameralib.model.IONCAMRMediaType
 
 class MainActivity : AppCompatActivity() {
 
