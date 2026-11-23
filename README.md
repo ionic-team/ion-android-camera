@@ -6,11 +6,13 @@ A modern, flexible and feature-rich camera and media library for Android apps. I
 
 ### Gradle
 
+> Replace ${version to use} below with the version you want to use. Check the Releases page for available versions.
+
 Add the following to your module's `build.gradle` file:
 
 ```groovy
 dependencies {
-    implementation 'io.ionic.libs:ioncameralib:1.0.0'
+    implementation 'io.ionic.libs:ioncamera-android:${version to use}'
 }
 ```
 
